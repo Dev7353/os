@@ -4,13 +4,12 @@
 CC=clang
 CFLAGS=-Wall -pedantic -Werror -g
 LDFLAGS=-lm
-
-all: hello
-
+objects := $(patsubst %.c,%,$(wildcard *.c))
+all: $(objects)
 %: %.c
-        $(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
 
 # CleanUp .......................................#
 
 clean:
-        rm -f *.o hello
+	rm -rf *.o $(objects) *.dSYM
