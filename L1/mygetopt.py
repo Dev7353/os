@@ -6,7 +6,14 @@ import logging
 
 
 def usage():
-    print("Help")
+    print("Usage: mygetopt.py [OPTION]\n")
+    print("     -v, --version      Outputs the git token of the commit")
+    print("     -h, --help         Outputs the git token of the commit")
+    print("     -o, --output       Outputs the git token of the commit")
+    print("     -p, --python       Outputs the git token of the commit")
+    print("     -s, --system       Outputs the git token of the commit")
+    print("     -c, --cpu          Outputs the git token of the commit")
+    print("     -m, --memory       Outputs the git token of the commit")
 
 
 def main():
@@ -30,7 +37,7 @@ def main():
             output += helper.get_gittoken()
         elif opt in ('-h', '--help'):
             # Help on possible parameters
-            output += usage()
+            output = usage()
         elif opt in ('-o', '--output'):
             # Outputs to file with FILENAME instead of the console
             output_file = arg
@@ -50,7 +57,6 @@ def main():
             # Summarizes all the entries in /proc/[pid]/statm on all listed
             # entries about running tasks
             break
-        if
 
 if __name__ == "__main__":
     main()
