@@ -1,0 +1,4 @@
+L1/__pycache__/
+*.log
+L1/ulMenuStack
+*.o
