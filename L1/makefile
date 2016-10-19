@@ -3,14 +3,15 @@
 ### .......generic Makefile .....................####
 CC=clang
 CFLAGS=-Wall -pedantic -Werror -g
-LDFLAGS=-lm
 SOURCES = $(wildcard *.c)
 OBJECTS = $(SOURCES:.c=.o)
+TARGET = ulMenuStack
 
-ulMenuStack: $(OBJECTS)
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
-
-# CleanUp .......................................#
+	./$@
 
 clean:
-	rm -rf *.o ulMenuStack *.dSYM
+	rm -rf *.o $(TARGET) *.dSYM
