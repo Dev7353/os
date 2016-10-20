@@ -34,24 +34,24 @@ def main():
     for opt, arg in options:
         if opt in ('-v', '--version'):
             # Outputs the git token of the commit
-            output += helper.get_gittoken()
+            print(helper.get_gittoken())
         elif opt in ('-h', '--help'):
             # Help on possible parameters
-            output = usage()
+            usage()
         elif opt in ('-o', '--output'):
             # Outputs to file with FILENAME instead of the console
             output_file = arg
         elif opt in ('-p', '--python'):
             # Outputs python-environment, then exits
-            output_file = "Python Version: " + helper.python_info()
+            print("Python Version: " + helper.python_info())
             sys.exit()
         elif opt in ('-s', '--system'):
             # Outputs system info, then exits
-            output_file = menu.pretty_print(helper.system_info())
+            menu.pretty_print(helper.system_info())
             sys.exit()
         elif opt in ('-c', '--cpu'):
             # Outputs CPU-info, then exits
-            output_file = menu.pretty_print_nested(helper.cpu_info())
+            menu.pretty_print_nested(helper.cpu_info())
             sys.exit()
         elif opt in ('-m', '--memory'):
             # Summarizes all the entries in /proc/[pid]/statm on all listed
