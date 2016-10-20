@@ -5,6 +5,8 @@ import shlex
 import os
 import resource
 
+pagesize = resource.getpagesize()
+
 
 def python_info():
     '''
@@ -138,23 +140,48 @@ def memory_sum():
     share = 0
     text = 0
     total = 0
-    pagesize = resource.getpagesize()
+    data = 0
     for root, dirs, files in os.walk('/proc/'):
         for file in files:
             if file.endswith('statm'):
                 statm = open(os.path.join(root, file))
                 stats = [int(i) for i in statm.read().split()]
+
                 size += stats[0] / pagesize
                 resident += stats[1] / pagesize
                 share += stats[2] / pagesize
                 text += stats[3] / pagesize
-                total += (size + resident + share + text + stats[5]) / pagesize
+                data += stats[5] / pagesize
+            total = (size + resident + share + text + data)
     return OrderedDict([('size', str(round(size, 2)) + " MB"),
-                        ('resident', str(round(resident)) + " MB"),
-                        ('share', str(round(share)) + " MB"),
-                        ('text', str(round(text)) + " MB"),
-                        ('total', str(round(total)) + " MB")])
+                        ('resident', str(round(resident, 2)) + " MB"),
+                        ('share', str(round(share, 2)) + " MB"),
+                        ('text', str(round(text, 2)) + " MB"),
+                        ('SUM', str(round(total, 2)) + " MB")])
 
 
-def memory_top():
-    return
+def memory_top(arg):
+    memory_list = []
+    for root, dirs, files in os.walk('/proc/'):
+        for file in files:
+            # Don't visit subtasks folders
+            if 'task' in dirs:
+                dirs.remove('task')
+            if file.endswith('statm'):
+                statm = open(os.path.join(root, file))
+                stats = [int(i) for i in statm.read().split()]
+                if(arg == 'size'):
+                    size = round(stats[0] / pagesize, 2)
+                elif (arg == 'resident'):
+                    size = round(stats[1] / pagesize, 2)
+                elif (arg == 'share'):
+                    size = round(stats[2] / pagesize, 2)
+                elif (arg == 'text'):
+                    size = round(stats[3] / pagesize, 2)
+
+                # Gets the process name
+                process_name_file = open(os.path.join(root, 'comm'))
+                process_name = process_name_file.read()
+
+                memory_list.append((process_name.strip(), size))
+    return (sorted(memory_list, key=lambda tup: tup[1], reverse=True))
