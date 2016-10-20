@@ -3,6 +3,8 @@ from collections import OrderedDict
 import subprocess
 import shlex
 import os
+import resource
+
 
 def python_info():
     '''
@@ -136,21 +138,22 @@ def memory_sum():
     share = 0
     text = 0
     total = 0
+    pagesize = resource.getpagesize()
     for root, dirs, files in os.walk('/proc/'):
         for file in files:
             if file.endswith('statm'):
                 statm = open(os.path.join(root, file))
                 stats = [int(i) for i in statm.read().split()]
-                size += stats[0]
-                resident += stats[1]
-                share += stats[2]
-                text += stats[3]
-                total += size + resident + share + text + stats[5]
-    return OrderedDict([('size', str(size)),
-                        ('resident', str(resident)),
-                        ('share', str(share)),
-                        ('text', str(text)),
-                        ('total', str(total))])
+                size += stats[0] / pagesize
+                resident += stats[1] / pagesize
+                share += stats[2] / pagesize
+                text += stats[3] / pagesize
+                total += (size + resident + share + text + stats[5]) / pagesize
+    return OrderedDict([('size', str(round(size, 2)) + " MB"),
+                        ('resident', str(round(resident)) + " MB"),
+                        ('share', str(round(share)) + " MB"),
+                        ('text', str(round(text)) + " MB"),
+                        ('total', str(round(total)) + " MB")])
 
 
 def memory_top():
