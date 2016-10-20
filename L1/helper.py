@@ -2,7 +2,7 @@ import platform
 from collections import OrderedDict
 import subprocess
 import shlex
-
+import os
 
 def python_info():
     '''
@@ -131,7 +131,26 @@ def get_gittoken():
 
 
 def memory_sum():
-    return
+    size = 0
+    resident = 0
+    share = 0
+    text = 0
+    total = 0
+    for root, dirs, files in os.walk('/proc/'):
+        for file in files:
+            if file.endswith('statm'):
+                statm = open(os.path.join(root, file))
+                stats = [int(i) for i in statm.read().split()]
+                size += stats[0]
+                resident += stats[1]
+                share += stats[2]
+                text += stats[3]
+                total += size + resident + share + text + stats[5]
+    return OrderedDict([('size', str(size)),
+                        ('resident', str(resident)),
+                        ('share', str(share)),
+                        ('text', str(text)),
+                        ('total', str(total))])
 
 
 def memory_top():
