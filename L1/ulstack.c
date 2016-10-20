@@ -1,43 +1,42 @@
 # include "ulstack.h"
 # include <stdlib.h>
 # include <stdio.h>
-# define STACK_CAPACITY 4
+# include <assert.h>
 
-// Should i set a tag on the master if i'm done?
+int stack_created = 0;
+
 void ULStackNew(ulstack *s)
 {
     s->elems = (unsigned long *) malloc(STACK_CAPACITY * sizeof(unsigned long));
 
     if(s->elems == NULL)
     {
-        fprintf(stderr, "Memory allocation failure!\n");
-        exit(1);
+        assert(s->elems != NULL);
     }
-    s->logLength = 0;
-    s->allocLength = 4;
+    s->logLength = 0; 
+    s->allocLength = STACK_CAPACITY;
     
 }
 void ULStackDispose(ulstack *s)
 {
+    assert(s->allocLength != 0);
     free(s->elems);
-    free(s);
+    s->allocLength = 0;
+    s->logLength = 0;
+    
 }
 void ULStackPush(ulstack *s, unsigned long value)
 {
-    // if logLenght  == allocLength then extend the elems pointer allocation #realloc
     if(s->logLength == s->allocLength)
     {
-        unsigned long *tmp = (unsigned long *) realloc(s->elems, STACK_CAPACITY*2* sizeof(unsigned long));
-        if(tmp == NULL)
-        {
-            fprintf(stderr, "Memory reallocation failure!\n");
-            exit(1);
-        }
+        s->elems = (unsigned long *)realloc(s->elems, STACK_CAPACITY*2* sizeof(unsigned long));
+        assert(s->elems != NULL);
     }
     
-    // it is forbidden to push more than 4 elements but it is possible. why? Because the higher indices are not 'controlled'
     s->elems[s->logLength]= value;
     ++s->logLength;
+    
+    assert(s->elems[s->logLength-1] == value); // test bevor logLength was incremented.
 }
 unsigned long ULStackPop(ulstack *s)
 {

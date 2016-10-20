@@ -3,6 +3,8 @@
 
 # define STACK_CAPACITY 4
 
+extern int stack_created;
+
 typedef struct {
     unsigned long *elems;
     unsigned int logLength;
