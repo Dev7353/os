@@ -13,16 +13,19 @@ def menu_options():
 
 
 def pretty_print(d):
-
+    output = ""
     for key in d.keys():
-        output = key + "\t" + d[key]
-        print(output.expandtabs(30))
+        output += key + "\t" + d[key] + "\n"
+        # print(output.expandtabs(30))
+    output = output[:-1]
+    return output
 
 
 def pretty_print_nested(d):
+    output = ""
     for k in d.keys():
-        pretty_print(d[k])
-        print("")
+        output += pretty_print(d[k])
+    return output
 
 
 def main():
@@ -43,9 +46,9 @@ def main():
             if entry == '1':
                 print("Python Version: " + python_info())
             elif entry == '2':
-                pretty_print(system_info())
+                print(pretty_print(system_info()).expandtabs(30))
             elif entry == '3':
-                pretty_print_nested(cpu_info())
+                print(pretty_print_nested(cpu_info()))
             else:
                 print("Program exit.")
                 sys.exit()
