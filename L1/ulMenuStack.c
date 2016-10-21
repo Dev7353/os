@@ -85,6 +85,11 @@ int main(void)
                 stack_created = 0;
                 break;
             case 6:
+		if(stack->elems != NULL)
+		{
+		printf("Please dispose the current Stack. Otherwise you cannot quit the program.\n");
+		continue;
+		}
                 free(stack);
                 return 0;
                 
