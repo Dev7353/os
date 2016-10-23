@@ -4,8 +4,12 @@ import subprocess
 import shlex
 import os
 import resource
+import logging
 
-pagesize = resource.getpagesize()
+logging.basicConfig(filename='mygetopt.log', level=logging.INFO)
+
+
+pagesize = resource.getpagesize()  # Size of the page needed to convert to MB
 
 
 def python_info():
@@ -129,12 +133,28 @@ def get_proc_cpuinfo_as_list():
 
 
 def get_gittoken():
-    git_token = subprocess.check_output(
-        ["git", "rev-parse", "--short", "HEAD"])
-    return git_token.strip()
+    '''
+    :return: The git token of the current commit as a string.
+
+    Returns and error if no git revision was found.
+    '''
+    try:
+        git_token = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"])
+        return git_token.strip()
+    except subprocess.CalledProcessError:
+        git_token = "No git revision was found. Please create a repository."
+        logging.error()
 
 
 def memory_sum():
+    '''
+    :return: A dictionary with the summed properties of
+        all the statm entries in /proc/.
+
+    Goes through all the folders (including subfolders) and
+    adds up all the sizes.
+    '''
     size = 0
     resident = 0
     share = 0
@@ -161,6 +181,13 @@ def memory_sum():
 
 
 def memory_top(arg):
+    '''
+    :param arg: Argument from the command line that is the category
+    :return: The top ten list of memory users in that category
+
+    Goes through all the task folders (excluding task folders)
+    and creates the list.
+    '''
     memory_list = []
     for root, dirs, files in os.walk('/proc/'):
         for file in files:
@@ -179,9 +206,9 @@ def memory_top(arg):
                 elif (arg == 'text'):
                     size = round(stats[3] / pagesize, 2)
 
-                # Gets the process name
+                # Gets the process name from the comm file
                 process_name_file = open(os.path.join(root, 'comm'))
                 process_name = process_name_file.read()
 
                 memory_list.append((process_name.strip(), size))
-    return (sorted(memory_list, key=lambda tup: tup[1], reverse=True))
+    return (sorted(memory_list, key=lambda tup: tup[1], reverse=True)[:10])
