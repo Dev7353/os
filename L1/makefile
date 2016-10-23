@@ -1,24 +1,22 @@
+# Based on lecture Systemprograming Chapter 5.
 CC=clang
-CFLAGS=-Wall -pedantic -Werror -g
+CFLAGS=-Wall -pedantic -Werror -g 			# Warns strict on possible failures and check if the ansi c standard is used
 
 TARGET = ulMenuStack
 OBJECTS = ulstack.o
 SOURCES = $(TARGET).c $(OBJECTS:.o=.c)
-HEADERS = $(OBJECTS:.o=.h)
+HEADERS = $(OBJECTS:.o=.h)	 
 
-%.o: %.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-
-.PHONY: all clean
-all: $(TARGET)
+.PHONY: all clean					# Pseudotargets to call explicit functions instead of running the whole makefile
+all: $(TARGET)						# All possible endresults
 
 clean:
-	$(RM) $(TARGET) $(TARGET).o $(OBJECTS) depend
+	$(RM) $(TARGET) $(TARGET).o $(OBJECTS) depend 	# Delete the Target program, the object files and the depend file
 
-depend: $(SOURCES) $(HEADERS)
-	$(CC) $(CPPFLAGS) -MM $(SOURCES) > $@
+depend: $(SOURCES) $(HEADERS)				# Definition of dependency rules. After simple changes the makefile build just the changed parts 
+	$(CC) $(CFLAGS) -MM $(SOURCES) > $@
 
-$(TARGET): $(TARGET).o $(OBJECTS)
-	$(CC) $(LDFLAGS) $^ -o $@
+$(TARGET): $(TARGET).o $(OBJECTS)			# The Target consists of the object files 
+	$(CC) $(LDFLAGS) $^ -o $@			# Links the object files and put the result in the target
 
 include depend
