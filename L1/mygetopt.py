@@ -38,7 +38,7 @@ def print_list(list):
 
 
 def main():
-    # Basic structure taken from https://docs.python.org/3.3/library/getopt.html
+    # Basic structure taken from https://docs.python.org/3.3/library/getopt
     try:
         options, args = getopt.getopt(sys.argv[1:], 'vho:pscm:', ['version',
                                                                   'help',
@@ -50,7 +50,7 @@ def main():
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
-        logging.error("\n" + err + "\n")
+        logging.error("\n" + str(err) + "\n")
         usage()
         sys.exit(2)
     output = ""
@@ -91,7 +91,7 @@ def main():
                 output += "\nNot a valid argument.\n" + usage() + "\n"
                 logging.error("\n" + output + "\n")
 
-    output = output[1:-1]  # Don't print linebreaks
+    output = output[1:-1]  # Don't print linebreaks at beginning and end
     if(output_file is None):
         print(output.expandtabs(30))
     else:
