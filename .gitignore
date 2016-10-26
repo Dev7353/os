@@ -2,6 +2,6 @@ L1/__pycache__/
 *.log
 L1/ulMenuStack
 .DS_Store
-L1/.DS_Store
-L1/L1.xcworkspace/
+L*/.DS_Store
+L*/L*.xcworkspace/
 *.pyc
