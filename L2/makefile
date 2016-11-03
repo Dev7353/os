@@ -11,7 +11,7 @@ HEADERS = $(OBJECTS:.o=.h)
 all: $(TARGET)						# All possible endresults
 
 clean:
-	$(RM) $(TARGET) $(TARGET).o $(OBJECTS) depend 	# Delete the Target program, the object files and the depend file
+	$(RM) $(TARGET) $(TARGET).o $(OBJECTS) ids depend 	# Delete the Target program, the object files and the depend file
 
 depend: $(SOURCES) $(HEADERS)				# Definition of dependency rules. After simple changes the makefile build just the changed parts 
 	$(CC) $(CFLAGS) -MM $(SOURCES) > $@
