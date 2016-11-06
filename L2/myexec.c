@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 	/*create list of arguments from the agurments*/
 	
 	arguments = NULL;
-	arguments = (char**) malloc((argc-1) * sizeof(char*));
+	arguments = (char**) malloc((argc) * sizeof(char*));
 	if(arguments == NULL)
 	{
 			return 1;
@@ -40,7 +40,6 @@ int main(int argc, char **argv)
 	
 	for(i = 1; i < argc; ++i)
 	{
-		/*printf("Lenght of %s arg %lu\n", argv[i], strlen(argv[i]));*/
 		arguments[j] = (char*) malloc(strlen(argv[i])+1 * sizeof(char));
 		if(arguments[j] == NULL)
 		{
@@ -50,6 +49,9 @@ int main(int argc, char **argv)
 		strcpy(arguments[j], argv[i]);
 		++j;
 	}
+	
+	/*last argument needs null pointer for termination. See [man execv]*/
+	arguments[argc-1] = (void*) NULL;
 
 	/*create child and execute program with arguments*/
 	if(argc == 1)
