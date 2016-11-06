@@ -8,7 +8,8 @@
 
 int main(int argc, char **argv)
 {
-	int status, pid, w, i, j;
+	int status, pid, i, j;
+	/*Only support for executables in /bin/*/
 	char *prefix = "/bin/";
 	char *bin = argv[1];
 	char **arguments;
@@ -21,6 +22,7 @@ int main(int argc, char **argv)
 	
 	if(executeable == NULL)
 	{
+			perror("Memory allocation failed.");
 			return 1;
 	}
 	
@@ -33,6 +35,7 @@ int main(int argc, char **argv)
 	arguments = (char**) malloc((argc) * sizeof(char*));
 	if(arguments == NULL)
 	{
+			perror("Memory allocation failed.");
 			return 1;
 	}
 	
@@ -43,6 +46,7 @@ int main(int argc, char **argv)
 		arguments[j] = (char*) malloc(strlen(argv[i])+1 * sizeof(char));
 		if(arguments[j] == NULL)
 		{
+			perror("Memory allocation failed.");
 			return 1;
 		}
 		
@@ -52,8 +56,9 @@ int main(int argc, char **argv)
 	
 	/*last argument needs null pointer for termination. See [man execv]*/
 	arguments[argc-1] = (void*) NULL;
-
+	
 	/*create child and execute program with arguments*/
+
 	if(argc == 1)
 	{
 			perror("-- No Argument --\n");
@@ -72,13 +77,25 @@ int main(int argc, char **argv)
 	{
 		/*chidprocess is running*/
 
-		execv(executeable, arguments);
+		return execv(executeable, arguments);
+		
 	}
 	else
 	{
 		/*parentprocess is running*/	
-		w = wait(&status);
-		printf("Status: %d\n", status);
+		wait(&status);	
+		
+		if (WIFEXITED(status))
+		{
+			if(status != 0)
+			{
+					printf("Exec Fehlgeschlagen. Das Programm %s beendet mit Status %d.\n", argv[1], WEXITSTATUS(status));
+			}
+			else
+			{
+					printf("Beendet mit Status %d.\n", WEXITSTATUS(status));
+			}
+		}
 	}
 	
 	/*free memory*/
