@@ -6,7 +6,7 @@
 
 extern int stack_created;
 /*http://stackoverflow.com/questions/1921539/using-boolean-values-in-c*/
-typedef int bool
+typedef int bool;
 
 typedef struct {
     void *elems;
