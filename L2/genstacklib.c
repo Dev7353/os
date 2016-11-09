@@ -1,11 +1,11 @@
-# include "ulstack.h"
-# include <stdlib.h>
-# include <stdio.h>
-# include <assert.h>
+#include "genstackstack.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <assert.h>
 
 int stack_created = 0;
 
-void ULStackNew(ulstack *s)
+void GenStackNew(genStack *s, int elemSize, void(*freefn)(void*))
 {
     s->elems = (unsigned long *) malloc(STACK_CAPACITY * sizeof(unsigned long));
     assert(s->elems != NULL);
@@ -14,7 +14,7 @@ void ULStackNew(ulstack *s)
     s->allocLength = STACK_CAPACITY;
     
 }
-void ULStackDispose(ulstack *s)
+void GenStackDispose(genStack *s)
 {
     assert(s->allocLength != 0);
     free(s->elems);
@@ -23,7 +23,7 @@ void ULStackDispose(ulstack *s)
     s->logLength = 0;
     
 }
-void ULStackPush(ulstack *s, unsigned long value)
+void GenStackPush(genStack *s, const void *elemAddr)
 {
     if(s->logLength == s->allocLength)
     {
@@ -35,14 +35,15 @@ void ULStackPush(ulstack *s, unsigned long value)
     s->logLength++;
     
 }
-unsigned long ULStackPop(ulstack *s)
+int GenStackPop(genStack *s, const void *elemAddr)
 {
     unsigned long value = s->elems[s->logLength-1];
     s->logLength--;
     
     return value;
 }
-unsigned int GetULStackNumberOfElements(ulstack *s)
+bool GenStackEmpty(const genStack *s)
 {
-    return s->logLength;
+	return true;
 }
+
