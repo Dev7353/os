@@ -8,7 +8,7 @@ int stack_created = 0;
 
 void GenStackNew(genStack *s, int elemSize, void(*freefn)(void*))
 {
-    s->elems = malloc(GenStackInitialAllocationSize * elemSize	);
+    s->elems = malloc(GenStackInitialAllocationSize * elemSize);
     assert(s->elems != NULL);
     
     s->elemSize = elemSize;
@@ -39,22 +39,18 @@ void GenStackPush(genStack *s, const void *elemAddr)
     printf("Adress from genstack: %08x\n", (int)elemAddr);*/
     
     
-    char *ptr1 = (char*) *(&s->elems + (s->logLength * s->elemSize));
+    char *ptr1 = (char*) *(&s->elems + s->logLength * s->elemSize);
     char *ptr2 = (char*) elemAddr;
     
-    printf("INhalt von elemAddr: %i\n", (int) *ptr2);
-    char *ptr;
-    ptr = (char*) malloc(sizeof(int));
-    assert(ptr != NULL);
-    ptr[0] = ptr2[0];
-    ptr[1] = ptr2[1];
-    ptr[2] = ptr2[2];
+    for(int i = 0; i  < s->elemSize; ++i)
+    {
+			ptr1[i] = ptr2[i];
+	}
+
     
-    ptr1 = ptr;
+    //printf("ptr1 %i\n", (int) *ptr1);
+    //printf("ptr2 %i\n", (int) *ptr2);
     
-    int *h = (int*) ptr;
-    printf(">> %i\n", *h);
-        
     s->logLength++;
 }
 void GenStackPop(genStack *s, void *elemAddr)
