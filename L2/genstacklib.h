@@ -13,10 +13,10 @@ typedef struct {
     int elemSize;
     int logLength;
     int allocLength;
-    void (*free)(void*);
+    void (*freefn)(void*);
 } genStack;
 
-void GenStackNew(genStack *s, int elemSize, void (*free)(void*));
+void GenStackNew(genStack *s, int elemSize, void (*freefn)(void*));
 void GenStackDispose(genStack *s);
 void GenStackPush(genStack *s, const void *elemAddr);
 void GenStackPop(genStack *s, void *elemAddr);
