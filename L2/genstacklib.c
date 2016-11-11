@@ -30,35 +30,33 @@ void GenStackPush(genStack *s, const void *elemAddr)
 {
     if(s->logLength == s->allocLength)
     {
-        s->elems = (void *) realloc(s->elems, s->allocLength * 2 *  s->elemSize);
+        s->elems = realloc(s->elems, s->allocLength * 2 *  s->elemSize);
 		s->allocLength *= 2;
 		assert(s->elems != NULL);
     }
-    
-    /*printf("Adress from genstack: %p\n", (void*)elemAddr);
-    printf("Adress from genstack: %08x\n", (int)elemAddr);*/
-    
-    
+   
     char *ptr1 = (char*) *(&s->elems + s->logLength * s->elemSize);
     char *ptr2 = (char*) elemAddr;
     
-    for(int i = 0; i  < s->elemSize; ++i)
-    {
-			ptr1[i] = ptr2[i];
-	}
-
-    
-    //printf("ptr1 %i\n", (int) *ptr1);
-    //printf("ptr2 %i\n", (int) *ptr2);
-    
+	char helper[s->elemSize];
+	
+	for(int i = 0; i< s->elemSize; ++i)
+		helper[i] = ptr2[i];
+	
+	//umkopieren von helper nach ptr1
+	
+	ptr1 = helper;
+	
+	int *erg = (int*) ptr1;
+	printf("Debug: Genstacklib.c pointer has value %i\n", *erg);
     s->logLength++;
 }
 void GenStackPop(genStack *s, void *elemAddr)
 {
-	elemAddr = &(*(&s->elems + (s->logLength * s->elemSize - 1)));
-	*(&s->elems + (s->logLength * s->elemSize - 1)) = NULL;
+	
+	 
     s->logLength--;
-    
+    exit(1);
 }
 bool GenStackEmpty(const genStack *s)
 {
