@@ -25,6 +25,8 @@ void GenStackDispose(genStack *s)
 	{
 			free(ptr1+i);
 	}
+	
+	free(ptr1);
     
 }
 void GenStackPush(genStack *s, const void *elemAddr)
