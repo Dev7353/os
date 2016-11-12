@@ -1,8 +1,16 @@
+#! usr/bin/env python3
+import configparser
+
+config = configparser.ConfigParser()
+config.read("forksqrt.cfg")
+
+start = config.getint("sqrt2", "start")
+loops = config.getint("sqrt2", "loops")
+tolerance = config.getfloat("sqrt2", "tolerance")
+numbers = config.get("sqrt2", "numbers").split(',')
+
 
 def sqrt2(value, debug):
-    start = 1
-    loops = 100
-    tolerance = 1.e-14
     xn = start
     # Assert input is a number and bigger than 0
     assert isinstance(value, int), 'Input must be a number!'
@@ -22,7 +30,8 @@ def sqrt2(value, debug):
 
 
 def main():
-    sqrt2(21213124324233, True)
+    for i in range(0, len(numbers)):
+        sqrt2(int(numbers[i]), True)
 
 if __name__ == "__main__":
     main()
