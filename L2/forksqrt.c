@@ -33,6 +33,7 @@ static int handler(void* sqrt2, const char* section, const char* name,
 int main(void)
 {
 	configuration config;
+	pid_t pid;
 
     if (ini_parse("forksqrt.cfg", handler, &config) < 0) {
         printf("Can't load config'\n");
@@ -40,5 +41,11 @@ int main(void)
     }
     printf("Config loaded from 'forksqrt.cfg': start=%d, loops=%d, tolerance=%.14f\n",
         config.start, config.loops, config.tolerance);
+    
+    pid = fork();
+    if(pid == 0)
+    {
+        execlp("python3", "python3", "forksqrt.py", "", (char*) NULL);
+    }
     return 0;
 }
