@@ -1,9 +1,7 @@
 CC=clang
 CFLAGS=-Wall -pedantic -Werror -g
 
-EXECUTIVES=myexec forkzombie gentest1 gentest2
-
-TESTS_SOURCE = gentest1.c gentest2.c
+EXECUTIVES=myexec forkzombie gentest1 gentest2 gentest3
 
 .PHONY: all clean preparation genstacklib gentest	
 
@@ -26,3 +24,6 @@ gentest:
 	
 	$(CC) $(CFLAGS) -c gentest2.c
 	$(CC) gentest2.o -L. -lgenstacklib -o gentest2
+	
+	$(CC) $(CFLAGS) -c gentest3.c
+	$(CC) gentest3.o -L. -lgenstacklib -o gentest3
