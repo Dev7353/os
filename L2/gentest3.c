@@ -10,6 +10,8 @@ typedef struct
 {
 	char *name;
 	int age;
+
+
 } Person;
 
 int main (void)
@@ -42,12 +44,12 @@ int main (void)
 		printf("Push Mr.%s on Stack\n", person.name);
 	}
 	
-	Person popped;
+	Person *popped = (Person*) malloc(sizeof(Person));
 	for(int i = 0; i < 3; ++i)
 	{
-		GenStackPop(&structStack, &popped);
-		printf("Byebye %i Mr.%s\n",popped.age, popped.name);
-		free(&popped);
+		GenStackPop(&structStack, popped);
+		printf("Byebye %i Mr.%s\n",popped->age, popped->name);
+		free(popped->name);
 	}
 
 	GenStackDispose(&structStack);
@@ -57,6 +59,6 @@ int main (void)
 
 void freefn (void *element)
 {
-	
-	free (((Person *) (element))->name);
+	Person *helper = (Person*) element;
+	free (helper->name);
 }
