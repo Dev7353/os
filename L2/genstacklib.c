@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <string.h>
 
-int stack_created = 0;
+bool stack_created = false;
 
 void GenStackNew(genStack *s, int elemSize, void(*freefn)(void*))
 {
@@ -16,21 +16,30 @@ void GenStackNew(genStack *s, int elemSize, void(*freefn)(void*))
     s->allocLength = GenStackInitialAllocationSize;
     s->freefn = freefn;
     
+    stack_created = true;
 }
 void GenStackDispose(genStack *s)
 {
-	char *ptr1 = (char*) s->elems;
-	int i;
-	for(i = 0; i < s->logLength; ++i)
-	{
-			free(ptr1+i);
-	}
+	assert(stack_created == true);
 	
-	free(ptr1);
-    
+	if (s->freefn != NULL)
+	{
+		while(GenStackEmpty(s) == false)
+		{
+			void *leftOnStack = malloc(s->elemSize);
+			assert(leftOnStack != NULL);
+			
+			GenStackPop(s, leftOnStack);
+			s->freefn(leftOnStack);
+			free(leftOnStack);
+		}	
+	}
+	free (s->elems);
 }
 void GenStackPush(genStack *s, const void *elemAddr)
 {
+	assert(stack_created == true);
+	
     if(s->logLength == s->allocLength)
     {
         s->elems = realloc(s->elems, s->allocLength * 2 *  s->elemSize);
@@ -49,23 +58,28 @@ void GenStackPush(genStack *s, const void *elemAddr)
 }
 void GenStackPop(genStack *s, void *elemAddr)
 {
+	assert(stack_created == true);
+	
+	 s->logLength--;
 	char *ptr1 = (char*) s->elems;
-    ptr1 += (s->logLength-1) * s->elemSize; 
+    ptr1 += (s->logLength) * s->elemSize; 
     
     char *ptr2 = (char*) elemAddr;
     
     strncpy(ptr2, ptr1, s->elemSize);	
 	
-    s->logLength--;
 }
 bool GenStackEmpty(const genStack *s)
 {
+	assert(stack_created == true);
+	
 	if(s->logLength == 0)
 	{
 		return true;
 	}
 	else
 	{
+		
 		return false;
 	}
 }

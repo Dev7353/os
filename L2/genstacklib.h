@@ -1,12 +1,11 @@
 #ifndef GENSTACKLIB_H
 #define GENSTACKLIB_H
 #define GenStackInitialAllocationSize 4
-#define true 1
-#define false 0
-
-extern int stack_created;
+#define true 0
+#define false 1
 /*http://stackoverflow.com/questions/1921539/using-boolean-values-in-c*/
 typedef int bool;
+extern bool stack_created;
 
 typedef struct {
     void *elems;
