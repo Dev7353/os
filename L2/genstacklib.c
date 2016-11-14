@@ -52,7 +52,7 @@ void GenStackPush(genStack *s, const void *elemAddr)
     
     char *ptr2 = (char*) elemAddr;
     
-    strncpy(ptr1, ptr2, s->elemSize);	
+    memmove(ptr1, ptr2, s->elemSize);	
 
     s->logLength++;
 }
@@ -66,7 +66,7 @@ void GenStackPop(genStack *s, void *elemAddr)
     
     char *ptr2 = (char*) elemAddr;
     
-    strncpy(ptr2, ptr1, s->elemSize);	
+    memmove(ptr2, ptr1, s->elemSize);	
 	
 }
 bool GenStackEmpty(const genStack *s)
