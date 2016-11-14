@@ -41,16 +41,18 @@ int main (void)
 		}
 		
 		GenStackPush(&structStack, &person);
-		printf("Push Mr.%s on Stack\n", person.name);
+		printf("Push %s on Stack\n", person.name);
 	}
 	
 	Person *popped = (Person*) malloc(sizeof(Person));
 	for(int i = 0; i < 3; ++i)
 	{
 		GenStackPop(&structStack, popped);
-		printf("Byebye %i Mr.%s\n",popped->age, popped->name);
+		printf("Popped %i %s\n",popped->age, popped->name);
 		free(popped->name);
+		
 	}
+	free(popped);
 
 	GenStackDispose(&structStack);
 	
