@@ -1,15 +1,31 @@
 CC=clang
-CFLAGS=-Wall -ansi -pedantic -Werror -g 
+CFLAGS=-Wall -pedantic -Werror -g
 
-SOURCES = $(TARGET).c $(OBJECTS:.o=.c)
-HEADERS = $(OBJECTS:.o=.h)	 
+EXECUTIVES=myexec forkzombie gentest1 gentest2 gentest3 forksqrt
 
-.PHONY: all clean	
-all: forkzombie myexec gentest1 forksqrt
+.PHONY: all clean preparation genstacklib gentest	
+
+all: preparation  genstacklib gentest forksqrt
+
 clean:
-	$(RM) forkzombie myexec forksqrt $(TARGET).o $(OBJECTS) ids
+	$(RM) -rf *.o *.a ids *.dSYM $(EXECUTIVES)
 
-forkzombie: forkzombie.c
-myexec: myexec.c
-gentest1: gentest1
+preparation: 
+	$(CC) $(CFLAGS) myexec.c -o myexec
+	$(CC) $(CFLAGS) forkzombie.c -o forkzombie
+
+genstacklib:
+	$(CC) $(CFLAGS) -c -fpic genstacklib.c
+	ar rs lib$@.a genstacklib.o
+	 
+gentest: 
+	$(CC) $(CFLAGS) -c gentest1.c
+	$(CC) gentest1.o -L. -lgenstacklib -o gentest1
+	
+	$(CC) $(CFLAGS) -c gentest2.c
+	$(CC) gentest2.o -L. -lgenstacklib -o gentest2
+	
+	$(CC) $(CFLAGS) -c gentest3.c
+	$(CC) gentest3.o -L. -lgenstacklib -o gentest3
+
 forksqrt: forksqrt.c inih/ini.c
