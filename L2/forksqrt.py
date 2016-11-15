@@ -6,9 +6,9 @@ import sys
 config = configparser.ConfigParser()
 config.read("forksqrt.cfg")
 
-start = config.getint("sqrt2", "start")
-loops = config.getint("sqrt2", "loops")
-tolerance = config.getfloat("sqrt2", "tolerance")
+start = 0
+loops = 0
+tolerance = 0.0
 numbers = 0
 
 
@@ -28,7 +28,7 @@ def sqrt2(value, debug):
             break
         xn = s
     print("After {} iterations, s = {:.14f}".format(i+1, xn))
-    return s
+    return xn
 
 
 def main():
@@ -42,8 +42,11 @@ def main():
     args = args.split('|')
     print("CLEAN " + str(args))
 
+    global start
     start = int(args[0])
+    global loops
     loops = int(args[1])
+    global tolerance
     tolerance = float(args[2])
     numbers = args[3].split(",")
     results = []
@@ -54,6 +57,7 @@ def main():
     test.close()
     w2 = os.fdopen(w1, 'w')
     w2.write(str(results))
+    w2.close()
     sys.exit(0)
 
 if __name__ == "__main__":

@@ -22,16 +22,12 @@ static int handler(void* sqrt2, const char* section, const char* name,
     #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
     if (MATCH("sqrt2", "start")) {
         pconfig->start = strdup(value);
-        //free((void*)value);
     } else if (MATCH("sqrt2", "loops")) {
         pconfig->loops = strdup(value);
-        //free((void*)value);
     } else if (MATCH("sqrt2", "tolerance")) {
         pconfig->tolerance = strdup(value);
-        //free((void*)value);
     } else if (MATCH("sqrt2", "numbers")) {
     	pconfig->numbers = strdup(value);
-        //free((void*)value);
     } else {
         return 0;  /* unknown section/name, error */
     }
@@ -42,17 +38,19 @@ int main(void)
 {
 	configuration config;
 	pid_t pid;
-    int writeToChild[2]; 
-    int readFromChild[2];
-    char readbuffer[20];
+    int writeToChild[2]; // First pipe that sends the data to the child
+    int readFromChild[2]; // Second pipe that reads the results from the child
+    char readbuffer[1000] = "";
+    //char result[60];
+    char *buffer;
 
     if (ini_parse("forksqrt.cfg", handler, &config) < 0) {
         printf("Can't load config'\n");
         return 1;
     }
-    printf("Config loaded from 'forksqrt.cfg': start=%s, loops=%s, tolerance=%s, numbers=%s",
+    /*printf("Config loaded from 'forksqrt.cfg': start=%s, loops=%s, tolerance=%s, numbers=%s",
         config.start, config.loops, config.tolerance, config.numbers);
-    printf("\n");
+    printf("\n");*/
     
     pipe(writeToChild);
     pipe(readFromChild);
@@ -69,7 +67,7 @@ int main(void)
     close(writeToChild[0]);
     close(readFromChild[1]);
     
-    char *buffer = (char*) malloc(sizeof(config) + 3);
+    buffer = (char*) malloc(sizeof(config) + 3);
     
     strcpy(buffer, config.start);
     strcat(buffer, "|");
@@ -79,11 +77,12 @@ int main(void)
     strcat(buffer, "|");
     strcat(buffer, config.numbers);
     
-    printf("BUFFER %s\n", buffer);
+    //printf("BUFFER %s\n", buffer);
     
     write(writeToChild[1], buffer, strlen(buffer));
     read(readFromChild[0], readbuffer, sizeof(readbuffer));
     printf("Results: %s\n", readbuffer);
+    printf("\n");
     wait(NULL);
 
     free(buffer);
