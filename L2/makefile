@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-Wall -ansi -pedantic -Werror -g 
+CFLAGS=-Wall -pedantic -Werror -g 
 
 SOURCES = $(TARGET).c $(OBJECTS:.o=.c)
 HEADERS = $(OBJECTS:.o=.h)	 

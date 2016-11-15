@@ -4,6 +4,7 @@
 # include <string.h>
 # include <unistd.h>
 # include "inih/ini.h"
+# include <sys/wait.h>
 
 typedef struct
 {
@@ -38,6 +39,10 @@ int main(void)
 	configuration config;
 	pid_t pid;
 	int i;
+    int writeToChild[2]; 
+    int readFromChild[2];
+    char string[] = "Hello, world!\n";
+    char readbuffer[80];
 
     if (ini_parse("forksqrt.cfg", handler, &config) < 0) {
         printf("Can't load config'\n");
@@ -50,10 +55,29 @@ int main(void)
     }
     printf("\n");
     
+    pipe(writeToChild);
+    pipe(readFromChild);
     pid = fork();
     if(pid == 0)
     {
-        execlp("python3", "python3", "forksqrt.py", "", (char*) NULL);
+        //printf("%d\n", writeToChild[1]);
+        close(writeToChild[1]);
+        close(readFromChild[0]);
+        read(writeToChild[0], readbuffer, sizeof(readbuffer));
+        //printf("String: %s\n", readbuffer);
+        //char *argument = "./forksqrt.py";
+        char fd0[20], fd1[20];
+        snprintf(fd0, 20, "%d", writeToChild[0]);
+        snprintf(fd1, 20, "%d", readFromChild[1]);
+        char *python[] = {"python3", "forksqrt.py", fd0, fd1, NULL};
+        execvp("python3", python);
     }
+    //int status;
+    close(writeToChild[0]);
+    close(readFromChild[1]);
+    write(writeToChild[1], string, (strlen(string)+1));
+    //read(readFromChild[0], readbuffer, sizeof(readbuffer));
+    //printf("Readbuffer: %s\n", readbuffer);
+    wait(NULL);
     return 0;
 }
