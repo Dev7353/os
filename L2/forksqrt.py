@@ -1,5 +1,7 @@
 #! usr/bin/env python3
 import configparser
+import os
+import sys
 
 config = configparser.ConfigParser()
 config.read("forksqrt.cfg")
@@ -7,7 +9,7 @@ config.read("forksqrt.cfg")
 start = config.getint("sqrt2", "start")
 loops = config.getint("sqrt2", "loops")
 tolerance = config.getfloat("sqrt2", "tolerance")
-numbers = config.get("sqrt2", "numbers").split(',')
+numbers = 0
 
 
 def sqrt2(value, debug):
@@ -30,8 +32,29 @@ def sqrt2(value, debug):
 
 
 def main():
-    for i in range(0, len(numbers)):
-        sqrt2(int(numbers[i]), True)
+    r1, w1 = map(int, sys.argv[1:])
+    r2, w2 = os.pipe()
+    test = os.fdopen(r1, 'r')
+    os.close(r2)
+    bla = os.read(r1, 1000)
+    args = bla.decode("utf-8")
+    print("DEBUG ", args)
+    args = args.split('|')
+    print("CLEAN " + str(args))
+
+    start = int(args[0])
+    loops = int(args[1])
+    tolerance = float(args[2])
+    numbers = args[3].split(",")
+    results = []
+
+    for num in numbers:
+        puffer = int(num)
+        results.append(sqrt2(puffer, True))
+    test.close()
+    w2 = os.fdopen(w1, 'w')
+    w2.write(str(results))
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
