@@ -21,14 +21,17 @@ static int handler(void* sqrt2, const char* section, const char* name,
 
     #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
     if (MATCH("sqrt2", "start")) {
-        pconfig->start = strndup(value, 1);
+        pconfig->start = strdup(value);
+        //free((void*)value);
     } else if (MATCH("sqrt2", "loops")) {
         pconfig->loops = strdup(value);
+        //free((void*)value);
     } else if (MATCH("sqrt2", "tolerance")) {
         pconfig->tolerance = strdup(value);
+        //free((void*)value);
     } else if (MATCH("sqrt2", "numbers")) {
     	pconfig->numbers = strdup(value);
- 
+        //free((void*)value);
     } else {
         return 0;  /* unknown section/name, error */
     }
@@ -41,8 +44,7 @@ int main(void)
 	pid_t pid;
     int writeToChild[2]; 
     int readFromChild[2];
-    //char numbers[];
-    char readbuffer[80];
+    char readbuffer[20];
 
     if (ini_parse("forksqrt.cfg", handler, &config) < 0) {
         printf("Can't load config'\n");
@@ -57,12 +59,6 @@ int main(void)
     pid = fork();
     if(pid == 0)
     {
-        //printf("%d\n", writeToChild[1]);
-        //close(writeToChild[1]);
-        //close(readFromChild[0]);
-        //read(writeToChild[0], readbuffer, sizeof(readbuffer));
-        //printf("String: %s\n", readbuffer);
-        //char *argument = "./forksqrt.py";
         char fd0[20], fd1[20];
         snprintf(fd0, 20, "%d", writeToChild[0]);
         snprintf(fd1, 20, "%d", readFromChild[1]);
@@ -70,7 +66,6 @@ int main(void)
         char *python[] = {"python3", "forksqrt.py", fd0, fd1, NULL};
         execvp("python3", python);
     }
-    //int status;
     close(writeToChild[0]);
     close(readFromChild[1]);
     
@@ -90,5 +85,11 @@ int main(void)
     read(readFromChild[0], readbuffer, sizeof(readbuffer));
     printf("Results: %s\n", readbuffer);
     wait(NULL);
+
+    free(buffer);
+    free(config.start);
+    free(config.loops);
+    free(config.tolerance);
+    free(config.numbers);
     return 0;
 }
