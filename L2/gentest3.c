@@ -76,7 +76,7 @@ void
 freefn (void *element)
 {
 	Person *helper = (Person *) element;
-	printf ("Offcourse you have to go too: %s: %s\n", helper->name);
+	printf ("Offcourse you have to go too: %s\n", helper->name);
 	free (helper->name);
 	free (helper->description);
 }

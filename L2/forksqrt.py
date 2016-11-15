@@ -29,7 +29,8 @@ def sqrt2(value, debug):
         if abs(xn - s) <= tolerance:
             break
         xn = s
-    print("After {} iterations, s = {:.14f}\n".format(i+1, xn))
+    if(debug is True):
+        print("After {} iterations, s = {:.14f}\n".format(i+1, xn))
     return float(xn)
 
 
@@ -40,9 +41,7 @@ def main():
     os.close(r2)
     bla = os.read(r1, 1000)
     args = bla.decode("utf-8")
-    print("DEBUG ", args)
     args = args.split('|')
-    print("CLEAN " + str(args))
 
     global start
     start = int(args[0])
@@ -51,11 +50,16 @@ def main():
     global tolerance
     tolerance = float(args[2])
     numbers = args[3].split(",")
+    if(args[4] == "True"):
+        debug = True
+    else:
+        debug = False
+
     results = []
 
     for num in numbers:
         puffer = int(num)
-        results.append(sqrt2(puffer, True))
+        results.append(sqrt2(puffer, debug))
     test.close()
     w2 = os.fdopen(w1, 'w')
     w2.write(str(results))

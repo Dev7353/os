@@ -6,6 +6,8 @@
 # include "inih/ini.h"
 # include <sys/wait.h>
 
+#define DEFAULTCONFIG "forksqrt.cfg"
+
 typedef struct
 {
     char* start;
@@ -42,14 +44,36 @@ int main(int argc, char* argv[])
     int readFromChild[2]; // Second pipe that reads the results from the child
     char readbuffer[1000] = "";
     char *buffer;
-
-    if (ini_parse("forksqrt.cfg", handler, &config) < 0) {
+    
+    char *configfile = NULL;
+	int flag = 0;
+	
+    int c;
+    configfile = DEFAULTCONFIG;
+	while((c = getopt(argc, argv, "hdc:")) != -1)
+	{
+		switch(c)
+		{
+			case 'h':
+				printf("-h help \n-d debug \n-c config\n");
+				return 0;
+			case 'd':
+				flag = 1;
+				break;
+			case 'c':
+				if(optarg == NULL)
+					break;
+				else
+					configfile = optarg;
+				break;
+		}
+		
+	}
+	
+	if (ini_parse(configfile, handler, &config) < 0) {
         printf("Can't load config'\n");
         return 1;
     }
-    /*printf("Config loaded from 'forksqrt.cfg': start=%s, loops=%s, tolerance=%s, numbers=%s",
-        config.start, config.loops, config.tolerance, config.numbers);
-    printf("\n");*/
     
     pipe(writeToChild);
     pipe(readFromChild);
@@ -59,14 +83,13 @@ int main(int argc, char* argv[])
         char fd0[20], fd1[20];
         snprintf(fd0, 20, "%d", writeToChild[0]);
         snprintf(fd1, 20, "%d", readFromChild[1]);
-        printf("%s\n", fd0);
         char *python[] = {"python3", "forksqrt.py", fd0, fd1, NULL};
         execvp("python3", python);
     }
     close(writeToChild[0]);
     close(readFromChild[1]);
     
-    buffer = (char*) malloc(sizeof(config) + 3);
+    buffer = (char*) malloc(sizeof(config) + 4);
     
     strcpy(buffer, config.start);
     strcat(buffer, "|");
@@ -75,6 +98,18 @@ int main(int argc, char* argv[])
     strcat(buffer, config.tolerance);
     strcat(buffer, "|");
     strcat(buffer, config.numbers);
+    
+    if (flag == 1)
+    {
+		strcat(buffer, "|");
+		strcat(buffer, "True");
+	}
+	else
+	{
+		strcat(buffer, "|");
+		strcat(buffer, "False");
+
+	}
     
     write(writeToChild[1], buffer, strlen(buffer));
     read(readFromChild[0], readbuffer, sizeof(readbuffer));
