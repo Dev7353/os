@@ -32,25 +32,28 @@ def sqrt2(value, debug):
 
 
 def main():
-    # for i in range(0, len(numbers)):
-    #     sqrt2(int(numbers[i]), True)
-    # r1, w1 = os.pipe()
-    # r2, w2 = os.pipe()
-    # os.close(w1)
-    # os.close(r2)
-    # r = os.fdopen(r1, 'r')
-    # test = r.read()
-    # print("Input: " + test)
-    # bla = r.read()
-    # print("Bla: " + bla)
-    # print(sys.argv[1:])
     r, w = map(int, sys.argv[1:])
     test = os.fdopen(r, 'r')
-    bla = os.read(r, 14)
-    print(bla)
+    bla = os.read(r, 17)
+    
+    args = bla.decode("utf-8")
+    print("DEBUG ", args)
+    args = args.split('|')
+    print("CLEAN " + str(args))
+    
+    start = int(args[0])
+    loops = int(args[1])
+    tolerance = float(args[2])
+    numbers = args[3].split(",")
+    
+    for num in numbers:
+		num = int(num)
+    
     test.close()
     # r.close()
-    # sqrt2(r, True)
+    for num in numbers:
+		sqrt2(num, True)
+		
     sys.exit(0)
 
 if __name__ == "__main__":
