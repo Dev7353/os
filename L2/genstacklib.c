@@ -33,7 +33,8 @@ GenStackDispose (genStack * s)
 	{
 		while (GenStackEmpty (s) == false)
 		{
-			errno = 0 void *leftOnStack = malloc (s->elemSize);
+			errno = 0; 
+			void *leftOnStack = malloc (s->elemSize);
 			assert (leftOnStack != NULL);
 
 			if (errno != 0)
