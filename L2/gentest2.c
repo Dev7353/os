@@ -11,35 +11,35 @@ int
 main (void)
 {
 
-	const char *words[] = { "foo", "bla", "misc" };
-	genStack stringStack;
+  const char *words[] = { "foo", "bla", "misc" };
+  genStack stringStack;
 
-	GenStackNew (&stringStack, sizeof (char *), freefn);
+  GenStackNew (&stringStack, sizeof (char *), freefn);
 
-	for (int i = 0; i < 3; i++)
-	{
-		char *copy = strdup (words[i]);
-		GenStackPush (&stringStack, &copy);
-	}
+  for (int i = 0; i < 3; i++)
+    {
+      char *copy = strdup (words[i]);
+      GenStackPush (&stringStack, &copy);
+    }
 
-	char *oneWord;
-	for (int i = 0; i < POPVALUE; i++)	// pop 2 values the third is handled in dispose method
-	{
-		GenStackPop (&stringStack, &oneWord);
-		printf ("%s\n", oneWord);
-		free (oneWord);
-	}
+  char *oneWord;
+  for (int i = 0; i < POPVALUE; i++)	// pop 2 values the third is handled in dispose method
+    {
+      GenStackPop (&stringStack, &oneWord);
+      printf ("%s\n", oneWord);
+      free (oneWord);
+    }
 
-	GenStackDispose (&stringStack);
+  GenStackDispose (&stringStack);
 }
 
 void
 freefn (void *element)
 {
-	assert (element != NULL);
+  assert (element != NULL);
 
-	char **helper = (char **) element;
-	printf ("%s\n", *helper);
+  char **helper = (char **) element;
+  printf ("%s\n", *helper);
 
-	free (*helper);
+  free (*helper);
 }

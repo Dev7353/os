@@ -7,16 +7,16 @@
 int
 main (void)
 {
-	pid_t pid;
-	pid = fork ();
-	if (pid == 0)
-	{
-		exit (0);
-	}
+  pid_t pid;
+  pid = fork ();
+  if (pid == 0)
+    {
+      exit (0);
+    }
 
 
-	system ("ps -eo pid,ppid,stat,command > ids");
-	system ("cat ids | grep 'Z'");
+  system ("ps -eo pid,ppid,stat,command > ids");
+  system ("cat ids | grep 'Z'");
 
-	return 0;
+  return 0;
 }
