@@ -2,6 +2,7 @@
 import configparser
 import os
 import sys
+import decimal
 
 config = configparser.ConfigParser()
 config.read("forksqrt.cfg")
@@ -10,10 +11,11 @@ start = 0
 loops = 0
 tolerance = 0.0
 numbers = 0
+decimal.getcontext().prec = 15
 
 
 def sqrt2(value, debug):
-    xn = start
+    xn = decimal.Decimal(start)
     # Assert input is a number and bigger than 0
     assert isinstance(value, int), 'Input must be a number!'
     assert value > 0, 'Input must be bigger than 0!'
@@ -21,14 +23,14 @@ def sqrt2(value, debug):
     if(debug is True):
         print("Testing with var = {:.14f}".format(value))
     for i in range(0, loops):
-        s = 1/2 * (xn + value/xn)
+        s = decimal.Decimal(1/2) * (xn + decimal.Decimal(value)/xn)
         if (debug is True):
             print("Before iteration {}".format(i) + ", s = {:.14f}".format(xn))
         if abs(xn - s) <= tolerance:
             break
         xn = s
-    print("After {} iterations, s = {:.14f}".format(i+1, xn))
-    return xn
+    print("After {} iterations, s = {:.14f}\n".format(i+1, xn))
+    return float(xn)
 
 
 def main():

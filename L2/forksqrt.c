@@ -34,14 +34,13 @@ static int handler(void* sqrt2, const char* section, const char* name,
     return 1;
 }
 
-int main(void)
+int main(int argc, char* argv[])
 {
 	configuration config;
 	pid_t pid;
     int writeToChild[2]; // First pipe that sends the data to the child
     int readFromChild[2]; // Second pipe that reads the results from the child
     char readbuffer[1000] = "";
-    //char result[60];
     char *buffer;
 
     if (ini_parse("forksqrt.cfg", handler, &config) < 0) {
@@ -77,12 +76,9 @@ int main(void)
     strcat(buffer, "|");
     strcat(buffer, config.numbers);
     
-    //printf("BUFFER %s\n", buffer);
-    
     write(writeToChild[1], buffer, strlen(buffer));
     read(readFromChild[0], readbuffer, sizeof(readbuffer));
     printf("Results: %s\n", readbuffer);
-    printf("\n");
     wait(NULL);
 
     free(buffer);
