@@ -17,9 +17,9 @@ decimal.getcontext().prec = 15
 def sqrt2(value, debug):
     xn = decimal.Decimal(start)
     # Assert input is a number and bigger than 0
-    assert isinstance(value, int), 'Input must be a number!'
+    assert value.isdigit(), 'Input must be a number!'
+    value = float(value)
     assert value > 0, 'Input must be bigger than 0!'
-
     if(debug is True):
         print("Testing with var = {:.14f}".format(value))
     for i in range(0, loops):
@@ -58,8 +58,7 @@ def main():
     results = []
 
     for num in numbers:
-        puffer = int(num)
-        results.append(sqrt2(puffer, debug))
+        results.append(sqrt2(num, debug))
     test.close()
     w2 = os.fdopen(w1, 'w')
     w2.write(str(results))

@@ -3,8 +3,9 @@
 #include <sys/types.h>
 #include <string.h>
 #include <unistd.h>
-#include "inih/ini.h"
+#include "ini.h"
 #include <sys/wait.h>
+#include <assert.h>
 
 #define DEFAULTCONFIG "forksqrt.cfg"
 
@@ -55,6 +56,8 @@ main (int argc, char *argv[])
   int readFromChild[2];		// Second pipe that reads the results from the child
   char readbuffer[1000] = "";
   char *buffer;
+  int errno = 0;
+  int status;
 
   char *configfile = NULL;
   int flag = 0;
@@ -83,13 +86,26 @@ main (int argc, char *argv[])
 
   if (ini_parse (configfile, handler, &config) < 0)
     {
-      printf ("Can't load config'\n");
+      perror ("Can't load config'\n");
       return 1;
     }
 
-  pipe (writeToChild);
-  pipe (readFromChild);
+  if(pipe (writeToChild) != 0)
+    {
+      printf("Failed Syscall: %d\n", errno);
+      perror("Pipe not successful.\n");
+    }
+  if(pipe (readFromChild) != 0)
+    {
+      printf("Failed Syscall: %d\n", errno);
+      perror("Pipe not successful.\n");
+    }
   pid = fork ();
+  if (pid < 0)
+    {
+    printf("Failed Syscall: %d\n", errno);
+    perror("Fork not successful. \n");
+    }
   if (pid == 0)
     {
       char fd0[20], fd1[20];
@@ -98,10 +114,15 @@ main (int argc, char *argv[])
       char *python[] = { "python3", "forksqrt.py", fd0, fd1, NULL };
       execvp ("python3", python);
     }
-  close (writeToChild[0]);
-  close (readFromChild[1]);
+  if(close (writeToChild[0]) != 0)
+    {printf("Failed Syscall: %d\n", errno);
+        perror("Close not successful.\n");}
+  if(close (readFromChild[1]) != 0)
+    {printf("Failed Syscall: %d\n", errno);
+        perror("Close not successful.\n");}
 
   buffer = (char *) malloc (sizeof (config) + 4);
+  assert(buffer != NULL);
 
   strcpy (buffer, config.start);
   strcat (buffer, "|");
@@ -123,10 +144,23 @@ main (int argc, char *argv[])
 
     }
 
-  write (writeToChild[1], buffer, strlen (buffer));
-  read (readFromChild[0], readbuffer, sizeof (readbuffer));
+  if(write (writeToChild[1], buffer, strlen (buffer)) == -1)
+    {
+      printf("Failed Syscall: %d\n", errno);
+        perror("Write not successful.\n");}
+  if(read (readFromChild[0], readbuffer, sizeof (readbuffer)) == -1)
+    {printf("Failed Syscall: %d\n", errno);
+        perror("Read not successful.\n");}
   printf ("Results: %s\n", readbuffer);
-  wait (NULL);
+  wait (&status);
+  if (WIFEXITED (status))
+  {
+    if (status != 0)
+      {
+        printf
+    ("Wait not successful. Exitcode: %d. Failed Syscall: %d.\n", WEXITSTATUS (status), errno);
+      }
+  }
 
   free (buffer);
   free (config.start);

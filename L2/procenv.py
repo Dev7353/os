@@ -39,7 +39,6 @@ def get_tree():
                 stat = open(os.path.join(root, 'stat')).readline()
                 status = stat.split(' ')[2]
                 dict.update({'0': (os.getpid(), process_name.strip(), status)})
-    # dict.update({'1': (os.getppid(), ' ', ' ')})
     current_pid = os.getpid()
     i = 1
     while(current_pid != 0):

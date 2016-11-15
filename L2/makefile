@@ -28,4 +28,4 @@ gentest:
 	$(CC) $(CFLAGS) -c gentest3.c
 	$(CC) gentest3.o -L. -lgenstacklib -o gentest3
 
-forksqrt: forksqrt.c inih/ini.c
+forksqrt: forksqrt.c ini.c
