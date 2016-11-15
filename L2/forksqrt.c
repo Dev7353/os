@@ -42,7 +42,7 @@ int main(void)
     int writeToChild[2]; 
     int readFromChild[2];
     //char numbers[];
-    //char readbuffer[80];
+    char readbuffer[80];
 
     if (ini_parse("forksqrt.cfg", handler, &config) < 0) {
         printf("Can't load config'\n");
@@ -74,7 +74,7 @@ int main(void)
     close(writeToChild[0]);
     close(readFromChild[1]);
     
-    char *buffer = (char*) malloc(sizeof(config) + 4);
+    char *buffer = (char*) malloc(sizeof(config) + 3);
     
     strcpy(buffer, config.start);
     strcat(buffer, "|");
@@ -86,9 +86,9 @@ int main(void)
     
     printf("BUFFER %s\n", buffer);
     
-    write(writeToChild[1], buffer, sizeof(config)+4);
-    //read(readFromChild[0], readbuffer, sizeof(readbuffer));
-    //printf("Readbuffer: %s\n", readbuffer);
+    write(writeToChild[1], buffer, strlen(buffer));
+    read(readFromChild[0], readbuffer, sizeof(readbuffer));
+    printf("Results: %s\n", readbuffer);
     wait(NULL);
     return 0;
 }

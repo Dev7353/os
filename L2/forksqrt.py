@@ -9,7 +9,7 @@ config.read("forksqrt.cfg")
 start = config.getint("sqrt2", "start")
 loops = config.getint("sqrt2", "loops")
 tolerance = config.getfloat("sqrt2", "tolerance")
-numbers = config.get("sqrt2", "numbers").split(',')
+numbers = 0
 
 
 def sqrt2(value, debug):
@@ -32,10 +32,11 @@ def sqrt2(value, debug):
 
 
 def main():
-    r, w = map(int, sys.argv[1:])
-    test = os.fdopen(r, 'r')
-    bla = os.read(r, 17)
-
+    r1, w1 = map(int, sys.argv[1:])
+    r2, w2 = os.pipe()
+    test = os.fdopen(r1, 'r')
+    os.close(r2)
+    bla = os.read(r1, 1000)
     args = bla.decode("utf-8")
     print("DEBUG ", args)
     args = args.split('|')
@@ -45,15 +46,14 @@ def main():
     loops = int(args[1])
     tolerance = float(args[2])
     numbers = args[3].split(",")
+    results = []
 
     for num in numbers:
-        num = int(num)
-
+        puffer = int(num)
+        results.append(sqrt2(puffer, True))
     test.close()
-    # r.close()
-    for num in numbers:
-        sqrt2(num, True)
-
+    w2 = os.fdopen(w1, 'w')
+    w2.write(str(results))
     sys.exit(0)
 
 if __name__ == "__main__":
