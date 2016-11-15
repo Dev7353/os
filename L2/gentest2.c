@@ -4,6 +4,7 @@
 #include <assert.h>
 #include "genstacklib.h"
 
+#define POPVALUE 2
 void freefn(void* element);
 
 int main(void)
@@ -21,7 +22,7 @@ int main(void)
 	}
 
 	char *oneWord;
-	for (int i=0; i<2; i++) // pop 2 values the third is handled in dispose method
+	for (int i=0; i<POPVALUE; i++) // pop 2 values the third is handled in dispose method
 	{
 	  GenStackPop(&stringStack,&oneWord);
 	  printf("%s\n",oneWord);
@@ -35,7 +36,7 @@ void freefn(void* element)
 {
 	assert(element != NULL);
 	
-	char **helper = (char**) element; // see [man qsort]
+	char **helper = (char**) element; 
 	printf("%s\n",*helper);
 	
 	free(*helper);

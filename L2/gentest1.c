@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include "genstacklib.h"
 
+#define ELEMENTS 6
+
 int main(void)
 {
 	int val;
-	//int* ptr; 
 	genStack IntegerStack;
-	int elems = 6;
+	int elems = ELEMENTS;
 
 	GenStackNew(&IntegerStack, sizeof(int), NULL); 
 
@@ -24,11 +25,6 @@ int main(void)
 
 	}	
 	
-	printf("Debug: _________________________________________\n");
-	printf("Debug: Stack size of %i\n", IntegerStack.logLength);
-	printf("Debug: _________________________________________\n");
-
-
 	while(GenStackEmpty(&IntegerStack) == false){ 
 	  GenStackPop(&IntegerStack, &val); 
 	  printf("Debug: Client Popp das Ding wech!: %d\n",val);

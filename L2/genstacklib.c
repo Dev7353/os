@@ -3,13 +3,17 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <errno.h>
 
 bool stack_created = false;
 
 void GenStackNew(genStack *s, int elemSize, void(*freefn)(void*))
 {
+	errno = 0;
     s->elems = malloc(GenStackInitialAllocationSize * elemSize);
     assert(s->elems != NULL);
+    if(errno != 0)
+		printf("ERROR SYSCALL %d\n", errno);
     
     s->elemSize = elemSize;
     s->logLength = 0; 
@@ -26,8 +30,12 @@ void GenStackDispose(genStack *s)
 	{
 		while(GenStackEmpty(s) == false)
 		{
+			errno = 0
 			void *leftOnStack = malloc(s->elemSize);
 			assert(leftOnStack != NULL);
+			
+			if(errno != 0)
+				printf("ERROR SYSCALL %d\n", errno);
 			
 			GenStackPop(s, leftOnStack);
 			s->freefn(leftOnStack);
@@ -35,6 +43,7 @@ void GenStackDispose(genStack *s)
 		}	
 	}
 	free (s->elems);
+	s->elems = NULL; //just to be sure
 }
 void GenStackPush(genStack *s, const void *elemAddr)
 {
@@ -48,6 +57,7 @@ void GenStackPush(genStack *s, const void *elemAddr)
     }
    
     char *ptr1 = (char*) s->elems;
+    // get current position in stack
     ptr1 += s->logLength * s->elemSize; 
     
     char *ptr2 = (char*) elemAddr;
@@ -62,6 +72,7 @@ void GenStackPop(genStack *s, void *elemAddr)
 	
 	 s->logLength--;
 	char *ptr1 = (char*) s->elems;
+	// get current position in stack
     ptr1 += (s->logLength) * s->elemSize; 
     
     char *ptr2 = (char*) elemAddr;

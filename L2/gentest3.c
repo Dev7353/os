@@ -4,6 +4,8 @@
 #include <string.h>
 #include "genstacklib.h"
 
+#define POPVALUE 2
+
 void freefn (void *element);
 
 typedef struct
@@ -52,7 +54,7 @@ int main (void)
 	}
 	
 	Person *popped = (Person*) malloc(sizeof(Person));
-	for(int i = 0; i < 3; ++i)
+	for(int i = 0; i < POPVALUE; ++i)
 	{
 		GenStackPop(&structStack, popped);
 		printf("Popped Number %i: %s: %s\n",popped->num, popped->name, popped->description);
@@ -70,7 +72,7 @@ int main (void)
 void freefn (void *element)
 {
 	Person *helper = (Person*) element;
-	printf("Offcourse i don't forget about you: %s: %s\n", helper->name, helper->description);
+	printf("Offcourse you have to go too: %s: %s\n", helper->name);
 	free (helper->name);
 	free (helper->description);
 }
