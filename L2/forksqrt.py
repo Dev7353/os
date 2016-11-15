@@ -35,25 +35,25 @@ def main():
     r, w = map(int, sys.argv[1:])
     test = os.fdopen(r, 'r')
     bla = os.read(r, 17)
-    
+
     args = bla.decode("utf-8")
     print("DEBUG ", args)
     args = args.split('|')
     print("CLEAN " + str(args))
-    
+
     start = int(args[0])
     loops = int(args[1])
     tolerance = float(args[2])
     numbers = args[3].split(",")
-    
+
     for num in numbers:
-		num = int(num)
-    
+        num = int(num)
+
     test.close()
     # r.close()
     for num in numbers:
-		sqrt2(num, True)
-		
+        sqrt2(num, True)
+
     sys.exit(0)
 
 if __name__ == "__main__":
