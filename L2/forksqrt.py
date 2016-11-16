@@ -10,7 +10,7 @@ numbers = 0
 decimal.getcontext().prec = 15
 
 
-def sqrt2(value, debug)
+def sqrt2(value, debug):
     """
     @param value: Input value
     @param debug: Boolean value if every calculation step should logged
