@@ -14,10 +14,10 @@ def pretty_print(d):
 
 
 def get_env():
-    '''
-    Returns an ordered dictionary with all the wanted information.
+    """
+    @return: Retuns an ordered dictionary with all the wanted information.
     Prints an error if a key wasn't found.
-    '''
+    """
     try:
         return OrderedDict([("CWD:", os.getcwd()), ("Home:", os.environ['HOME']),
                             ("PWD:", os.path.abspath(
@@ -32,9 +32,9 @@ def get_env():
 
 
 def get_tree():
-    '''
-    Returns the process tree up until the first parent process.
-    '''
+    """
+    @return: Returns the process tree up until the first parent process.
+    """
     dict = OrderedDict()
     for root, dirs, files in os.walk('/proc/' + str(os.getpid())):
         for file in files:
@@ -67,9 +67,9 @@ def get_tree():
 
 
 def usage():
-    '''
-    :return: The help string
-    '''
+    """
+    @return: :return: The help string
+    """
     return """Usage: procenv.py [OPTION]
 
          -e, --env          Returns CWD, UID, GID, Env paths, User, Home,
@@ -101,10 +101,8 @@ def main():
         output += "\nNo arguments found.\n" + usage() + "\n"
     for opt, arg in options:
         if opt in ('-e', '--env'):
-            # Dosomething
             output += pretty_print(get_env())
         elif opt in ('-p', '--pidtree'):
-            # Dosomethingelse
             print_tree(get_tree())
     print(output)
 

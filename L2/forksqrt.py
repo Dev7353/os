@@ -10,7 +10,12 @@ numbers = 0
 decimal.getcontext().prec = 15
 
 
-def sqrt2(value, debug):
+def sqrt2(value, debug)
+    """
+    @param value: Input value
+    @param debug: Boolean value if every calculation step should logged
+    @return: Returns the calculate root of value
+    """
     xn = decimal.Decimal(start)
     # Assert input is a number and bigger than 0
     assert value.isdigit(), 'Input must be a number!'
