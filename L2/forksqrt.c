@@ -8,164 +8,184 @@
 #include <assert.h>
 
 #define DEFAULTCONFIG "forksqrt.cfg"
+#define PIPESIDES 2
+#define READBUFFERSIZE 1000
+#define PARSESIZE 3
+#define READSIDE 0
+#define WRITESIDE 1
+#define SEPERATORSIZE 4
 
 typedef struct
 {
-  char *start;
-  char *loops;
-  char *tolerance;
-  char *numbers;
+    char *start;
+    char *loops;
+    char *tolerance;
+    char *numbers;
 } configuration;
 
 static int
 handler (void *sqrt2, const char *section, const char *name,
-	 const char *value)
+         const char *value)
 {
-  configuration *pconfig = (configuration *) sqrt2;
+    configuration *pconfig = (configuration *) sqrt2;
 
 #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
-  if (MATCH ("sqrt2", "start"))
+    if (MATCH ("sqrt2", "start"))
     {
-      pconfig->start = strdup (value);
+        pconfig->start = strdup (value);
     }
-  else if (MATCH ("sqrt2", "loops"))
+    else if (MATCH ("sqrt2", "loops"))
     {
-      pconfig->loops = strdup (value);
+        pconfig->loops = strdup (value);
     }
-  else if (MATCH ("sqrt2", "tolerance"))
+    else if (MATCH ("sqrt2", "tolerance"))
     {
-      pconfig->tolerance = strdup (value);
+        pconfig->tolerance = strdup (value);
     }
-  else if (MATCH ("sqrt2", "numbers"))
+    else if (MATCH ("sqrt2", "numbers"))
     {
-      pconfig->numbers = strdup (value);
+        pconfig->numbers = strdup (value);
     }
-  else
+    else
     {
-      return 0;			/* unknown section/name, error */
+        return 0;         /* unknown section/name, error */
     }
-  return 1;
+    return 1;
 }
 
 int
 main (int argc, char *argv[])
 {
-  configuration config;
-  pid_t pid;
-  int writeToChild[2];		// First pipe that sends the data to the child
-  int readFromChild[2];		// Second pipe that reads the results from the child
-  char readbuffer[1000] = "";
-  char *buffer;
-  int errno = 0;
-  int status;
+    configuration config;
+    pid_t pid;
+    int writeToChild[PIPESIDES];      // First pipe that sends the data to the child
+    int readFromChild[PIPESIDES];     // Second pipe that reads the results from the child
+    char readbuffer[READBUFFERSIZE] = "";
+    char *buffer;
+    int errno = 0;
+    int status;
+    char *configfile = NULL;
+    int flag = 0;
+    int c;
+    configfile = DEFAULTCONFIG;
 
-  char *configfile = NULL;
-  int flag = 0;
-
-  int c;
-  configfile = DEFAULTCONFIG;
-  while ((c = getopt (argc, argv, "hdc:")) != -1)
+    while ((c = getopt (argc, argv, "hdc:")) != -1)
     {
-      switch (c)
-	{
-	case 'h':
-	  printf ("-h help \n-d debug \n-c config\n");
-	  return 0;
-	case 'd':
-	  flag = 1;
-	  break;
-	case 'c':
-	  if (optarg == NULL)
-	    break;
-	  else
-	    configfile = optarg;
-	  break;
-	}
+        switch (c)
+        {
+        case 'h':
+            printf ("-h\t\tShow help\n-d\t\tPrints debugging output to the console\n-c [FILENAME]\tReads configuration out of config file with name FILENAME. \n\t\tIf no FILENAME is provided, the default config file is 'forksqrt.cfg'\n");
+            return 0;
+        case 'd':
+            flag = 1;
+            break;
+        case 'c':
+            if (optarg == NULL)
+                break;
+            else
+                configfile = optarg;
+            break;
+        }
 
     }
 
-  if (ini_parse (configfile, handler, &config) < 0)
+    if (ini_parse (configfile, handler, &config) < 0)
     {
-      perror ("Can't load config'\n");
-      return 1;
+        perror ("Can't load config'\n");
+        return 1;
     }
 
-  if(pipe (writeToChild) != 0)
+    if (pipe (writeToChild) != 0)
     {
-      printf("Failed Syscall: %d\n", errno);
-      perror("Pipe not successful.\n");
+        printf("Failed Syscall: %d\n", errno);
+        perror("Pipe not successful.\n");
     }
-  if(pipe (readFromChild) != 0)
+    if (pipe (readFromChild) != 0)
     {
-      printf("Failed Syscall: %d\n", errno);
-      perror("Pipe not successful.\n");
-    }
-  pid = fork ();
-  if (pid < 0)
-    {
-    printf("Failed Syscall: %d\n", errno);
-    perror("Fork not successful. \n");
-    }
-  if (pid == 0)
-    {
-      char fd0[20], fd1[20];
-      snprintf (fd0, 20, "%d", writeToChild[0]);
-      snprintf (fd1, 20, "%d", readFromChild[1]);
-      char *python[] = { "python3", "forksqrt.py", fd0, fd1, NULL };
-      execvp ("python3", python);
-    }
-  if(close (writeToChild[0]) != 0)
-    {printf("Failed Syscall: %d\n", errno);
-        perror("Close not successful.\n");}
-  if(close (readFromChild[1]) != 0)
-    {printf("Failed Syscall: %d\n", errno);
-        perror("Close not successful.\n");}
-
-  buffer = (char *) malloc (sizeof (config) + 4);
-  assert(buffer != NULL);
-
-  strcpy (buffer, config.start);
-  strcat (buffer, "|");
-  strcat (buffer, config.loops);
-  strcat (buffer, "|");
-  strcat (buffer, config.tolerance);
-  strcat (buffer, "|");
-  strcat (buffer, config.numbers);
-
-  if (flag == 1)
-    {
-      strcat (buffer, "|");
-      strcat (buffer, "True");
-    }
-  else
-    {
-      strcat (buffer, "|");
-      strcat (buffer, "False");
-
+        printf("Failed Syscall: %d\n", errno);
+        perror("Pipe not successful.\n");
     }
 
-  if(write (writeToChild[1], buffer, strlen (buffer)) == -1)
+    pid = fork ();
+    if (pid < 0)
     {
-      printf("Failed Syscall: %d\n", errno);
-        perror("Write not successful.\n");}
-  if(read (readFromChild[0], readbuffer, sizeof (readbuffer)) == -1)
-    {printf("Failed Syscall: %d\n", errno);
-        perror("Read not successful.\n");}
-  printf ("Results: %s\n", readbuffer);
-  wait (&status);
-  if (WIFEXITED (status))
-  {
-    if (status != 0)
-      {
-        printf
-    ("Wait not successful. Exitcode: %d. Failed Syscall: %d.\n", WEXITSTATUS (status), errno);
-      }
-  }
+        printf("Failed Syscall: %d\n", errno);
+        perror("Fork not successful. \n");
+    }
+    if (pid == 0) //Child process
+    {
+        // Parse file descriptors as strings to be able to send them as parameters
+        char fd0[PARSESIZE], fd1[PARSESIZE];
+        snprintf (fd0, PARSESIZE, "%d", writeToChild[0]);
+        snprintf (fd1, PARSESIZE, "%d", readFromChild[1]);
+        char *python[] = { "python3", "forksqrt.py", fd0, fd1, NULL };
+        execvp ("python3", python);
+    }
 
-  free (buffer);
-  free (config.start);
-  free (config.loops);
-  free (config.tolerance);
-  free (config.numbers);
-  return 0;
+    // Close unused pipe sides
+    if (close (writeToChild[READSIDE]) != 0)
+    {
+        printf("Failed Syscall: %d\n", errno);
+        perror("Close not successful.\n");
+    }
+    if (close (readFromChild[WRITESIDE]) != 0)
+    {
+        printf("Failed Syscall: %d\n", errno);
+        perror("Close not successful.\n");
+    }
+
+    // Build a string with all the parameters to pipe through to child
+    buffer = (char *) malloc (sizeof (config) + SEPERATORSIZE);
+    assert(buffer != NULL);
+    strcpy (buffer, config.start);
+    strcat (buffer, "|");
+    strcat (buffer, config.loops);
+    strcat (buffer, "|");
+    strcat (buffer, config.tolerance);
+    strcat (buffer, "|");
+    strcat (buffer, config.numbers);
+
+    // Send correct debug parameter depending on set flag
+    if (flag == 1)
+    {
+        strcat (buffer, "|");
+        strcat (buffer, "True");
+    }
+    else
+    {
+        strcat (buffer, "|");
+        strcat (buffer, "False");
+    }
+
+    // Write the data to child and read the result from it
+    if (write (writeToChild[WRITESIDE], buffer, strlen (buffer)) == -1)
+    {
+        printf("Failed Syscall: %d\n", errno);
+        perror("Write not successful.\n");
+    }
+    if (read (readFromChild[READSIDE], readbuffer, sizeof (readbuffer)) == -1)
+    {
+        printf("Failed Syscall: %d\n", errno);
+        perror("Read not successful.\n");
+    }
+    // Print the results
+    printf ("Results: %s\n", readbuffer);
+
+    wait (&status);
+    if (WIFEXITED (status))
+    {
+        if (status != 0)
+        {
+            printf
+            ("Wait not successful. Exitcode: %d. Failed Syscall: %d.\n", WEXITSTATUS (status), errno);
+        }
+    }
+
+    // Free all allocated memory
+    free (buffer);
+    free (config.start);
+    free (config.loops);
+    free (config.tolerance);
+    free (config.numbers);
+    return 0;
 }

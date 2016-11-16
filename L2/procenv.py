@@ -14,6 +14,10 @@ def pretty_print(d):
 
 
 def get_env():
+    '''
+    Returns an ordered dictionary with all the wanted information.
+    Prints an error if a key wasn't found.
+    '''
     try:
         return OrderedDict([("CWD:", os.getcwd()), ("Home:", os.environ['HOME']),
                             ("PWD:", os.path.abspath(
@@ -28,6 +32,9 @@ def get_env():
 
 
 def get_tree():
+    '''
+    Returns the process tree up until the first parent process.
+    '''
     dict = OrderedDict()
     for root, dirs, files in os.walk('/proc/' + str(os.getpid())):
         for file in files:
@@ -63,17 +70,11 @@ def usage():
     '''
     :return: The help string
     '''
-    return """Usage: mygetopt.py [OPTION]
+    return """Usage: procenv.py [OPTION]
 
-         -v, --version      Outputs the git token of the commit
-         -h, --help         Displays this help
-         -o, --output       Sends the output the the specified file
-         -p, --python       Displays the python environment
-         -s, --system       Displays system info
-         -c, --cpu          Displays CPU info
-         -m, --memory       Shows memory information on selected category.
-                            Allowed arguments are all, size, resident,
-                            share and text."""
+         -e, --env          Returns CWD, UID, GID, Env paths, User, Home,
+                            PWD, Path, Shell and Virtual-Environment (Python)
+         -p, --pidtree      Returns a pid hierarchy"""
 
 
 def print_tree(d):
