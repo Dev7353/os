@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <pthread.h>
 #include <ctype.h>
 #include <time.h>
+#include <errno.h>
 
 typedef int boolean;
 #define true 1;
@@ -53,20 +53,41 @@ int main(int argc, char* argv[])
 		}
 	}
 	
-	thread = (pthread_t*) malloc(NumberOfThreads * sizeof(pthread_t));
+	errno = 0;
 	
+	thread = (pthread_t*) malloc(NumberOfThreads * sizeof(pthread_t));
+	if(thread == NULL)
+	{
+		perror("malloc fail");
+		if(infos)
+			printf("Errno %d\n", errno);
+		exit(1);
+
+	}
 	
 	for(t = 0; t < NumberOfThreads; t++)
 	{
 		printf("Creating thread %ld\n", t);
-		assert(pthread_create(&thread[t], NULL, PrintHello, &t) == 0);
-		
+		if(pthread_create(&thread[t], NULL, PrintHello, &t) != 0)
+		{
+			perror("creating Thread failed\n");
+			if(infos)
+				printf("Errno %d\n", errno);
+			exit(1);
+		} 
+			
 	}
 	
 	for(t = 0; t < NumberOfThreads; t++)
 	{
 		printf("Main joining with thread %ld\n", t);
-		assert(pthread_join(*(&thread[t]), (void*)(&status)) == 0);
+		if(pthread_join(*(&thread[t]), (void*)(&status)) != 0)
+		{
+			perror("join failed\n");
+			if(infos)
+				printf("Errno %d\n", errno);
+			exit(1);
+		}
 
                 printf("Completed joining with thread %ld status = %d\n", t,
                        status);
@@ -83,8 +104,6 @@ void *PrintHello(void *threadarg)
 	srand((unsigned int) sec);
 	int s = (rand()%10)+1;
 	sleep(s);
-	
-	
 	
 	printf("%ld: Thread is done after sleeping %d[s]\n", *((long *) threadarg), s); /*For now 0 is a dummy value*/
 	
