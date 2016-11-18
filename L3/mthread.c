@@ -4,6 +4,11 @@
 #include <assert.h>
 #include <pthread.h>
 #include <ctype.h>
+#include <time.h>
+
+typedef int boolean;
+#define true 1;
+#define false 0;
 
 void *PrintHello(void *threadarg);
 
@@ -11,6 +16,7 @@ void *PrintHello(void *threadarg);
 
 int main(int argc, char* argv[])
 {
+	boolean infos = false;
 	int status;
 	long t;
 	long NumberOfThreads = 4;
@@ -18,12 +24,21 @@ int main(int argc, char* argv[])
 	
 	pthread_t *thread;
 	
-	while((c = getopt(argc, argv, "t:")) != -1)
+	while((c = getopt(argc, argv, "hvt:")) != -1)
 	{
 		switch(c)
 		{
 			case 't':
 				NumberOfThreads = atoi(optarg);
+				break;
+			case 'h':
+				printf("Help: \n-v, --verbose \t\t get more informations while running\n-h, --help  \t\tget help\n-t --times \t\tcreate t times threads\n\n");
+				printf("Current Git HEAD commit number: \n");
+				const char *gitversion = "git rev-parse HEAD";
+				system(gitversion);
+				return 0;
+			case 'v':
+				infos = true;
 				break;
 			case '?':
 				if(optopt == 't')
@@ -62,11 +77,16 @@ int main(int argc, char* argv[])
 
 void *PrintHello(void *threadarg)
 {
+	time_t sec;
 	printf("%ld: Hello World\n", *((long *) threadarg));
+	time(&sec);
+	srand((unsigned int) sec);
+	int s = (rand()%10)+1;
+	sleep(s);
 	
-	sleep((int) (rand()%10)+1);
 	
-	printf("%ld: Thread is done after sleeping %d[s]\n", *((long *) threadarg), 0); /*For now 0 is a dummy value*/
+	
+	printf("%ld: Thread is done after sleeping %d[s]\n", *((long *) threadarg), s); /*For now 0 is a dummy value*/
 	
 	return NULL;
 }
