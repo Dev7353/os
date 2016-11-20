@@ -1,12 +1,15 @@
 CC=clang
-CFLAGS=-Wall -pedantic -Werror -pthread
+CFLAGS=-Wall -pedantic -Werror -g
 
 .PHONY: all clean
 
-all: mthread
+all: mthread work
 
 clean: 
-	$(RM) *.o mthread
+	$(RM) *.o mthread work
 
 mthread: mthread.c
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -pthread $< -o $@
+
+work: work.c
+	$(CC) $(CFLAGS) -lrt $< -o $@
