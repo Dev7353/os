@@ -1,0 +1,6 @@
+- normaler single thread algotighmus //name?
+- Auslagerung der Funktion in Thread Methode
+- Explizite verarbeitung von  Spalten in Threads
+- Kreeirung von Struktur mit allen notwendigen Objekten
+- problem mit dem join 
+- 
