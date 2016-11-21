@@ -9,10 +9,10 @@ clean:
 	$(RM) -rf *.o mthread work matrix *.dSYM
 
 mthread: mthread.c
-	$(CC) $(CFLAGS) -pthread $< -o $@
+	$(CC) $(CFLAGS) -lpthread $< -o $@
 
 work: work.c
 	$(CC) $(CFLAGS) -lrt $< -o $@
 
 matrix: multiply_matrix.c matrix.c
-	$(CC) $(CFLAGS) -pthread $^ -o $@
+	$(CC) $(CFLAGS) -lpthread $^ -o $@

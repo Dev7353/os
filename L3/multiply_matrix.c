@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <unistd.h>
 
 typedef struct args
 {
@@ -9,6 +10,7 @@ typedef struct args
 	Matrix *b;
 	Matrix *result;
 	int column;
+	int threads;
 			
 } args;
 
@@ -96,6 +98,7 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	ar.a = a;
 	ar.b = b;
 	ar.result = result;
+	ar.threads = threads;
 	
 	pthread_t *thread = (pthread_t*) malloc(sizeof(pthread_t) * threads);
 	if(thread == NULL)
@@ -106,15 +109,8 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 		ar.column = i;
 		
 		pthread_create(&thread[i], NULL, calc, &ar);
-	}
-
-	for(i = 0; i < threads; ++i)
-	{
-		
 		pthread_join(thread[i], (void*) &status);
 	}
-
-	
 	
 	return result;
 }
@@ -124,22 +120,25 @@ double multiplyRowColumn(Matrix *a, int row, Matrix *b, int column)
 	return 0;
 }
 
-void *calc(void *ar)
+void* calc(void *ar)
 {
 	args *r = (args*) ar;
 	int i, j, k;
-	
-	for(i = r->column; i < r->a->rows; ++i)
+
+	for(i = r->column; i < r->column+1; ++i)
 	{
-		for(j = r->column; j < r->a->rows; ++j)
+		for(j = 0; j < r->a->rows; ++j)
 		{
+			r->result->matrix[i][j] = 0;	
 			for(k = 0; k < r->a->rows; ++k)
 			{
 				r->result->matrix[i][j] += r->a->matrix[i][k] * r->b->matrix[k][j]; 
 			}
 		}
-		
+	
 	}
-	return NULL;		
+
+	return NULL;
+			
 }
 
