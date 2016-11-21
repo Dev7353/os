@@ -14,4 +14,5 @@ mthread: mthread.c
 work: work.c
 	$(CC) $(CFLAGS) -lrt $< -o $@
 
-matrix: matrix.c multiply_matrix.c
+matrix: multiply_matrix.c matrix.c
+	$(CC) $(CFLAGS) -pthread $^ -o $@

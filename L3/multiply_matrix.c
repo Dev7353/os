@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <pthread.h>
 
-<<<<<<< HEAD
-
 typedef struct args
 {
 	Matrix *a; 
@@ -15,9 +13,6 @@ typedef struct args
 } args;
 
 void *calc(void *ar);
-=======
-void calcValue(Matrix *a, Matrix *b, Matrix *result);
->>>>>>> b87b32abc61cb398188f6ecf30550500abc30a4a
 
 Matrix *readMatrix(const char filename[])
 {
@@ -70,7 +65,7 @@ Matrix *readMatrix(const char filename[])
 
 Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 {
-	int i,j;
+	int i,j, status;
 	
 	Matrix *result = (Matrix*) malloc(sizeof(Matrix));
 	if(result == NULL)
@@ -102,7 +97,6 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	ar.b = b;
 	ar.result = result;
 	
-<<<<<<< HEAD
 	pthread_t *thread = (pthread_t*) malloc(sizeof(pthread_t) * threads);
 	if(thread == NULL)
 		perror("malloc");
@@ -113,21 +107,15 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 		
 		pthread_create(&thread[i], NULL, calc, &ar);
 	}
-	
 
-	
-=======
-	for(i = 0; i < thread; ++i)
+	for(i = 0; i < threads; ++i)
 	{
-		pthread thread;
-
-		pthread_create(&thread, NULL, calcValue, );
-		pthread();
-
+		
+		pthread_join(thread[i], (void*) &status);
 	}
 
-
->>>>>>> b87b32abc61cb398188f6ecf30550500abc30a4a
+	
+	
 	return result;
 }
 
@@ -136,7 +124,6 @@ double multiplyRowColumn(Matrix *a, int row, Matrix *b, int column)
 	return 0;
 }
 
-<<<<<<< HEAD
 void *calc(void *ar)
 {
 	args *r = (args*) ar;
@@ -154,25 +141,5 @@ void *calc(void *ar)
 		
 	}
 	return NULL;		
-=======
-void calcValue(Matrix *a, Matrix *b, Matrix *result)
-{
-
-	for(i = 0; i < thread; ++i)
-    {
-        for(j = 0; j < a->rows; ++j)
-        {
-            for(k = 0; k < a->rows; ++k)
-            {
-                res->matrix[i][j] += a->matrix[i][k] * b->matrix[k][j]; 
-            }
-        }
-               
-
-
-    }
-
-
->>>>>>> b87b32abc61cb398188f6ecf30550500abc30a4a
 }
 

@@ -11,7 +11,7 @@ int main (int argc, char* argv[])
 	m1 = *readMatrix("matrix0");
 	m2 = *readMatrix("matrix1");
 	
-	m3 = *multiplyMatrix(&m1, &m2, 1);
+	m3 = *multiplyMatrix(&m1, &m2,1);
 	
 	for(i = 0; i < m3.rows; ++i)
 	{
