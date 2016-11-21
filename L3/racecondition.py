@@ -3,7 +3,10 @@
 import getopt
 import sys
 import _thread
+import threading
 import time
+
+global_var = 600
 
 
 def usage():
@@ -18,12 +21,29 @@ def usage():
          -l, --loops          	Amount of threads to be created"""
 
 
+def increment(n_loops):
+    global global_var
+    for i in range(0, n_loops):
+        global_var += 1
+
+
 def race_lock(n_threads, n_loops):
+    exc = global_var + n_threads * n_loops
+    for i in range(0, n_threads):
+        _thread.start_new_thread(increment, (n_loops,))
+    cur = global_var
     return (exc, cur)
 
 
 def race(n_threads, n_loops):
-    print("Hallo")
+    exc = global_var + n_threads * n_loops
+    threads = []
+    for í in range(0, n_threads):
+        t = threading.Thread(target=increment, args=(n_loops,))
+        threads.append(t)
+        t.start()
+    cur = global_var
+    return (exc, cur)
 
 
 def main():
@@ -51,11 +71,10 @@ def main():
         if opt in ('-h', '--help'):
             print(usage())
             break
-    try:
-        _thread.start_new_thread(race, (threads, loops))
-    except:
-        print("Error!")
+    # race_lock(threads, loops)
+    race(threads, loops)
     time.sleep(1)
+    print(global_var)
 
 if __name__ == "__main__":
     main()
