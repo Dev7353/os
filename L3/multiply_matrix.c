@@ -53,7 +53,48 @@ Matrix *readMatrix(const char filename[])
 
 Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 {
-	return NULL;
+	int i,j,k;
+	
+	Matrix *result = (Matrix*) malloc(sizeof(Matrix));
+	if(result == NULL)
+		perror("malloc");	
+	result->rows = a->rows;
+	result->columns = a->columns;
+
+	result->matrix = (double**) malloc(result->rows * sizeof(double*));
+	if(result->matrix == NULL)
+		perror("malloc");
+	for(i = 0; i < result->columns;++i)
+	{
+		result->matrix[i] = (double*) malloc(result->columns * sizeof(double));
+		if(result->matrix[i] == NULL)
+			perror("malloc");
+	}
+	
+	
+	for(i = 0; i < a->rows; ++i)
+	{
+		for(j = 0; j < a->rows; ++j)
+		{
+			result->matrix[i][j] = 0;
+		}
+		
+	}
+	
+	for(i = 0; i < a->rows; ++i)
+	{
+		for(j = 0; j < a->rows; ++j)
+		{
+			for(k = 0; k < a->rows; ++k)
+			{
+				//printf("DEBUG %lf * %lf\n", a->matrix[i][k], b->matrix[k][j]);
+				result->matrix[i][j] += a->matrix[i][k] * b->matrix[k][j]; 
+			}
+		}
+		
+	}
+	
+	return result;
 }
 
 double multiplyRowColumn(Matrix *a, int row, Matrix *b, int column)
