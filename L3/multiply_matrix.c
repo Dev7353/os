@@ -1,6 +1,9 @@
 #include "multiply_matrix.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
+
+void calcValue(Matrix *a, Matrix *b, Matrix *result);
 
 Matrix *readMatrix(const char filename[])
 {
@@ -71,7 +74,7 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 			perror("malloc");
 	}
 	
-	
+	//initialize result matrix with 0
 	for(i = 0; i < a->rows; ++i)
 	{
 		for(j = 0; j < a->rows; ++j)
@@ -81,24 +84,41 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 		
 	}
 	
-	for(i = 0; i < a->rows; ++i)
+	for(i = 0; i < thread; ++i)
 	{
-		for(j = 0; j < a->rows; ++j)
-		{
-			for(k = 0; k < a->rows; ++k)
-			{
-				//printf("DEBUG %lf * %lf\n", a->matrix[i][k], b->matrix[k][j]);
-				result->matrix[i][j] += a->matrix[i][k] * b->matrix[k][j]; 
-			}
-		}
-		
+		pthread thread;
+
+		pthread_create(&thread, NULL, calcValue, );
+		pthread();
+
 	}
-	
+
+
 	return result;
 }
 
 double multiplyRowColumn(Matrix *a, int row, Matrix *b, int column)
 {
 	return 0;
+}
+
+void calcValue(Matrix *a, Matrix *b, Matrix *result)
+{
+
+	for(i = 0; i < thread; ++i)
+    {
+        for(j = 0; j < a->rows; ++j)
+        {
+            for(k = 0; k < a->rows; ++k)
+            {
+                res->matrix[i][j] += a->matrix[i][k] * b->matrix[k][j]; 
+            }
+        }
+               
+
+
+    }
+
+
 }
 
