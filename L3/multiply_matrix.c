@@ -15,6 +15,7 @@ typedef struct args
 } args;
 
 void *calc(void *ar);
+int idx = 0;
 
 Matrix *readMatrix(const char filename[])
 {
@@ -112,6 +113,8 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 		pthread_join(thread[i], (void*) &status);
 	}
 	
+	idx = 0; //reset index
+	
 	return result;
 }
 
@@ -124,20 +127,26 @@ void* calc(void *ar)
 {
 	args *r = (args*) ar;
 	int i, j, k;
-
-	for(i = r->column; i < r->column+1; ++i)
-	{
-		for(j = 0; j < r->a->rows; ++j)
-		{
-			r->result->matrix[i][j] = 0;	
-			for(k = 0; k < r->a->rows; ++k)
-			{
-				r->result->matrix[i][j] += r->a->matrix[i][k] * r->b->matrix[k][j]; 
-			}
-		}
 	
-	}
+	int slice = (r->a->rows * r->a->rows) / r->threads;
+	//printf("DEBUG slice size is %d\n", slice);
 
+	while(idx < slice)
+	{
+		for(i = 0; i < r->a->rows; ++i)
+		{
+			for(j = 0; j < r->a->rows; ++j)
+			{
+				r->result->matrix[i][j] = 0;	
+				for(k = 0; k < r->a->rows; ++k)
+				{
+					r->result->matrix[i][j] += r->a->matrix[i][k] * r->b->matrix[k][j]; 
+				}
+			}
+		
+			++idx;
+		}
+	}
 	return NULL;
 			
 }
