@@ -7,6 +7,8 @@ import threading
 import time
 
 global_var = 600
+threads = 0
+locks = _thread.allocate_lock()
 
 
 def usage():
@@ -28,11 +30,21 @@ def increment():
     global_var = tempvar + 1
 
 
+def create_thread(n_loops):
+    global threads
+    l = _thread.allocate_lock()
+    for i in range(n_loops):
+        l.acquire()
+        increment()
+        l.release()
+    with locks:
+        threads -= 1
+
+
 def race_lock(n_threads, n_loops):
     exc = global_var + n_threads * n_loops
     for i in range(n_threads):
-        for i in range(n_loops):
-            _thread.start_new_thread(increment, ())
+        create_thread(n_loops)
     cur = global_var
     return (exc, cur)
 
@@ -89,7 +101,7 @@ def main():
         if opt in ('-h', '--help'):
             print(usage())
             break
-    # a = race_lock(threads, loops)
+    # race_lock(threads, loops)
     a = race(threads, loops)
     # time.sleep(1)
     print(a)
