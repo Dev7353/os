@@ -21,32 +21,50 @@ def usage():
          -l, --loops          	Amount of threads to be created"""
 
 
-def increment(n_loops):
+def increment():
     global global_var
-    for i in range(0, n_loops):
-        global_var += 1
+    tempvar = global_var
+    time.sleep(0.001)  # Sleep to show race conditions
+    global_var = tempvar + 1
 
 
 def race_lock(n_threads, n_loops):
     exc = global_var + n_threads * n_loops
-    for i in range(0, n_threads):
-        _thread.start_new_thread(increment, (n_loops,))
+    for i in range(n_threads):
+        for i in range(n_loops):
+            _thread.start_new_thread(increment, ())
     cur = global_var
     return (exc, cur)
+
+
+class race_helper(threading.Thread):
+    # Initialize the thread
+    def __init__(self, n_loops):
+        threading.Thread.__init__(self)
+        self.n_loops = n_loops
+
+    # Run increment function
+    def run(self):
+        for i in range(self.n_loops):
+            increment()
 
 
 def race(n_threads, n_loops):
     exc = global_var + n_threads * n_loops
     threads = []
-    for í in range(0, n_threads):
-        t = threading.Thread(target=increment, args=(n_loops,))
-        threads.append(t)
-        t.start()
+    # Consecutive for loops to guarantee sequential procedure
+    for i in range(0, n_threads):
+        threads.append(race_helper(n_loops))
+    for i in range(0, n_threads):
+        threads[i].start()
+    for i in range(0, n_threads):
+        threads[i].join()
     cur = global_var
     return (exc, cur)
 
 
 def main():
+    print(global_var)
     threads = 40
     loops = 10
     try:
@@ -71,10 +89,10 @@ def main():
         if opt in ('-h', '--help'):
             print(usage())
             break
-    # race_lock(threads, loops)
-    race(threads, loops)
-    time.sleep(1)
-    print(global_var)
+    # a = race_lock(threads, loops)
+    a = race(threads, loops)
+    # time.sleep(1)
+    print(a)
 
 if __name__ == "__main__":
     main()
