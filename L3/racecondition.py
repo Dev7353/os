@@ -2,13 +2,14 @@
 
 import getopt
 import sys
-import _thread
-import threading
+import threading  # Use this module because _thread does not have join method
 import time
 
 global_var = 600
 threads = 0
-locks = _thread.allocate_lock()
+threadLock = threading.Lock()
+lockcount = []
+delay = 0.0001
 
 
 def usage():
@@ -25,40 +26,43 @@ def usage():
 
 def increment():
     global global_var
+    global delay
     tempvar = global_var
-    time.sleep(0.001)  # Sleep to show race conditions
+    time.sleep(delay)  # Sleep to show race conditions
     global_var = tempvar + 1
-
-
-def create_thread(n_loops):
-    global threads
-    l = _thread.allocate_lock()
-    for i in range(n_loops):
-        l.acquire()
-        increment()
-        l.release()
-    with locks:
-        threads -= 1
 
 
 def race_lock(n_threads, n_loops):
     exc = global_var + n_threads * n_loops
-    for i in range(n_threads):
-        create_thread(n_loops)
+    threads = []
+    # Consecutive for loops to guarantee sequential procedure
+    for i in range(0, n_threads):
+        threads.append(init_thread(n_loops, True))
+    for i in range(0, n_threads):
+        threads[i].start()
+    for i in range(0, n_threads):
+        threads[i].join()
     cur = global_var
     return (exc, cur)
 
 
-class race_helper(threading.Thread):
-    # Initialize the thread
-    def __init__(self, n_loops):
+class init_thread(threading.Thread):
+    # Initialize the thread, overwrite to add arguments
+    def __init__(self, n_loops, locked):
         threading.Thread.__init__(self)
         self.n_loops = n_loops
+        self.locked = locked
 
-    # Run increment function
+    # Overwrite to run increment function
     def run(self):
-        for i in range(self.n_loops):
-            increment()
+        if self.locked is True:
+            for i in range(self.n_loops):
+                threadLock.acquire()
+                increment()
+                threadLock.release()
+        else:
+            for i in range(self.n_loops):
+                increment()
 
 
 def race(n_threads, n_loops):
@@ -66,7 +70,7 @@ def race(n_threads, n_loops):
     threads = []
     # Consecutive for loops to guarantee sequential procedure
     for i in range(0, n_threads):
-        threads.append(race_helper(n_loops))
+        threads.append(init_thread(n_loops, False))
     for i in range(0, n_threads):
         threads[i].start()
     for i in range(0, n_threads):
@@ -79,9 +83,13 @@ def main():
     print(global_var)
     threads = 40
     loops = 10
+    gil = False
+    mutex = False
+    peters = False
+    output = ""
     try:
         options, args = getopt.getopt(
-            sys.argv[1:], 'tlh', ['threads', 'loops', 'help'])
+            sys.argv[1:], 'tlhgpm', ['threads', 'loops', 'help', 'gil', 'peterson', 'mutex'])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
@@ -98,13 +106,19 @@ def main():
                 break
             else:
                 loops = arg
+        if opt in ('-g', '--gil'):
+            gil = True
         if opt in ('-h', '--help'):
             print(usage())
             break
-    # race_lock(threads, loops)
-    a = race(threads, loops)
+    if gil is True:
+        output = str(race_lock(threads, loops))
+    else:
+        output = str(race(threads, loops))
     # time.sleep(1)
-    print(a)
+    print(output)
 
 if __name__ == "__main__":
     main()
+
+# https://www.tutorialspoint.com/python/python_multithreading.htm
