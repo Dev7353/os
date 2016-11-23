@@ -6,3 +6,4 @@ L*/.DS_Store
 L*/L*.xcworkspace/
 *.pyc
 *.dSYM
+.idea

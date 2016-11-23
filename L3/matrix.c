@@ -7,8 +7,8 @@
 
 #define BILLION 1000000000
 #define MILLIONTH 0.000001
-#define false 1
-#define true 0
+#define false 0
+#define true 1
 
 long diff(struct timespec t1, struct timespec t2);
 
@@ -56,7 +56,7 @@ int main (int argc, char* argv[])
 	m3 = *multiplyMatrix(&m1, &m2, threads);
 	clock_gettime(CLOCK_MONOTONIC, &t2);
 
-	printf("Time delay of: %ld [msec]\n", diff(t1, t2));	
+	printf("Time : %ld [msec]\n", diff(t1, t2));	
 
 	FILE *fp;
 	fp = fopen("result", "w");

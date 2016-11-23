@@ -10,12 +10,11 @@ typedef struct args
 	Matrix *a; 
 	Matrix *b;
 	Matrix *result;
-	int slice;
+	int start, stop, threads;
 			
 } args;
 
 void *calc(void *ar);
-int idx = 0;
 
 Matrix *readMatrix(const char filename[])
 {
@@ -59,21 +58,8 @@ Matrix *readMatrix(const char filename[])
 			for(int j = 0; j < m->columns; ++j)
 			{
 				fscanf(fp, "%lf", &m->matrix[i][j]);
-				//printf("DEBUG >>> %f\n", m->matrix[i][j]);
 			}
 	}	
-
-	/*
-	printf("[DEBUG]");
-	for(int i = 0; i < m->rows; ++i)
-	{
-			for(int j = 0; j < m->columns; ++j)
-			{
-				printf("%lf\t", m->matrix[i][j]);
-			}
-			printf("\n");
-
-	}*/
 	
 	fclose(fp);
 
@@ -82,7 +68,7 @@ Matrix *readMatrix(const char filename[])
 
 Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 {
-	int i,j, status;
+	int i,status;
 	
 	Matrix *result = (Matrix*) malloc(sizeof(Matrix));
 	if(result == NULL)
@@ -104,16 +90,21 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	ar.a = a;
 	ar.b = b;
 	ar.result = result;
-	ar.slice = (a->rows * a->rows) / threads;	
+	ar.threads = threads;
+	
 	
 	pthread_t *thread = (pthread_t*) malloc(sizeof(pthread_t) * threads);
 	if(thread == NULL)
 		perror("malloc");
-	
+	//int size = ar.a->rows * ar.a->rows;
 	for(i = 0; i < threads; ++i)
 	{
+		ar.start = i*(ar.a->rows/ar.threads);
+		ar.stop = (ar.a->rows/ar.threads)*(i+1);
+		printf("From %d to %d\n", ar.start, ar.stop);
 		pthread_create(&thread[i], NULL, calc, &ar);
 	}
+
 
 	for(i = 0; i < threads; ++i)
 	{
@@ -121,8 +112,7 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 		pthread_join(thread[i], (void*) &status);
 	}
 	
-	idx = 0; //reset index
-	
+
 	return result;
 }
 
@@ -134,13 +124,10 @@ double multiplyRowColumn(Matrix *a, int row, Matrix *b, int column)
 void* calc(void *ar)
 {
 	args *r = (args*) ar;
-	int i, j, k;
-	
-	//printf("DEBUG slice size is %d\n", slice);
+	int i, j, k;	
+	int debug = 0;
 
-	while(idx < r->slice)
-	{
-		for(i = 0;i < r->a->rows; ++i)
+		for(i = r->start; i < r->stop; ++i)
 		{
 			for(j = 0;j < r->a->rows; ++j)
 			{
@@ -148,13 +135,15 @@ void* calc(void *ar)
 				for(k = 0; k < r->a->rows; ++k)
 				{
 					r->result->matrix[i][j] += r->a->matrix[i][k] * r->b->matrix[k][j]; 
+					
 				}
+				++debug;
 			}
-		
-			++idx;
+
 		}
-	}
-	return NULL;
+
+	printf("%d Calculations\n", debug);
+	pthread_exit(0);
 			
 }
 

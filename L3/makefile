@@ -1,6 +1,5 @@
 CC=clang
 CFLAGS=-Wall -pedantic -Werror -g
-
 .PHONY: all clean
 
 all: mthread work matrix
