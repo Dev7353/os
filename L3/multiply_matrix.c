@@ -95,20 +95,11 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 		perror("malloc");
 	for(i = 0; i < result->columns;++i)
 	{
-		result->matrix[i] = (double*) malloc(result->columns * sizeof(double));
+		result->matrix[i] = (double*) calloc(result->columns , sizeof(double));
 		if(result->matrix[i] == NULL)
 			perror("malloc");
 	}
 	
-	//initialize result matrix with 0
-	for(i = 0; i < a->rows; ++i)
-	{
-		for(j = 0; j < a->rows; ++j)
-		{
-			result->matrix[i][j] = 0;
-		}
-		
-	}
 	args ar;
 	ar.a = a;
 	ar.b = b;
