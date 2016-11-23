@@ -3,14 +3,14 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <string.h>
 
 typedef struct args
 {
 	Matrix *a; 
 	Matrix *b;
 	Matrix *result;
-	int column;
-	int threads;
+	int slice;
 			
 } args;
 
@@ -29,8 +29,18 @@ Matrix *readMatrix(const char filename[])
 	if(m == NULL)
 		perror("malloc");	
 	
-	fscanf(fp, "%d", &m->rows);
-	fscanf(fp, "%d", &m->columns);
+	int ch, cols = 0;
+
+	do
+	{
+		ch = fgetc(fp);	
+		if(ch == '\n')
+			++cols;
+	
+	} while(ch != EOF);
+
+	m->rows = cols;
+	m->columns = cols;
 
 	m->matrix = (double**) malloc(m->rows * sizeof(double*));
 	if(m->matrix == NULL)
@@ -42,11 +52,14 @@ Matrix *readMatrix(const char filename[])
 			perror("malloc");
 	}
 
+	fp =  fopen(filename, "r"); //reset file to the HEAD
+
 	for(int i = 0; i < m->rows; ++i)
 	{
 			for(int j = 0; j < m->columns; ++j)
 			{
 				fscanf(fp, "%lf", &m->matrix[i][j]);
+				//printf("DEBUG >>> %f\n", m->matrix[i][j]);
 			}
 	}	
 
@@ -62,6 +75,7 @@ Matrix *readMatrix(const char filename[])
 
 	}*/
 	
+	fclose(fp);
 
 	return m;
 }
@@ -99,7 +113,7 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	ar.a = a;
 	ar.b = b;
 	ar.result = result;
-	ar.threads = threads;
+	ar.slice = (a->rows * a->rows) / threads;	
 	
 	pthread_t *thread = (pthread_t*) malloc(sizeof(pthread_t) * threads);
 	if(thread == NULL)
@@ -107,9 +121,12 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	
 	for(i = 0; i < threads; ++i)
 	{
-		ar.column = i;
-		
 		pthread_create(&thread[i], NULL, calc, &ar);
+	}
+
+	for(i = 0; i < threads; ++i)
+	{
+		
 		pthread_join(thread[i], (void*) &status);
 	}
 	
@@ -128,14 +145,13 @@ void* calc(void *ar)
 	args *r = (args*) ar;
 	int i, j, k;
 	
-	int slice = (r->a->rows * r->a->rows) / r->threads;
 	//printf("DEBUG slice size is %d\n", slice);
 
-	while(idx < slice)
+	while(idx < r->slice)
 	{
-		for(i = 0; i < r->a->rows; ++i)
+		for(i = 0;i < r->a->rows; ++i)
 		{
-			for(j = 0; j < r->a->rows; ++j)
+			for(j = 0;j < r->a->rows; ++j)
 			{
 				r->result->matrix[i][j] = 0;	
 				for(k = 0; k < r->a->rows; ++k)
