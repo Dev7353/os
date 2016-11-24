@@ -76,6 +76,16 @@ int main (int argc, char* argv[])
 		
 	}
 	fclose(fp);
+	int empty = 0;
+	for(i = 0; i < m3.rows; ++i)
+	{
+		for(j = 0; j < m3.rows; ++j)
+		{
+			if(m3.matrix[i][j] == 0)
+				++empty;
+		}
+	}
+	printf("%d empty cells\n", empty);
 }
 
 long diff(struct timespec t1, struct timespec t2)

@@ -68,7 +68,6 @@ Matrix *readMatrix(const char filename[])
 
 Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 {
-	int i,status;
 	
 	Matrix *result = (Matrix*) malloc(sizeof(Matrix));
 	if(result == NULL)
@@ -79,7 +78,7 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	result->matrix = (double**) malloc(result->rows * sizeof(double*));
 	if(result->matrix == NULL)
 		perror("malloc");
-	for(i = 0; i < result->columns;++i)
+	for(int i = 0; i < result->columns;++i)
 	{
 		result->matrix[i] = (double*) calloc(result->columns , sizeof(double));
 		if(result->matrix[i] == NULL)
@@ -96,20 +95,20 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	pthread_t *thread = (pthread_t*) malloc(sizeof(pthread_t) * threads);
 	if(thread == NULL)
 		perror("malloc");
-	//int size = ar.a->rows * ar.a->rows;
-	for(i = 0; i < threads; ++i)
+		
+	for(int i = 0; i < threads; ++i)
 	{
-		ar.start = i*(ar.a->rows/ar.threads);
-		ar.stop = (ar.a->rows/ar.threads)*(i+1);
+		ar.start = i*(ar.a->rows/threads);
+		ar.stop = (ar.a->rows/threads)*(i+1);
 		printf("From %d to %d\n", ar.start, ar.stop);
 		pthread_create(&thread[i], NULL, calc, &ar);
 	}
 
 
-	for(i = 0; i < threads; ++i)
+	for(int i = 0; i < threads; ++i)
 	{
-		
-		pthread_join(thread[i], (void*) &status);
+		printf("Join Thread no. %d\n", i);
+		pthread_join(thread[i], NULL);
 	}
 	
 
@@ -118,30 +117,31 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 
 double multiplyRowColumn(Matrix *a, int row, Matrix *b, int column)
 {
-	return 0;
+	double result = 0;
+	for(int k = 0; k < a->columns; ++k)
+	{
+		result += a->matrix[row][k] * b->matrix[k][column]; 			
+	}
+	
+	return result;
 }
 
 void* calc(void *ar)
 {
-	args *r = (args*) ar;
-	int i, j, k;	
+	args *r = (args*) ar;	
 	int debug = 0;
 
-		for(i = r->start; i < r->stop; ++i)
+		for(int i = r->start; i < r->stop; ++i)
 		{
-			for(j = 0;j < r->a->rows; ++j)
+			for(int j = 0;j < r->a->rows; ++j)
 			{
-				r->result->matrix[i][j] = 0;	
-				for(k = 0; k < r->a->rows; ++k)
-				{
-					r->result->matrix[i][j] += r->a->matrix[i][k] * r->b->matrix[k][j]; 
-					
-				}
+				r->result->matrix[i][j] = multiplyRowColumn(r->a, i, r->b, j);	
+				
 				++debug;
 			}
 
 		}
-
+		
 	printf("%d Calculations\n", debug);
 	pthread_exit(0);
 			
