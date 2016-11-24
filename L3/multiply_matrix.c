@@ -3,19 +3,18 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <string.h>
 
 typedef struct args
 {
 	Matrix *a; 
 	Matrix *b;
 	Matrix *result;
-	int column;
-	int threads;
+	int start, stop, threads;
 			
 } args;
 
 void *calc(void *ar);
-int idx = 0;
 
 Matrix *readMatrix(const char filename[])
 {
@@ -29,8 +28,18 @@ Matrix *readMatrix(const char filename[])
 	if(m == NULL)
 		perror("malloc");	
 	
-	fscanf(fp, "%d", &m->rows);
-	fscanf(fp, "%d", &m->columns);
+	int ch, cols = 0;
+
+	do
+	{
+		ch = fgetc(fp);	
+		if(ch == '\n')
+			++cols;
+	
+	} while(ch != EOF);
+
+	m->rows = cols;
+	m->columns = cols;
 
 	m->matrix = (double**) malloc(m->rows * sizeof(double*));
 	if(m->matrix == NULL)
@@ -42,6 +51,8 @@ Matrix *readMatrix(const char filename[])
 			perror("malloc");
 	}
 
+	fp =  fopen(filename, "r"); //reset file to the HEAD
+
 	for(int i = 0; i < m->rows; ++i)
 	{
 			for(int j = 0; j < m->columns; ++j)
@@ -49,26 +60,15 @@ Matrix *readMatrix(const char filename[])
 				fscanf(fp, "%lf", &m->matrix[i][j]);
 			}
 	}	
-
-	/*
-	printf("[DEBUG]");
-	for(int i = 0; i < m->rows; ++i)
-	{
-			for(int j = 0; j < m->columns; ++j)
-			{
-				printf("%lf\t", m->matrix[i][j]);
-			}
-			printf("\n");
-
-	}*/
 	
+	fclose(fp);
 
 	return m;
 }
 
 Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 {
-	int i,j, status;
+	int i,status;
 	
 	Matrix *result = (Matrix*) malloc(sizeof(Matrix));
 	if(result == NULL)
@@ -81,40 +81,38 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 		perror("malloc");
 	for(i = 0; i < result->columns;++i)
 	{
-		result->matrix[i] = (double*) malloc(result->columns * sizeof(double));
+		result->matrix[i] = (double*) calloc(result->columns , sizeof(double));
 		if(result->matrix[i] == NULL)
 			perror("malloc");
 	}
 	
-	//initialize result matrix with 0
-	for(i = 0; i < a->rows; ++i)
-	{
-		for(j = 0; j < a->rows; ++j)
-		{
-			result->matrix[i][j] = 0;
-		}
-		
-	}
 	args ar;
 	ar.a = a;
 	ar.b = b;
 	ar.result = result;
 	ar.threads = threads;
 	
+	
 	pthread_t *thread = (pthread_t*) malloc(sizeof(pthread_t) * threads);
 	if(thread == NULL)
 		perror("malloc");
-	
+	//int size = ar.a->rows * ar.a->rows;
 	for(i = 0; i < threads; ++i)
 	{
-		ar.column = i;
-		
+		ar.start = i*(ar.a->rows/ar.threads);
+		ar.stop = (ar.a->rows/ar.threads)*(i+1);
+		printf("From %d to %d\n", ar.start, ar.stop);
 		pthread_create(&thread[i], NULL, calc, &ar);
+	}
+
+
+	for(i = 0; i < threads; ++i)
+	{
+		
 		pthread_join(thread[i], (void*) &status);
 	}
 	
-	idx = 0; //reset index
-	
+
 	return result;
 }
 
@@ -126,28 +124,26 @@ double multiplyRowColumn(Matrix *a, int row, Matrix *b, int column)
 void* calc(void *ar)
 {
 	args *r = (args*) ar;
-	int i, j, k;
-	
-	int slice = (r->a->rows * r->a->rows) / r->threads;
-	//printf("DEBUG slice size is %d\n", slice);
+	int i, j, k;	
+	int debug = 0;
 
-	while(idx < slice)
-	{
-		for(i = 0; i < r->a->rows; ++i)
+		for(i = r->start; i < r->stop; ++i)
 		{
-			for(j = 0; j < r->a->rows; ++j)
+			for(j = 0;j < r->a->rows; ++j)
 			{
 				r->result->matrix[i][j] = 0;	
 				for(k = 0; k < r->a->rows; ++k)
 				{
 					r->result->matrix[i][j] += r->a->matrix[i][k] * r->b->matrix[k][j]; 
+					
 				}
+				++debug;
 			}
-		
-			++idx;
+
 		}
-	}
-	return NULL;
+
+	printf("%d Calculations\n", debug);
+	pthread_exit(0);
 			
 }
 

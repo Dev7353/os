@@ -19,16 +19,13 @@ def main():
     array = numpy.random.random_integers(
         low=minimum, high=maximum, size=(row, col))
 
-    f = "matrix0"
+    f = "matr.0"
     while os.path.isfile(f):
         number = f[len(f) - 1]
         number = int(number) + 1
         f = f.replace(f[len(f) - 1], str(number))
 
-    with open(f, 'w') as configfile:
-        configfile.write(str(row) + "\n")
-        configfile.write(str(col) + "\n")
-        configfile.write(str(array).replace("[", "").replace("]", ""))
+    numpy.savetxt(f, array, fmt='%.5f')
 
 if __name__ == "__main__":
     main()
