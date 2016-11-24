@@ -85,11 +85,15 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 			perror("malloc");
 	}
 	
-	args ar;
-	ar.a = a;
-	ar.b = b;
-	ar.result = result;
-	ar.threads = threads;
+	args ar[threads];
+	
+	for(int i = 0; i < threads; ++i)
+	{
+		ar[i].a = a;
+		ar[i].b = b;
+		ar[i].result = result;
+		ar[i].threads = threads;
+	}
 	
 	
 	pthread_t *thread = (pthread_t*) malloc(sizeof(pthread_t) * threads);
@@ -98,9 +102,9 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 		
 	for(int i = 0; i < threads; ++i)
 	{
-		ar.start = i*(ar.a->rows/threads);
-		ar.stop = (ar.a->rows/threads)*(i+1);
-		pthread_create(&thread[i], NULL, calc, &ar);
+		ar[i].start = i*(ar[i].a->rows/threads);
+		ar[i].stop = (ar[i].a->rows/threads)*(i+1);
+		pthread_create(&thread[i], NULL, calc, &ar[i]);
 	}
 
 
@@ -141,9 +145,6 @@ void* calc(void *ar)
 			}
 
 		}
-		
-	printf("%d Calculations\n", debug);
-	pthread_exit(0);
-			
+	pthread_exit(0);	
 }
 
