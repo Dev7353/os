@@ -115,6 +115,9 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	}
 	
 
+	//free memmory
+	free(thread);
+
 	return result;
 }
 

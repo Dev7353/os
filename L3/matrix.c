@@ -45,15 +45,15 @@ int main (int argc, char* argv[])
 	printf("MULTITHREADING \t %d\n", multithreading);
 	printf("THREADS \t %d\n", threads);
 
-	Matrix m1, m2, m3;
+	Matrix *m1, *m2, *m3;
 	int i,j;
 	struct timespec t1, t2;
 
-	m1 = *readMatrix(filea);
-	m2 = *readMatrix(fileb);
+	m1 = readMatrix(filea);
+	m2 = readMatrix(fileb);
 	
 	clock_gettime(CLOCK_MONOTONIC, &t1);
-	m3 = *multiplyMatrix(&m1, &m2, threads);
+	m3 = multiplyMatrix(m1, m2, threads);
 	clock_gettime(CLOCK_MONOTONIC, &t2);
 
 	printf("Time : %ld [msec]\n", diff(t1, t2));	
@@ -63,11 +63,11 @@ int main (int argc, char* argv[])
 	char *number = (char*) malloc(sizeof(long double));
 	char tab = '\t';
 	char newline = '\n';
-	for(i = 0; i < m3.rows; ++i)
+	for(i = 0; i < m3->rows; ++i)
 	{
-		for(j = 0; j < m3.rows; ++j)
+		for(j = 0; j < m3->rows; ++j)
 		{
-			sprintf(number, "%lf", m3.matrix[i][j]);
+			sprintf(number, "%lf", m3->matrix[i][j]);
 			fputs(number, fp);
 			fputc(tab, fp);
 
@@ -77,15 +77,31 @@ int main (int argc, char* argv[])
 	}
 	fclose(fp);
 	int empty = 0;
-	for(i = 0; i < m3.rows; ++i)
+	for(i = 0; i < m3->rows; ++i)
 	{
-		for(j = 0; j < m3.rows; ++j)
+		for(j = 0; j < m3->rows; ++j)
 		{
-			if(m3.matrix[i][j] == 0)
+			if(m3->matrix[i][j] == 0)
 				++empty;
 		}
 	}
 	printf("%d empty cells\n", empty);
+	
+	//free allocated memory
+	for(int i = 0; i < m3->rows; ++i)
+	{
+		free(m1->matrix[i]);
+		free(m2->matrix[i]);
+		free(m3->matrix[i]);
+	}
+	
+	free(m1->matrix);
+	free(m2->matrix);
+	free(m3->matrix);
+	
+	free(m1);
+	free(m2);
+	free(m3);
 }
 
 long diff(struct timespec t1, struct timespec t2)
