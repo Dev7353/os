@@ -28,7 +28,7 @@ def increment():
     global global_var
     global delay
     tempvar = global_var
-    time.sleep(delay)  # Sleep to show race conditions
+    time.sleep(delay)  # Sleep to give control to different thread
     global_var = tempvar + 1
 
 
@@ -48,6 +48,7 @@ def race_lock(n_threads, n_loops):
 
 class init_thread(threading.Thread):
     # Initialize the thread, overwrite to add arguments
+
     def __init__(self, n_loops, locked):
         threading.Thread.__init__(self)
         self.n_loops = n_loops
@@ -79,17 +80,54 @@ def race(n_threads, n_loops):
     return (exc, cur)
 
 
+def race_p(n_threads, n_loops):
+    exc = global_var + n_threads * n_loops
+    threads = []
+    level = []
+    last_to_enter = []
+    # Set up flags for Peterson algorithm
+    for i in range(n_threads):
+        level.append(-1)
+    for i in range(n_threads - 1):
+        last_to_enter.append(0)
+    for i in range(n_threads):
+        t = threading.Thread(target=peterson, args=(n_loops, n_threads, level, last_to_enter, i))
+        threads.append(t)
+    for i in range(n_threads):
+        threads[i].start()
+    for i in range(n_threads):
+        threads[i].join()
+    cur = global_var
+    return (exc, cur)
+
+
+def peterson(n_loops, n_threads, level, last_to_enter, i):
+    k = 1
+    for l in range(n_threads - 1):
+        level[i] = l
+        last_to_enter[l] = i
+        while(last_to_enter[l] == i and level[k] >= l):
+            if(k != i):
+                time.sleep(0.1)
+        k += 1
+    for x in range(n_loops):
+        increment()
+    print(global_var)
+    level[i] = -1
+
+
 def main():
     print(global_var)
     threads = 40
     loops = 10
     gil = False
     mutex = False
-    peters = False
+    peterson = False
     output = ""
     try:
         options, args = getopt.getopt(
-            sys.argv[1:], 'tlhgpm', ['threads', 'loops', 'help', 'gil', 'peterson', 'mutex'])
+            sys.argv[1:], 'tlhgpm', ['threads', 'loops', 'help', 'gil',
+                                     'peterson', 'mutex'])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
@@ -108,14 +146,21 @@ def main():
                 loops = arg
         if opt in ('-g', '--gil'):
             gil = True
+        if opt in ('-p', '--peterson'):
+            peterson = True
+        if opt in ('-m', '--mutex'):
+            mutex = True
         if opt in ('-h', '--help'):
             print(usage())
             break
     if gil is True:
         output = str(race_lock(threads, loops))
+    elif peterson is True:
+        output = str(race_p(threads, loops))
+    elif mutex is True:
+        pass
     else:
         output = str(race(threads, loops))
-    # time.sleep(1)
     print(output)
 
 if __name__ == "__main__":

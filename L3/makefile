@@ -3,7 +3,7 @@ CFLAGS=-Wall -pedantic -Werror -g
 
 .PHONY: all clean
 
-all: mthread work matrix
+all: mthread work matrix forksqrt
 
 clean: 
 	$(RM) -rf *.o mthread work matrix *.dSYM
@@ -15,3 +15,5 @@ work: work.c
 	$(CC) $(CFLAGS) -lrt $< -o $@
 
 matrix: matrix.c multiply_matrix.c
+
+forksqrt: forksqrt.c ini.c
