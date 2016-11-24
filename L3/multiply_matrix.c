@@ -100,7 +100,6 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	{
 		ar.start = i*(ar.a->rows/threads);
 		ar.stop = (ar.a->rows/threads)*(i+1);
-		printf("From %d to %d\n", ar.start, ar.stop);
 		pthread_create(&thread[i], NULL, calc, &ar);
 	}
 
@@ -130,11 +129,12 @@ void* calc(void *ar)
 {
 	args *r = (args*) ar;	
 	int debug = 0;
-
+	printf("From %d to %d\n", r->start, r->stop);
 		for(int i = r->start; i < r->stop; ++i)
 		{
 			for(int j = 0;j < r->a->rows; ++j)
 			{
+
 				r->result->matrix[i][j] = multiplyRowColumn(r->a, i, r->b, j);	
 				
 				++debug;
