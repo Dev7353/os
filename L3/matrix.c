@@ -102,6 +102,7 @@ int main (int argc, char* argv[])
 	free(m1);
 	free(m2);
 	free(m3);
+	free(number);
 }
 
 long diff(struct timespec t1, struct timespec t2)

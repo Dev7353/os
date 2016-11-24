@@ -50,7 +50,7 @@ Matrix *readMatrix(const char filename[])
 		if(m->matrix[i] == NULL)
 			perror("malloc");
 	}
-
+	fclose(fp);
 	fp =  fopen(filename, "r"); //reset file to the HEAD
 
 	for(int i = 0; i < m->rows; ++i)
@@ -62,7 +62,7 @@ Matrix *readMatrix(const char filename[])
 	}	
 	
 	fclose(fp);
-
+	
 	return m;
 }
 
@@ -96,9 +96,7 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	}
 	
 	
-	pthread_t *thread = (pthread_t*) malloc(sizeof(pthread_t) * threads);
-	if(thread == NULL)
-		perror("malloc");
+	pthread_t thread[threads];
 		
 	for(int i = 0; i < threads; ++i)
 	{
@@ -112,12 +110,8 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	{
 		printf("Join Thread no. %d\n", i);
 		pthread_join(thread[i], NULL);
+
 	}
-	
-
-	//free memmory
-	free(thread);
-
 	return result;
 }
 
@@ -135,19 +129,16 @@ double multiplyRowColumn(Matrix *a, int row, Matrix *b, int column)
 void* calc(void *ar)
 {
 	args *r = (args*) ar;	
-	int debug = 0;
-	printf("From %d to %d\n", r->start, r->stop);
-		for(int i = r->start; i < r->stop; ++i)
+	for(int i = r->start; i < r->stop; ++i)
+	{
+		for(int j = 0;j < r->a->rows; ++j)
 		{
-			for(int j = 0;j < r->a->rows; ++j)
-			{
 
-				r->result->matrix[i][j] = multiplyRowColumn(r->a, i, r->b, j);	
-				
-				++debug;
-			}
+			r->result->matrix[i][j] = multiplyRowColumn(r->a, i, r->b, j);	
 
 		}
-	pthread_exit(0);	
+
+	}
+	return NULL;
 }
 
