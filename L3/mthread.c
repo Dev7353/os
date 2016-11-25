@@ -10,26 +10,41 @@ typedef int boolean;
 #define true 1;
 #define false 0;
 
+typedef struct arg
+{
+	int number;
+	int upper;
+	int lower;
+
+} arg;
+
 void *PrintHello(void *threadarg);
 
 /*Parsing based on https://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt*/
 
 int main(int argc, char* argv[])
 {
+	// initialize and declare default values
 	boolean infos = false;
 	int status;
 	long t;
 	long NumberOfThreads = 4;
 	int c; //argument
 	
-	pthread_t *thread;
-	
-	while((c = getopt(argc, argv, "hvt:")) != -1)
+	int lowerBorder = 0;
+	int upperBorder = 10;	
+
+	while((c = getopt(argc, argv, "hvt:r:R:")) != -1)
 	{
 		switch(c)
 		{
 			case 't':
 				NumberOfThreads = atoi(optarg);
+				if(NumberOfThreads < 0)
+				{
+					perror("No negativ threads");
+					NumberOfThreads = (-1) * NumberOfThreads; 
+				}
 				break;
 			case 'h':
 				printf("Help: \n-v, --verbose \t\t get more informations while running\n-h, --help  \t\tget help\n-t --times \t\tcreate t times threads\n\n");
@@ -40,8 +55,28 @@ int main(int argc, char* argv[])
 			case 'v':
 				infos = true;
 				break;
+			case 'r':
+				lowerBorder = atoi(optarg);
+				if(lowerBorder < 0)
+				{
+					perror("No negative time");
+					lowerBorder = (-1) * atoi(optarg);			
+				}
+				break;
+			case 'R':
+				upperBorder = atoi(optarg);
+				if(upperBorder < 0)
+				{
+					perror("No negative time");
+					upperBorder = (-1) * atoi(optarg);			
+				}
+				break;
 			case '?':
 				if(optopt == 't')
+					fprintf(stderr, "Option -%c requires argument.\n", optopt);
+				else if(optopt == 'r')
+					fprintf(stderr, "Option -%c requires argument.\n", optopt);
+				else if(optopt == 'R')
 					fprintf(stderr, "Option -%c requires argument.\n", optopt);
 				else if (isprint (optopt))
 					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
@@ -53,22 +88,18 @@ int main(int argc, char* argv[])
 		}
 	}
 	
+	arg args[NumberOfThreads];
+
 	errno = 0;
 	
-	thread = (pthread_t*) malloc(NumberOfThreads * sizeof(pthread_t));
-	if(thread == NULL)
-	{
-		perror("malloc fail");
-		if(infos)
-			printf("Errno %d\n", errno);
-		exit(1);
-
-	}
-	
+	pthread_t threads[NumberOfThreads];
 	for(t = 0; t < NumberOfThreads; t++)
 	{
+		args[t].number = t;
+		args[t].upper = upperBorder;
+		args[t].lower = lowerBorder;
 		printf("Creating thread %ld\n", t);
-		if(pthread_create(&thread[t], NULL, PrintHello, &t) != 0)
+		if(pthread_create(&threads[t], NULL, PrintHello, &args[t]) != 0)
 		{
 			perror("creating Thread failed\n");
 			if(infos)
@@ -81,7 +112,7 @@ int main(int argc, char* argv[])
 	for(t = 0; t < NumberOfThreads; t++)
 	{
 		printf("Main joining with thread %ld\n", t);
-		if(pthread_join(*(&thread[t]), (void*)(&status)) != 0)
+		if(pthread_join(*(&threads[t]), (void*)(&status)) != 0)
 		{
 			perror("join failed\n");
 			if(infos)
@@ -92,20 +123,19 @@ int main(int argc, char* argv[])
                 printf("Completed joining with thread %ld status = %d\n", t,
                        status);
 	}
-	
-	free(thread);
 }
 
 void *PrintHello(void *threadarg)
 {
+	arg ar = *((arg*) threadarg);
 	time_t sec;
-	printf("%ld: Hello World\n", *((long *) threadarg));
+	printf("%d: Hello World\n", ar.number);
 	time(&sec);
-	srand((unsigned int) sec);
-	int s = (rand()%10)+1;
+	srandom((unsigned int) sec);
+	int s = (random()%ar.upper)+ar.lower;
 	sleep(s);
 	
-	printf("%ld: Thread is done after sleeping %d[s]\n", *((long *) threadarg), s); /*For now 0 is a dummy value*/
-	
+	printf("%d: Thread is done after sleeping %d[s]\n", ar.number, s);
+
 	return NULL;
 }
