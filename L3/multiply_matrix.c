@@ -69,7 +69,6 @@ Matrix *readMatrix(const char filename[])
 
 Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 {
-	
 	Matrix *result = (Matrix*) malloc(sizeof(Matrix));
 	if(result == NULL)
 		perror("malloc");
@@ -109,17 +108,17 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 		ar[i].start = i*(ar[i].a->rows/threads);
 		ar[i].stop = (ar[i].a->rows/threads)*(i+1);
 		if(pthread_create(&thread[i], NULL, calc, &ar[i]) != 0)
-			printf("ERRNO %d\n", errno)
+		{	printf("ERRNO %d\n", errno);
 			perror("Thread creation failed\n");
+		}	
 	}
 
 
 	for(int i = 0; i < threads; ++i)
 	{
-		if(pthread_join(thread[i], &status) != 0)
+		if(pthread_join(thread[i], NULL) != 0)
 		{
-			printf("ERRNO %d\n", errno)
-			perror("Join failed with status %d\n", status);
+			printf("ERRNO %d\n", errno);
 		}
 	}
 	return result;

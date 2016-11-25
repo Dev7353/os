@@ -110,7 +110,7 @@ int main (int argc, char* argv[])
 		}
 	}
 	
-	printf("%d empty cells\n", empty);
+	printf("%d empty cells\n", empty); // if the number is high then maybe the algorithm isnt working 
 	
 	//free allocated memory
 	for(int i = 0; i < m3->rows; ++i)

@@ -16,6 +16,11 @@ def main():
         print("Did you see ever a matrix with negativ sizes?")
         exit(1)
 
+    if(row != col)
+	print("Well, the matrix multiplication supprts only nxn matrices but dont worry. I Just take the first number and create a nxn.
+ 
+    col = row; 
+
     array = numpy.random.random_integers(
         low=minimum, high=maximum, size=(row, col))
 
