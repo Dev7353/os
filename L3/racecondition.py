@@ -109,14 +109,32 @@ def peterson(n_loops, n_threads, level, last_to_enter, i):
     for l in range(n_threads - 1):
         level[i] = l
         last_to_enter[l] = i
-        while(last_to_enter[l] == i and level[k] >= l):
+        while(last_to_enter[l] == i and any((k != i and e >= l) for k, e in enumerate(level))):
             if(k != i):
-                time.sleep(0.1)
+                pass
         k += 1
     for x in range(n_loops):
         increment()
-    print(global_var)
     level[i] = -1
+
+
+def race_m(n_loops, n_threads):
+    exc = global_var + n_threads * n_loops
+    for i in range(n_threads):
+        t = threading.Thread(target=mutex_lock, args=(n_loops, threadLock))
+        t.start()
+    time.sleep(2)
+    cur = global_var
+    return (exc, cur)
+
+
+def mutex_lock(n_loops, mutex):
+    mutex.acquire()
+    try:
+        for i in range(n_loops):
+            increment()
+    finally:
+        mutex.release()
 
 
 def main():
@@ -161,7 +179,7 @@ def main():
     elif peterson is True:
         output = str(race_p(threads, loops))
     elif mutex is True:
-        pass
+        output = str(race_m(threads, loops))
     else:
         output = str(race(threads, loops))
     print(output)
