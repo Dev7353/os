@@ -42,11 +42,11 @@ main (int argc, char *argv[])
 				fprintf (stderr,
 					 "Option -%c requires an argument.\n",
 					 optopt);
-			if (optopt == 'b')
+			else if (optopt == 'b')
 				fprintf (stderr,
 					 "Option -%c requires an argument.\n",
 					 optopt);
-			if (optopt == 't')
+			else if (optopt == 't')
 				fprintf (stderr,
 					 "Option -%c requires an argument.\n",
 					 optopt);
