@@ -6,7 +6,7 @@ import threading  # Use this module because _thread does not have join method
 import time
 
 global_var = 600
-threads = 0
+threadcount = 0
 threadLock = threading.Lock()
 lockcount = []
 delay = 0.0001
@@ -115,26 +115,36 @@ def peterson(n_loops, n_threads, level, last_to_enter, i):
         k += 1
     for x in range(n_loops):
         increment()
+    # print(global_var)
     level[i] = -1
+    # http://www.csee.wvu.edu/~jdm/classes/cs550/notes/tech/mutex/Peterson2.html
+    # https://en.wikipedia.org/wiki/Peterson%27s_algorithm
 
 
 def race_m(n_loops, n_threads):
     exc = global_var + n_threads * n_loops
+    global threadcount
     for i in range(n_threads):
         t = threading.Thread(target=mutex_lock, args=(n_loops, threadLock))
         t.start()
-    time.sleep(2)
+        threadcount += 1
+    while threadcount > 0:
+        pass
     cur = global_var
     return (exc, cur)
+    # http://stackoverflow.com/questions/3310049/proper-use-of-mutexes-in-python
 
 
 def mutex_lock(n_loops, mutex):
+    global threadcount
     mutex.acquire()
+    lockcount.append(mutex)
     try:
         for i in range(n_loops):
             increment()
     finally:
         mutex.release()
+        threadcount -= 1
 
 
 def main():
@@ -147,8 +157,8 @@ def main():
     output = ""
     try:
         options, args = getopt.getopt(
-            sys.argv[1:], 'tlhgpm', ['threads', 'loops', 'help', 'gil',
-                                     'peterson', 'mutex'])
+            sys.argv[1:], 't:l:hgpm', ['threads', 'loops', 'help', 'gil',
+                                       'peterson', 'mutex'])
     except getopt.GetoptError as err:
         # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
@@ -159,12 +169,12 @@ def main():
             if arg is None:
                 break
             else:
-                threads = arg
+                threads = int(arg)
         if opt in ('-l', '--loops'):
             if arg is None:
                 break
             else:
-                loops = arg
+                loops = int(arg)
         if opt in ('-g', '--gil'):
             gil = True
         if opt in ('-p', '--peterson'):
