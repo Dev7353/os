@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
 typedef struct args
 {
@@ -51,7 +52,7 @@ Matrix *readMatrix(const char filename[])
 			perror("malloc");
 	}
 	fclose(fp);
-	fp =  fopen(filename, "r"); //reset file to the HEAD
+	fp =  fopen(filename, "r"); //reset file to the HEAD otherwise valgrind screams
 
 	for(int i = 0; i < m->rows; ++i)
 	{
@@ -71,13 +72,18 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	
 	Matrix *result = (Matrix*) malloc(sizeof(Matrix));
 	if(result == NULL)
-		perror("malloc");	
+		perror("malloc");
+	
 	result->rows = a->rows;
 	result->columns = a->columns;
+
+	if(result->rows != result->columns)
+		perror("The matrix multiplication support only nxn matrices\n");
 
 	result->matrix = (double**) malloc(result->rows * sizeof(double*));
 	if(result->matrix == NULL)
 		perror("malloc");
+
 	for(int i = 0; i < result->columns;++i)
 	{
 		result->matrix[i] = (double*) calloc(result->columns , sizeof(double));
@@ -97,20 +103,24 @@ Matrix *multiplyMatrix(Matrix *a, Matrix *b, int threads)
 	
 	
 	pthread_t thread[threads];
-		
+	errno = 0;
 	for(int i = 0; i < threads; ++i)
 	{
 		ar[i].start = i*(ar[i].a->rows/threads);
 		ar[i].stop = (ar[i].a->rows/threads)*(i+1);
-		pthread_create(&thread[i], NULL, calc, &ar[i]);
+		if(pthread_create(&thread[i], NULL, calc, &ar[i]) != 0)
+			printf("ERRNO %d\n", errno)
+			perror("Thread creation failed\n");
 	}
 
 
 	for(int i = 0; i < threads; ++i)
 	{
-		printf("Join Thread no. %d\n", i);
-		pthread_join(thread[i], NULL);
-
+		if(pthread_join(thread[i], &status) != 0)
+		{
+			printf("ERRNO %d\n", errno)
+			perror("Join failed with status %d\n", status);
+		}
 	}
 	return result;
 }

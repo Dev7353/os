@@ -36,13 +36,33 @@ int main (int argc, char* argv[])
 		case 't':
 			threads = atoi(optarg);
 			break;
+		case '?':
+			if (optopt == 'a')
+		  		fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+			if (optopt == 'b')
+		  		fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+			if (optopt == 't')
+		  		fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+
+			else if (isprint (optopt))
+		  		fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+			else
+		 		 fprintf (stderr,"Unknown option character `\\x%x'.\n",optopt);
+        		return 1;
+		default:
+			abort();
 	      }
 
 	}
 
 	printf("FILE A \t\t %s\n", filea);
 	printf("FILE B \t\t %s\n", fileb);
-	printf("MULTITHREADING \t %d\n", multithreading);
+	char* mt;
+	if(multithreading == true)
+		mt = "an";
+	else
+		mt = "aus";
+	printf("MULTITHREADING \t %s\n", mt);
 	printf("THREADS \t %d\n", threads);
 
 	Matrix *m1, *m2, *m3;
@@ -63,6 +83,8 @@ int main (int argc, char* argv[])
 	char *number = (char*) malloc(sizeof(long double));
 	char tab = '\t';
 	char newline = '\n';
+
+	// copy the whole data from file  into matrix
 	for(i = 0; i < m3->rows; ++i)
 	{
 		for(j = 0; j < m3->rows; ++j)
@@ -76,6 +98,8 @@ int main (int argc, char* argv[])
 		
 	}
 	fclose(fp);
+	
+	// debug information 
 	int empty = 0;
 	for(i = 0; i < m3->rows; ++i)
 	{
@@ -85,6 +109,7 @@ int main (int argc, char* argv[])
 				++empty;
 		}
 	}
+	
 	printf("%d empty cells\n", empty);
 	
 	//free allocated memory
