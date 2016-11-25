@@ -1,6 +1,7 @@
 import sys
 import numpy
-import  os
+import os
+
 
 def main():
     if len(sys.argv) != 5:
@@ -16,19 +17,19 @@ def main():
         print("Did you see ever a matrix with negativ sizes?")
         exit(1)
 
-    if(row != col)
-	print("Well, the matrix multiplication supprts only nxn matrices but dont worry. I Just take the first number and create a nxn.
- 
-    col = row; 
+    if(row != col):
+	print("Matrix multiplication only supports nxn. Anyway i continue with the first number.")
 
-    array = numpy.random.random_integers(
+    col=row;
+
+    array=numpy.random.random_integers(
         low=minimum, high=maximum, size=(row, col))
 
-    f = "matr.0"
+    f="matr.0"
     while os.path.isfile(f):
-        number = f[len(f) - 1]
-        number = int(number) + 1
-        f = f.replace(f[len(f) - 1], str(number))
+        number=f[len(f) - 1]
+        number=int(number) + 1
+        f=f.replace(f[len(f) - 1], str(number))
 
     numpy.savetxt(f, array, fmt='%.5f')
 
