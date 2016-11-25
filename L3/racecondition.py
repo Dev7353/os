@@ -91,8 +91,11 @@ def race_p(n_threads, n_loops):
     for i in range(n_threads - 1):
         last_to_enter.append(0)
     for i in range(n_threads):
-        t = threading.Thread(target=peterson, args=(n_loops, n_threads, level, last_to_enter, i))
-        threads.append(t)
+        threads.append(threading.Thread(target=peterson, args=(n_loops,
+                                                               n_threads,
+                                                               level,
+                                                               last_to_enter,
+                                                               i)))
     for i in range(n_threads):
         threads[i].start()
     for i in range(n_threads):
