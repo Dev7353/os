@@ -5,7 +5,7 @@ CFLAGS=-Wall -pedantic -Werror -g
 all: mthread work matrix
 
 clean: 
-	$(RM) -rf *.o mthread work matrix *.dSYM result* matr.*
+	$(RM) -rf *.o *.dat mthread work matrix *.dSYM result* matr.*
 
 mthread: mthread.c
 	$(CC) $(CFLAGS) -lpthread $< -o $@
