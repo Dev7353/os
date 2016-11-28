@@ -107,7 +107,6 @@ main (int argc, char *argv[])
 	}
 
 
-	pthread_mutex_init (&mutex, NULL);
 	arg args[NumberOfThreads];
 
 	errno = 0;
@@ -150,14 +149,12 @@ void *
 PrintHello (void *threadarg)
 {
 
-	pthread_mutex_lock (&mutex);
 	arg ar = *((arg *) threadarg);
 	time_t sec;
 	printf ("%d: Hello World\n", ar.number);
 	time (&sec);
 	srandom ((unsigned int) sec);
 	int s = (random () % ar.upper) + ar.lower;
-	pthread_mutex_unlock (&mutex);
 	sleep (s);
 
 	printf ("%d: Thread is done after sleeping %d[s]\n", ar.number, s);
