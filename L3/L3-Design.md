@@ -59,8 +59,5 @@
     Die Join Funktion verhindert dies in dem das Hauptprogramm auf die Terminierung der Threads wartet. 
     
 ### Kritik
-
-    weiter Punkte:
-    - Kritik? 
-
-   
+    Die Ausgabe der Git HEAD ID über die Funktion system() ist weniger elegant gelöst. Die Funktionalität ist nicht direkt implementiert. Somit können auch Fehler
+    schlecht bis garnicht abgefangen werden. Weiterhin ist die Ausgabe direkt auf der Shell und nicht über eine printf Methode. 
