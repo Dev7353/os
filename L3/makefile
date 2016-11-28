@@ -11,7 +11,7 @@ mthread: mthread.c
 	$(CC) $(CFLAGS) -lpthread $< -o $@
 
 work: work.c
-	$(CC) $(CFLAGS) -lrt $< -o $@
+	$(CC) $(CFLAGS) -lrt -lm $< -o $@
 
 matrix: multiply_matrix.c matrix.c
 	$(CC) $(CFLAGS) -lpthread -lrt $^ -o $@

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 #define BILLION 1000000000
 #define MILLION 1000000
@@ -11,6 +12,9 @@ int gtd(struct timespec t1, struct timespec t2, long duration);
 
 int main(int argc, char* argv[])
 {
+	clock_t m1, m2; // measure the real cpu time
+	double elapse;
+	m1 =clock();
 	if(argc != 3)
 	{
 		fprintf(stderr, "To less or to many arguments");
@@ -32,7 +36,9 @@ int main(int argc, char* argv[])
 		
 	long diff = (end.tv_sec*BILLION + end.tv_nsec) - (start.tv_sec*BILLION + start.tv_nsec);
 
-	printf("execution time (in ms): %ld\n", (long) (diff*MILLIONTH));
+	m2 = clock();
+	elapse = round((double) m2-m1)/1000;
+	printf("%ld %ld\n", (long)round(elapse), (long) (diff*MILLIONTH));
 	return 0;
 	
 } 
