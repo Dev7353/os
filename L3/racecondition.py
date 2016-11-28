@@ -128,6 +128,7 @@ def race_m(n_loops, n_threads):
         t = threading.Thread(target=mutex_lock, args=(n_loops, threadLock))
         t.start()
         threadcount += 1
+    # Wait till all threads are done
     while threadcount > 0:
         pass
     cur = global_var

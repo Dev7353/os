@@ -6,7 +6,7 @@ CFLAGS=-Wall -pedantic -Werror -g
 all: mthread work matrix forksqrt
 
 clean: 
-	$(RM) -rf *.o mthread work matrix *.dSYM
+	$(RM) -rf *.o mthread work matrix forksqrt *.dSYM
 
 mthread: mthread.c
 	$(CC) $(CFLAGS) -pthread $< -o $@
