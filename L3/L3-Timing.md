@@ -31,3 +31,7 @@
     * Was passiert, wenn Sie die ''pthread_join()'' Aufrufe nicht machen?
 		- Dieser Punkt ist bereits im Design beschrieben. Wenn der join Aufruf nicht gemacht wird dann terminiert der Hauptthread vor den Threads und bricht quasie die laufenden 
 		  Threads ab.
+
+## Race-Condition
+
+## C in Python
