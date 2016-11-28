@@ -4,6 +4,7 @@ import getopt
 import sys
 import threading  # Use this module because _thread does not have join method
 import time
+import timeit
 
 global_var = 600
 threadcount = 0
@@ -21,13 +22,13 @@ def usage():
          Without any given parameter, it runs it without any locks with
          40 threads and 10 loops.
 
-         -h, --help         	Displays this help
-         -t, --threads       	Sets how often the global variable threads
+         -h, --help             Displays this help
+         -t, --threads          Sets how often the global variable threads
                                 gets incremented (Default: 10)
-         -l, --loops          	Amount of threads to be created
-         -g, --gil 				Runs the program with GIL
-         -p, --peterson 		Runs the program with the peterson algorithm
-         -m, --mutex 			Runs the program with mutex"""
+         -l, --loops            Amount of threads to be created
+         -g, --gil              Runs the program with GIL
+         -p, --peterson         Runs the program with the peterson algorithm
+         -m, --mutex            Runs the program with mutex"""
 
 
 def increment():
@@ -60,10 +61,12 @@ def race_lock(n_threads, n_loops):
 
 
 class init_thread(threading.Thread):
+
     '''
     Helper class to run incrementing with or without lock.
     '''
     # Initialize the thread, overwrite to add arguments
+
     def __init__(self, n_loops, locked):
         threading.Thread.__init__(self)
         self.n_loops = n_loops
@@ -184,6 +187,7 @@ def main():
     gil = False
     mutex = False
     peterson = False
+    setup_string = "import threading\nimport time\nimport __main__"
     try:
         options, args = getopt.getopt(
             sys.argv[1:], 't:l:hgpm', ['threads', 'loops', 'help', 'gil',
@@ -215,19 +219,31 @@ def main():
             break
     if gil is True:
         result = race_lock(threads, loops)
+        time = timeit.timeit("__main__.race_lock({}, {})".format(
+            threads, loops), setup=setup_string, number=1)
     elif peterson is True:
         result = race_p(threads, loops)
+        time = timeit.timeit(
+            "__main__.race_p({}, {})".format(threads, loops),
+            setup=setup_string, number=1)
     elif mutex is True:
         result = race_m(threads, loops)
+        time = timeit.timeit(
+            "__main__.race_m({}, {})".format(threads, loops),
+            setup=setup_string, number=1)
     else:
         result = race(threads, loops)
+        time = timeit.timeit(
+            "__main__.race({}, {})".format(threads, loops),
+            setup=setup_string, number=1)
 
     # Print results
+    print("Threads: {}\tLoops: {}".format(threads, loops))
     print("After {} modifications, global_var should have become {}".format(
         loops * threads, result[0]))
     print("After {} modifications, global_var is {}".format(
         loops * threads, result[1]))
-
+    print("Execution time: {}".format(time))
 if __name__ == "__main__":
     main()
 

@@ -30,7 +30,7 @@ def main():
 
 
 def print_results(name, result, time):
-    print('---{}( 5.0 )---\nResult: {}\nExecution Time: {}ms'
+    print('---{}( 5.0 )---\nResult: {}\nExecution Time: {}'
           .format(name, result, time))
 
 
