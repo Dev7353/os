@@ -23,10 +23,12 @@ typedef struct arg
 void *PrintHello (void *threadarg);
 
 /*Parsing based on https://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt*/
-
+time_t sec;
 int
 main (int argc, char *argv[])
 {
+	
+	srandom ((unsigned int) sec);
 	// initialize and declare default values
 	boolean infos = false;
 	int status;
@@ -50,7 +52,7 @@ main (int argc, char *argv[])
 			}
 			break;
 		case 'h':
-			printf ("Help: \n-v, --verbose \t\t get more informations while running\n-h, --help  \t\tget help\n-t --times \t\tcreate t times threads\n\n");
+			printf ("Help: \n-v, --verbose \t\t get more informations while running\n-h, --help  \t\tget help\n-t --times \t\tcreate t times threads\n -r \t\t\t under random border \n -R \t\t\t upper random border\n");
 			printf ("Current Git HEAD commit number: \n");
 			const char *gitversion = "git rev-parse HEAD";
 			system (gitversion);
@@ -150,10 +152,8 @@ PrintHello (void *threadarg)
 {
 
 	arg ar = *((arg *) threadarg);
-	time_t sec;
 	printf ("%d: Hello World\n", ar.number);
 	time (&sec);
-	srandom ((unsigned int) sec);
 	int s = (random () % ar.upper) + ar.lower;
 	sleep (s);
 
