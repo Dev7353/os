@@ -142,9 +142,6 @@ def peterson(n_loops, n_threads, level, last_to_enter, i):
     for x in range(n_loops):
         increment()
     level[i] = -1
-    # http://www.csee.wvu.edu/~jdm/classes/cs550/notes/tech/mutex/Peterson2.html
-    # https://en.wikipedia.org/wiki/Peterson%27s_algorithm
-    # https://docs.python.org/3/library/functions.html#any
 
 
 def race_m(n_loops, n_threads):
@@ -162,7 +159,6 @@ def race_m(n_loops, n_threads):
         pass
     cur = global_var
     return (exc, cur)
-    # http://stackoverflow.com/questions/3310049/proper-use-of-mutexes-in-python
 
 
 def mutex_lock(n_loops, mutex):
@@ -246,5 +242,3 @@ def main():
     print("Execution time: {}".format(time))
 if __name__ == "__main__":
     main()
-
-# https://www.tutorialspoint.com/python/python_multithreading.htm

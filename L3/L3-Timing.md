@@ -71,3 +71,9 @@ Die C Bibliothek ist am schnellsten. Daraufhin folgt die integrierte Python-Funk
 dann die cythonized Heron-Funktion und mit grossem Abstand dann die Heron-Funktion von der L2.
 Die sehr schnellen Zeiten von der sqrtm und math.sqrt Methode lassen sich dadurch erklären, dass diese bereits optimiert sind und den besten Algorithmus verwenden. Durch die Cython-Optimierung ist die cyforksqrt.sqrt2 Methode zwar langsamer als die Standardwurzelfunktionen, aber dennoch weitaus schneller als die Python-Funktion aus der L2.
 
+## Weitere Quellen
+http://www.csee.wvu.edu/~jdm/classes/cs550/notes/tech/mutex/Peterson2.html
+https://en.wikipedia.org/wiki/Peterson%27s_algorithm
+https://docs.python.org/3/library/functions.html#any
+http://stackoverflow.com/questions/3310049/proper-use-of-mutexes-in-python
+https://www.tutorialspoint.com/python/python_multithreading.htm

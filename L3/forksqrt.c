@@ -66,13 +66,13 @@ main (int argc, char *argv[])
     char *configfile = NULL;
     int flag = 0;
     int c;
-    int i;
+    int i, fragmentSize;
     FILE *file;
     configfile = DEFAULTCONFIG;
     char buf[1000];
     int pipeNumber = 1;
 
-    while ((c = getopt (argc, argv, "hdc:f:op")) != -1)
+    while ((c = getopt (argc, argv, "hdc:f:ops")) != -1)
     {
         switch (c)
         {
@@ -102,6 +102,8 @@ main (int argc, char *argv[])
         case 'p':
             pipeNumber = 4;
             break;
+        case 's':
+            fragmentSize = atoi(optarg);
         }
 
     }
@@ -112,59 +114,6 @@ main (int argc, char *argv[])
         return 1;
     }
 
-    // if (pipe (writeToChild) != 0)
-    // {
-    //     printf("Failed Syscall: %d\n", errno);
-    //     perror("Pipe not successful.\n");
-    // }
-    // if (pipe (readFromChild) != 0)
-    // {
-    //     printf("Failed Syscall: %d\n", errno);
-    //     perror("Pipe not successful.\n");
-    // }
-    // if(pipeNumber == 4)
-    // {
-    //     if (pipe (writeToChild2) != 0)
-    //     {
-    //         printf("Failed Syscall: %d\n", errno);
-    //         perror("Pipe not successful.\n");
-    //     }
-    //     if (pipe (readFromChild2) != 0)
-    //     {
-    //         printf("Failed Syscall: %d\n", errno);
-    //         perror("Pipe not successful.\n");
-    //     }
-    //     if (pipe (writeToChild2) != 0)
-    //     {
-    //         printf("Failed Syscall: %d\n", errno);
-    //         perror("Pipe not successful.\n");
-    //     }
-    //     if (pipe (readFromChild2) != 0)
-    //     {
-    //         printf("Failed Syscall: %d\n", errno);
-    //         perror("Pipe not successful.\n");
-    //     }
-    //     if (pipe (writeToChild3) != 0)
-    //     {
-    //         printf("Failed Syscall: %d\n", errno);
-    //         perror("Pipe not successful.\n");
-    //     }
-    //     if (pipe (readFromChild3) != 0)
-    //     {
-    //         printf("Failed Syscall: %d\n", errno);
-    //         perror("Pipe not successful.\n");
-    //     }
-    //     if (pipe (writeToChild4) != 0)
-    //     {
-    //         printf("Failed Syscall: %d\n", errno);
-    //         perror("Pipe not successful.\n");
-    //     }
-    //     if (pipe (readFromChild4) != 0)
-    //     {
-    //         printf("Failed Syscall: %d\n", errno);
-    //         perror("Pipe not successful.\n");
-    //     }
-    // }
     for (i = 0; i < pipeNumber; ++i) {
         if (pipe(pipefdarray[i]) != 0)
         {
@@ -187,54 +136,78 @@ main (int argc, char *argv[])
             execvp ("python3", python);
         }
     }
-    for (i = 0; i < pipeNumber; ++i) {
-        // Close unused pipe sides
-        if (close (pipefdarray[i][READSIDE]) != 0)
+
+    // Close unused pipe sides
+    if (close (pipefdarray[0][READSIDE]) != 0)
+    {
+        printf("Failed Syscall: %d\n", errno);
+        perror("Close not successful. Close writeToChild.\n");
+    }
+    if (close (pipefdarray[1][WRITESIDE]) != 0)
+    {
+        printf("Failed Syscall: %d\n", errno);
+        perror("Close not successful. Close readFromChild.\n");
+    }
+    if (pipeNumber == 4) {
+        if (close (pipefdarray[2][READSIDE]) != 0)
         {
             printf("Failed Syscall: %d\n", errno);
             perror("Close not successful. Close writeToChild.\n");
         }
-        if (close (pipefdarray[i + 1][WRITESIDE]) != 0)
+        if (close (pipefdarray[3][WRITESIDE]) != 0)
         {
             printf("Failed Syscall: %d\n", errno);
             perror("Close not successful. Close readFromChild.\n");
         }
+    }
+    // Build a string with all the parameters to pipe through to child
+    buffer = (char *) malloc (sizeof (config) + SEPERATORSIZE);
+    assert(buffer != NULL);
+    strcpy (buffer, config.start);
+    strcat (buffer, "|");
+    strcat (buffer, config.loops);
+    strcat (buffer, "|");
+    strcat (buffer, config.tolerance);
+    strcat (buffer, "|");
+    strcat (buffer, config.numbers);
 
-        // Build a string with all the parameters to pipe through to child
-        buffer = (char *) malloc (sizeof (config) + SEPERATORSIZE);
-        assert(buffer != NULL);
-        strcpy (buffer, config.start);
+    // Send correct debug parameter depending on set flag
+    if (flag == 1)
+    {
         strcat (buffer, "|");
-        strcat (buffer, config.loops);
+        strcat (buffer, "True");
+    }
+    else
+    {
         strcat (buffer, "|");
-        strcat (buffer, config.tolerance);
-        strcat (buffer, "|");
-        strcat (buffer, config.numbers);
-
-        // Send correct debug parameter depending on set flag
-        if (flag == 1)
-        {
-            strcat (buffer, "|");
-            strcat (buffer, "True");
-        }
-        else
-        {
-            strcat (buffer, "|");
-            strcat (buffer, "False");
-        }
-        // Write the data to child and read the result from it
-        if (write (pipefdarray[i][WRITESIDE], buffer, strlen (buffer)) == -1)
+        strcat (buffer, "False");
+    }
+    // Write the data to child and read the result from it
+    if (write (pipefdarray[0][WRITESIDE], buffer, strlen (buffer)) == -1)
+    {
+        printf("Failed Syscall: %d\n", errno);
+        perror("Write not successful.\n");
+    }
+    if (read (pipefdarray[1][READSIDE], readbuffer, sizeof (readbuffer)) == -1)
+    {
+        printf("Failed Syscall: %d\n", errno);
+        perror("Read not successful.\n");
+    }
+    if (pipeNumber == 4) {
+        if (write (pipefdarray[2][WRITESIDE], buffer, strlen (buffer)) == -1)
         {
             printf("Failed Syscall: %d\n", errno);
             perror("Write not successful.\n");
         }
-        if (read (pipefdarray[i + 1][READSIDE], readbuffer, sizeof (readbuffer)) == -1)
+        if (read (pipefdarray[3][READSIDE], readbuffer, sizeof (readbuffer)) == -1)
         {
             printf("Failed Syscall: %d\n", errno);
             perror("Read not successful.\n");
         }
-        // Print the results
-        printf ("Results: %s\n", readbuffer);
+    }
+    // Print the results
+    printf ("Results: %s\n", readbuffer);
+    for (i = 0; i < pipeNumber; ++i) {
         wait (&status);
     }
     if (WIFEXITED (status))
