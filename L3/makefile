@@ -5,7 +5,7 @@ CFLAGS=-Wall -pedantic -Werror -g
 all: mthread work matrix forksqrt gen_inputsqrt
 
 clean: 
-	$(RM) -rf *.o *.dat mthread work matrix forksqrt *.dSYM result* matr.* input gen_inputsqrt
+	$(RM) -rf *.o *.dat mthread work matrix forksqrt *.dSYM result* matr.* input gen_inputsqrt build *.so cyforksqrt.c
 
 mthread: mthread.c
 	$(CC) $(CFLAGS) -lpthread $< -o $@

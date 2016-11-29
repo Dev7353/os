@@ -33,4 +33,14 @@
 	* measures time for c library sqrt function, cythonized heron method, python heron method and python math sqrt function
 * setup
 	* created cythonized module 
+	
+## Additional sources
+http://www.csee.wvu.edu/~jdm/classes/cs550/notes/tech/mutex/Peterson2.html
+https://en.wikipedia.org/wiki/Peterson%27s_algorithm
+https://docs.python.org/3/library/functions.html#any
+http://stackoverflow.com/questions/3310049/proper-use-of-mutexes-in-python
+https://www.tutorialspoint.com/python/python_multithreading.htm
+
+https://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html
+http://www.programmingsimplified.com/c-program-multiply-matrices
 
