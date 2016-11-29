@@ -2,10 +2,10 @@ CC=clang
 CFLAGS=-Wall -pedantic -Werror -g
 .PHONY: all clean
 
-all: mthread work matrix forksqrt
+all: mthread work matrix forksqrt gen_inputsqrt
 
 clean: 
-	$(RM) -rf *.o *.dat mthread work matrix forksqrt *.dSYM result* matr.*
+	$(RM) -rf *.o *.dat mthread work matrix forksqrt *.dSYM result* matr.* input gen_inputsqrt
 
 mthread: mthread.c
 	$(CC) $(CFLAGS) -lpthread $< -o $@
@@ -17,6 +17,8 @@ matrix: multiply_matrix.c matrix.c
 	$(CC) $(CFLAGS) -lpthread -lrt $^ -o $@
 
 forksqrt: forksqrt.c ini.c
+
+gen_inputsqrt: gen_inputsqrt.c
 
 test_matrix:
 	make clean
