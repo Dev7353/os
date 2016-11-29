@@ -22,3 +22,4 @@ def sqrt2(value):
             break
         xn = s
     return xn
+ 
