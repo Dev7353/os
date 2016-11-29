@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #define MAX 2147483647		// 2^31 -1
+#define MAX_LENGTH 9 //BILLION
 #define MIN 0			// ni divsion trough 0
 
 int randInteger (int min, int max);
@@ -19,7 +20,7 @@ main (int argc, char *argv[])
 	char newline;
 
 	newline = '\n';
-	number = (char *) malloc (sizeof (int));
+	number = (char *) malloc (sizeof (int)*MAX_LENGTH);
 	fp = fopen ("input", "w");
 	amount = atoi (argv[argc - 1]);
 	for (i = 0; i < amount; ++i)
