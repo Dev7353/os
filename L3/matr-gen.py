@@ -5,7 +5,8 @@ import os
 
 def main():
     if len(sys.argv) != 5:
-        print("Try the following argument rule: python matr-gen.py row col min max")
+        print(
+            "Try the following argument rule: python matr-gen.py row col min max")
         exit(1)
 
     row = int(sys.argv[1])
@@ -18,18 +19,19 @@ def main():
         exit(1)
 
     if(row != col):
-	print("Matrix multiplication only supports nxn. Anyway i continue with the first number.")
+        print(
+            "Matrix multiplication only supports nxn. Anyway i continue with the first number.")
 
-    col=row;
+    col = row
 
-    array=numpy.random.random_integers(
+    array = numpy.random.random_integers(
         low=minimum, high=maximum, size=(row, col))
 
-    f="matr.0"
+    f = "matr.0"
     while os.path.isfile(f):
-        number=f[len(f) - 1]
-        number=int(number) + 1
-        f=f.replace(f[len(f) - 1], str(number))
+        number = f[len(f) - 1]
+        number = int(number) + 1
+        f = f.replace(f[len(f) - 1], str(number))
 
     numpy.savetxt(f, array, fmt='%.5f')
 
