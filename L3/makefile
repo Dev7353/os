@@ -5,11 +5,7 @@ CFLAGS=-Wall -pedantic -Werror -g
 all: mthread work matrix forksqrt
 
 clean: 
-<<<<<<< HEAD
 	$(RM) -rf *.o *.dat mthread work matrix forksqrt *.dSYM result* matr.*
-=======
-	$(RM) -rf *.o mthread work matrix forksqrt *.dSYM
->>>>>>> racecondition
 
 mthread: mthread.c
 	$(CC) $(CFLAGS) -lpthread $< -o $@
@@ -22,7 +18,6 @@ matrix: multiply_matrix.c matrix.c
 
 forksqrt: forksqrt.c ini.c
 
-<<<<<<< HEAD
 test_matrix:
 	make clean
 	@echo '------------------------------------------------------------------------'
@@ -46,8 +41,3 @@ test_matrix:
 	diff result result_single
 	@echo '------------------------------------------------------------------------'
 	@echo '>>>FINISH<<<'
-=======
-matrix: matrix.c multiply_matrix.c
-
-forksqrt: forksqrt.c ini.c
->>>>>>> racecondition
