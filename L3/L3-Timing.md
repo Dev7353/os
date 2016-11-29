@@ -77,3 +77,6 @@ https://en.wikipedia.org/wiki/Peterson%27s_algorithm
 https://docs.python.org/3/library/functions.html#any
 http://stackoverflow.com/questions/3310049/proper-use-of-mutexes-in-python
 https://www.tutorialspoint.com/python/python_multithreading.htm
+
+https://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html
+http://www.programmingsimplified.com/c-program-multiply-matrices
