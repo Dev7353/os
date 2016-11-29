@@ -12,7 +12,7 @@
 * mthread
 	* Multithreaded sleep with random range
 * work
-	* Busyloop 
+	* Busyloop. Takes 2 Arguments: sec msec. Then wait active.
 * multiplyMatrix
 	* Implementation of multiplyMatrix.h
 * matrix
