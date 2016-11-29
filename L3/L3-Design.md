@@ -29,7 +29,9 @@ Die rand() Funktion generiert nun über einen Bereich von zahlen eine Zufallszah
 Die obere und untere Grenze bei der Berechnung der Zufallszahl war statisch auf 10 bzw. 0 gesetzt. Dies soll nun dynamisch durch die Argumente -r und -R realisiert werden. Das Problem hierbei ist, das die Generierung der Zufallszahl in der PrintHello Methode erfolgt. Allerdings erwartet PrintHello nur einen Parameter. Um mehrere Parameter zu übergeben wird eine Struktur angelegt. Die Struktur arg enthält die Nummer des Threads, also die Laufvariable i, die ober- sowie untere Grenze. So können die Parameter in eine Struktur Instanz gespeichert werden, wobei die Nummer bzw. Laufvariable nach jedem Schleifendurchgang übergeben werden muss, da diese sich stetig ändert.
 Da die Threads fast gleichzeitig starten entsteht das Problem, dass die Laufvariable mehrfach verwendet wird eher sie inkrementiert wird. Das führt zu falschen Ausgaben der Thread Nummer. Um das zu vermeiden werden dem Thread nun nichtmehr eine Struktur Instanz als Parameter übergeben, sondern eine Array in Anzahl Threads.
 Somit hat jeder Thread seine eigene Struktur mit Argumenten bzw. seine eigene Thread Nummer. Hierzu wird in derselben Schleife bei dem Thread Start eine arg Struktur Instanz aus dem Array übergeben. 
-    
+
+Die Anzahl Sekunden die ein Thread schläft ist für jeden Thread unterschiedlich. Das hat zur Folge das die Ausgabe der Anzahl an geschlafenen Sekunden die Gesamtanzahl Sekunden darstellt.
+ 
 Nachdem alle Threads erzeugt wurden, muss die Funktion pthread_join() für jeden Thread aufgerufen werden. Die Problematik hierbei ist, dass, wenn diese Funktion nicht aufgerufen wird, terminieren die Threads, sobald der Mainthread terminiert. Der Mainthread ist in diesem Fall das Hauptprogramm und terminiert schneller als die Threads. Das führt dazu, dass die Threads quasie abgrebochen werden und somit nicht vollständig den Algorithmus ablaufen.
 Die Join Funktion verhindert dies in dem das Hauptprogramm auf die Terminierung der Threads wartet. 
     
