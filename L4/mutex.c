@@ -14,6 +14,11 @@
 // sleeping factor
 #define N 5
 
+typedef int bool;
+#define true 1
+#define false 0
+bool m[THREAD_COUNT][THREAD_COUNT];
+
 /*
  * argument given to the thread
  *
@@ -31,6 +36,8 @@ typedef struct thread_args  thread_args_t ;
 
 //mutex global declaration
 pthread_mutex_t mutex;
+//condition variable
+pthread_cond_t cv;
 
 /*
  * forward declaration of functions
@@ -51,9 +58,8 @@ main(int argc, char * argv[]){
     int counter = 0 ;                        // global counter
     long *statusp  ;
 
-    // hint:: you may need to use a mutex.
     pthread_mutex_init(&mutex, NULL);
-
+    pthread_cond_init(&cv, NULL);
     printf("Mutex program starting. \n");
 
     /* Set evil seed (initial seed) */
@@ -109,36 +115,31 @@ main(int argc, char * argv[]){
  */
 void
 print_ident(thread_args_t *args){
-    int s ;
+	    
+	int s ;
+	int ctr = 0;
 
     /* say hello to the world. */
     printf("Hello world, I'm thread %d\n",args->ident);
 
+		
+    for(int i = 0;i < THREAD_COUNT; ++i){
+	pthread_mutex_lock(&mutex);
+	
+	while(ctr > 0)
+		pthread_cond_wait(&cv, &mutex);
+	s =1+(int) (N * ((double) rand() / (double)(RAND_MAX + 1.0))) ;
+	sleep(s);
 
-    for(;;){
-
-    /*
-     *  sleep for a random time to make thing random.
-     */
-        s =1+(int) (N * ((double) rand() / (double)(RAND_MAX + 1.0))) ;
-    sleep(s);
-
-    /*
-     * up date the global counter and start go back to sleep.
-     *
-     * you need to add some code here so that threads obay thier
-     * order in the queue.
-     *
-     */
-    pthread_mutex_lock(&mutex);
-    {
-        *args->global_counter +=1 ;
-        printf("thread %2d  counting  %2d\n",
-               args->ident,*args->global_counter);
-    }
+	*args->global_counter +=1 ;
+	++ctr;
+	printf("thread %2d  counting  %2d\n",
+		      args->ident,*args->global_counter);
+	
+	pthread_cond_signal(&cv);
+	pthread_mutex_unlock(&mutex);    
     }
     /* should never happen */
     fprintf(stderr,"I'm returning.. [%d]\n",args->ident);
     
-    pthread_mutex_unlock(&mutex	);
 }
