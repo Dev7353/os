@@ -29,6 +29,9 @@ struct thread_args {
 // type def for those who don't like writing struct all the time
 typedef struct thread_args  thread_args_t ;
 
+//mutex global declaration
+pthread_mutex_t mutex;
+
 /*
  * forward declaration of functions
  */
@@ -49,7 +52,7 @@ main(int argc, char * argv[]){
     long *statusp  ;
 
     // hint:: you may need to use a mutex.
-    // pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER ;
+    pthread_mutex_init(&mutex, NULL);
 
     printf("Mutex program starting. \n");
 
@@ -127,6 +130,7 @@ print_ident(thread_args_t *args){
      * order in the queue.
      *
      */
+    pthread_mutex_lock(&mutex);
     {
         *args->global_counter +=1 ;
         printf("thread %2d  counting  %2d\n",
@@ -135,5 +139,6 @@ print_ident(thread_args_t *args){
     }
     /* should never happen */
     fprintf(stderr,"I'm returning.. [%d]\n",args->ident);
-
+    
+    pthread_mutex_unlock(&mutex	);
 }
