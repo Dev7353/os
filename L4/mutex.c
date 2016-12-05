@@ -14,10 +14,7 @@
 // sleeping factor
 #define N 5
 
-typedef int bool;
-#define true 1
-#define false 0
-bool m[THREAD_COUNT][THREAD_COUNT];
+int accessMatrix[THREAD_COUNT];
 
 /*
  * argument given to the thread
@@ -43,6 +40,8 @@ pthread_cond_t cv;
  * forward declaration of functions
  */
 void print_ident(thread_args_t *args);
+int isFull(int idx);
+void printAccessMatrix();
 
 
 
@@ -107,12 +106,6 @@ main(int argc, char * argv[]){
 
 }
 
-
-
-/**
- * this function is started as a new thread.
- *
- */
 void
 print_ident(thread_args_t *args){
 	    
@@ -127,19 +120,46 @@ print_ident(thread_args_t *args){
 	pthread_mutex_lock(&mutex);
 	
 	while(ctr > 0)
-		pthread_cond_wait(&cv, &mutex);
+	{
+		if(isFull(i) == 0)
+		{
+			ctr = 0;
+			pthread_cond_signal(&cv);
+		}
+		pthread_cond_wait(&cv, &mutex); 
+	}	
 	s =1+(int) (N * ((double) rand() / (double)(RAND_MAX + 1.0))) ;
-	sleep(s);
+	sleep(1); // dont forget to change again!!! 
 
 	*args->global_counter +=1 ;
 	++ctr;
+	accessMatrix[i] += ctr;
 	printf("thread %2d  counting  %2d\n",
 		      args->ident,*args->global_counter);
 	
-	pthread_cond_signal(&cv);
+	
 	pthread_mutex_unlock(&mutex);    
     }
     /* should never happen */
+    printAccessMatrix();
     fprintf(stderr,"I'm returning.. [%d]\n",args->ident);
     
+}
+
+int isFull(int idx){
+	int sum = 0;
+
+	for(int i = 0; i < THREAD_COUNT; ++i)
+		sum += accessMatrix[i];
+	
+	return sum == THREAD_COUNT*(idx+1);
+}
+
+void printAccessMatrix()
+{
+	for(int i = 0; i < THREAD_COUNT; ++i)
+		printf("|%d", accessMatrix[i]);
+		
+	printf("\n");
+
 }
