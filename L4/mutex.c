@@ -100,7 +100,6 @@ main(int argc, char * argv[]){
     for(i=0;i<THREAD_COUNT;i++){
     /* just in case the thread returns, make sure we handle it */
     pthread_join(worker[i],(void *)&statusp);
-    pthread_join(observer,NULL);
     if(PTHREAD_CANCELED == statusp ){
         printf("thread %d was canceld\n",args[i].ident);
     }else{
@@ -110,6 +109,7 @@ main(int argc, char * argv[]){
 
     }
     }
+    pthread_join(observer,NULL);
     /* and we're done */
     return(0);
 
@@ -143,6 +143,7 @@ print_ident(thread_args_t *args){
     }
     /* should never happen */
     fprintf(stderr,"I'm returning.. [%d]\n",args->ident);
+    pthread_exit((void*)&args->ident);
     
 }
 
