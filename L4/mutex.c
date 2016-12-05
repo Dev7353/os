@@ -14,6 +14,11 @@
 // sleeping factor
 #define N 5
 
+#define true 1
+#define false 0
+
+typedef int bool;
+
 int accessMatrix[THREAD_COUNT];
 
 /*
@@ -42,6 +47,7 @@ pthread_cond_t cv;
 void print_ident(thread_args_t *args);
 int isFull(int idx);
 void printAccessMatrix();
+bool isFull(int idx);
 
 
 
@@ -121,7 +127,7 @@ print_ident(thread_args_t *args){
 	
 	while(ctr > 0)
 	{
-		if(isFull(i) == 0)
+		if(isFull(i) == true)
 		{
 			ctr = 0;
 			pthread_cond_signal(&cv);
@@ -146,13 +152,16 @@ print_ident(thread_args_t *args){
     
 }
 
-int isFull(int idx){
+bool isFull(int idx){
 	int sum = 0;
 
 	for(int i = 0; i < THREAD_COUNT; ++i)
 		sum += accessMatrix[i];
 	
-	return sum == THREAD_COUNT*(idx+1);
+	if(sum == THREAD_COUNT*(idx+1))
+		return true;
+	
+	return false;
 }
 
 void printAccessMatrix()
