@@ -45,9 +45,9 @@ pthread_cond_t cv;
  * forward declaration of functions
  */
 void print_ident(thread_args_t *args);
-int isFull(int idx);
-void printAccessMatrix();
-bool isFull(int idx);
+void observe(thread_args_t *args);
+bool isFull(int* f);
+void purge(int* f);
 
 
 
@@ -58,6 +58,7 @@ int
 main(int argc, char * argv[]){
 
     pthread_t        worker[THREAD_COUNT] ;  // threads
+    pthread_t 	     observer;
     thread_args_t    args[THREAD_COUNT];     // thread arguments
     int i ;
     int counter = 0 ;                        // global counter
@@ -88,6 +89,7 @@ main(int argc, char * argv[]){
                (void *(*)(void *)) print_ident,
                (void *) &args[i]) ;
     }
+    pthread_create(&observer, NULL,(void *(*)(void *)) observe, &args);
 
     /* sleep for 60 secs before cleaning up*/
     sleep(60);
@@ -98,6 +100,7 @@ main(int argc, char * argv[]){
     for(i=0;i<THREAD_COUNT;i++){
     /* just in case the thread returns, make sure we handle it */
     pthread_join(worker[i],(void *)&statusp);
+    pthread_join(observer,NULL);
     if(PTHREAD_CANCELED == statusp ){
         printf("thread %d was canceld\n",args[i].ident);
     }else{
@@ -116,8 +119,6 @@ void
 print_ident(thread_args_t *args){
 	    
 	int s ;
-	int ctr = 0;
-
     /* say hello to the world. */
     printf("Hello world, I'm thread %d\n",args->ident);
 
@@ -125,21 +126,15 @@ print_ident(thread_args_t *args){
     for(int i = 0;i < THREAD_COUNT; ++i){
 	pthread_mutex_lock(&mutex);
 	
-	while(ctr > 0)
-	{
-		if(isFull(i) == true)
-		{
-			ctr = 0;
-			pthread_cond_signal(&cv);
-		}
-		pthread_cond_wait(&cv, &mutex); 
-	}	
+	while(accessMatrix[args->ident] > 0)
+		pthread_cond_wait(&cv, &mutex); 	
+	
 	s =1+(int) (N * ((double) rand() / (double)(RAND_MAX + 1.0))) ;
 	sleep(1); // dont forget to change again!!! 
 
 	*args->global_counter +=1 ;
-	++ctr;
-	accessMatrix[i] += ctr;
+	accessMatrix[args->ident] = true;
+	
 	printf("thread %2d  counting  %2d\n",
 		      args->ident,*args->global_counter);
 	
@@ -147,28 +142,38 @@ print_ident(thread_args_t *args){
 	pthread_mutex_unlock(&mutex);    
     }
     /* should never happen */
-    printAccessMatrix();
     fprintf(stderr,"I'm returning.. [%d]\n",args->ident);
     
 }
 
-bool isFull(int idx){
-	int sum = 0;
+bool isFull(int* f){
 
 	for(int i = 0; i < THREAD_COUNT; ++i)
-		sum += accessMatrix[i];
-	
-	if(sum == THREAD_COUNT*(idx+1))
-		return true;
-	
-	return false;
+		if(f[i] != true)
+			return false;
+	return true;
 }
 
-void printAccessMatrix()
+void observe(thread_args_t *args)
+{
+	while(1)
+	{
+		if(isFull(accessMatrix) == true)
+		{
+			pthread_mutex_lock(&mutex);
+			//printf("AccessMatrix is full\n");
+			purge(accessMatrix);
+			pthread_mutex_unlock(&mutex);
+			pthread_cond_broadcast(&cv);
+		}
+		else if(*args->global_counter == THREAD_COUNT*THREAD_COUNT)
+			break;
+		
+	}
+}
+
+void purge(int* f)
 {
 	for(int i = 0; i < THREAD_COUNT; ++i)
-		printf("|%d", accessMatrix[i]);
-		
-	printf("\n");
-
+		f[i] = false;
 }
