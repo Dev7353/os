@@ -83,7 +83,7 @@ main(int argc, char * argv[]){
 
         // set any other argument you want to pass to the
     // newly created thread
-
+	sleep(1);
     pthread_create(&worker[i],
                NULL,
                (void *(*)(void *)) print_ident,
@@ -121,7 +121,7 @@ print_ident(thread_args_t *args){
 	int s ;
     /* say hello to the world. */
     printf("Hello world, I'm thread %d\n",args->ident);
-
+	sleep(THREAD_COUNT);
 		
     for(int i = 0;i < THREAD_COUNT; ++i){
 	pthread_mutex_lock(&mutex);
