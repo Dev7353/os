@@ -2,8 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
+#include "buffer.h"
 #include "prodcon-api.h"
+
+Buffer buffer;
 
 int
 main (int argc, char **argv)
@@ -14,8 +18,8 @@ main (int argc, char **argv)
 	char* input;
 	char* output;
 	
-	int bufferRows = 10; //default
-	int colsPerRows = 10; //default
+	int bufferRows = 20; //default
+	int colsPerRows = 20; //default
 	
 	int consumerThreads = 1;
 	int producerThreads = 1;
@@ -121,5 +125,11 @@ main (int argc, char **argv)
 		  default:
 			  abort ();
 		  }
+
+
+	initBuffer(&buffer, bufferRows, colsPerRows);
+	readStdin(&buffer);
+	destroyBuffer(&buffer);
+
 	return 0;
 }
