@@ -38,19 +38,6 @@ char* pop(Buffer* buffer)
 	return "Todo";
 }
 
-void readStdin(Buffer* buffer)
-{
-	char* string = (char*) malloc(sizeof(char) * buffer->stringLength);
-	int row = 0;
-	while(((scanf(" %[^\n]s", string)) != EOF) && buffer->isFull == false)
-	{
-		add(buffer, string, row);
-		++row;	
-	}
-
-	free(string);
-}
-
 void destroyBuffer(Buffer* buffer)
 {
 	for(int i = 0; i < buffer->storage; ++i)

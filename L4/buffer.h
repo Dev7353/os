@@ -18,8 +18,5 @@ typedef struct {
 void initBuffer(Buffer* buffer, int rows, int cols);
 void add(Buffer* buffer, char* element, int row);
 char* pop(Buffer* buffer);
-void readStdin(Buffer* buffer);
-void readFile(Buffer* buffer, char* filename);
-
 void destroyBuffer(Buffer* buffer);
 #endif

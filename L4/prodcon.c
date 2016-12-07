@@ -8,10 +8,11 @@
 #include "prodcon-api.h"
 
 Buffer buffer;
-
 int
 main (int argc, char **argv)
 {
+	
+
 
 	bool verbose = false;
 	int c; //argument
@@ -129,6 +130,8 @@ main (int argc, char **argv)
 
 	initBuffer(&buffer, bufferRows, colsPerRows);
 	readStdin(&buffer);
+	printf("RESULT\n");
+	printBuffer(&buffer);
 	destroyBuffer(&buffer);
 
 	return 0;
