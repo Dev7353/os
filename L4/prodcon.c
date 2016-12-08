@@ -16,7 +16,7 @@ main (int argc, char **argv)
 
 	bool verbose = false;
 	int c; //argument
-	char* input;
+	char* input = NULL;
 	char* output;
 	
 	int bufferRows = 20; //default
@@ -132,7 +132,8 @@ main (int argc, char **argv)
 	initBuffer(&buffer, bufferRows, colsPerRows);
 	if(input != NULL)
 	{
-		printf("[READ FROM FILE]\n"); readFile(&buffer, input);
+		printf("[READ FROM FILE]\n"); 
+		readFile(&buffer, input);
 	}
 	else
 	{

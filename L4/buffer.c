@@ -38,7 +38,7 @@ char* pop(Buffer* buffer, int row)
 {
 	assert(row >= 0);
 	char* popped = (char*) malloc(sizeof(char) * buffer->stringLength);
-	strncpy(popped, buffer->queue[row], buffer->stringLength);
+	memcpy(popped, buffer->queue[row], buffer->stringLength);
 	char* empty = "";
 	add(buffer, empty, row);
 	buffer->elements--;

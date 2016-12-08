@@ -27,12 +27,14 @@ void readFile(void* b, char* filename)
 	file = fopen(filename, "r");
 	assert(file != NULL);
 	int i = 0;
-	while(fscanf(file, " %[^\n]s", string) != EOF)
+	while(fgets(string, buffer->stringLength, file))
 	{
 		add(buffer, string, i);
 		++i;
 	}
 	fclose(file);
+	
+	free(string);
 }
 
 void printBuffer(void* b)
