@@ -2,25 +2,37 @@
 #include "buffer.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 
 void readStdin(void* b)
 {
 	Buffer* buffer = (Buffer*) b;
 	char* string = (char*) malloc(sizeof(char) * buffer->stringLength);
-	int row = 0;
+	int i = 0;
 	while(((scanf(" %[^\n]s", string)) != EOF) && buffer->isFull == false)
 	{
-		add(buffer, string, row);
-		++row;	
+		add(buffer, string, i);
+		++i;	
 	}
 
 	free(string);
 }
 
-void readFile(void* b)
+void readFile(void* b, char* filename)
 {
-	//todo
+	Buffer* buffer = (Buffer*) b;
+	FILE* file;
+	char* string = (char*) malloc(sizeof(char) * buffer->stringLength);
+	file = fopen(filename, "r");
+	assert(file != NULL);
+	int i = 0;
+	while(fscanf(file, " %[^\n]s", string) != EOF)
+	{
+		add(buffer, string, i);
+		++i;
+	}
+	fclose(file);
 }
 
 void printBuffer(void* b)
