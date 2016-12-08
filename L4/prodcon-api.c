@@ -12,7 +12,7 @@ void readStdin(void* b)
 	int i = 0;
 	while(((scanf(" %[^\n]s", string)) != EOF) && buffer->isFull == false)
 	{
-		add(buffer, string, i);
+		add(buffer, string);
 		++i;	
 	}
 
@@ -29,7 +29,7 @@ void readFile(void* b, char* filename)
 	int i = 0;
 	while(fgets(string, buffer->stringLength, file))
 	{
-		add(buffer, string, i);
+		add(buffer, string);
 		++i;
 	}
 	fclose(file);

@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+int next(Buffer* buffer); // returns next avaiable space
+int head(Buffer* buffer); // returns head (fifo)
+
 void initBuffer(Buffer* buffer, int rows, int cols)
 {
 	assert(rows > 0 && cols > 0);
@@ -22,25 +25,30 @@ void initBuffer(Buffer* buffer, int rows, int cols)
 	
 }
 
-void add(Buffer* buffer, char* element, int row)
+void add(Buffer* buffer, char* element)
 {
-	if(strcmp(element, "") != 0) //empty strings will ignored
-		buffer->elements++;
-	assert(row >= 0);
 	assert(buffer->isFull == false);
-	memcpy(buffer->queue[row], element, sizeof(char)* buffer->stringLength);
+	int n = next(buffer);
+	printf	("%d\n", n);
+	assert(n > -1);
+	
+	memcpy(buffer->queue[n], element, sizeof(char)* buffer->stringLength);
 	buffer->isEmpty = false;
 	if(buffer->storage == buffer->elements)
 		buffer->isFull = true;
+	
+	buffer->elements++;
 }
 
-char* pop(Buffer* buffer, int row)
+char* pop(Buffer* buffer)
 {
-	assert(row >= 0);
+	
+	int h = head(buffer);
+	assert(h != -1);
 	char* popped = (char*) malloc(sizeof(char) * buffer->stringLength);
-	memcpy(popped, buffer->queue[row], buffer->stringLength);
+	memcpy(popped, buffer->queue[h], buffer->stringLength);
 	char* empty = "";
-	add(buffer, empty, row);
+	add(buffer, empty);
 	buffer->elements--;
 	
 	return popped;
@@ -53,4 +61,31 @@ void destroyBuffer(Buffer* buffer)
 		free(buffer->queue[i]);
 	}
 	free(buffer->queue);
+}
+
+int next(Buffer* buffer)
+{
+		if(buffer->elements == 0)
+			return 0;
+			
+		for(int i = 0; i < buffer->elements; ++i)
+		{
+				printf("DEBUG queue %s\n", buffer->queue[i]);
+				if(*buffer->queue[i+1] == '\n')
+					printf("frei\n");
+		}
+		return -1;
+}
+
+int head(Buffer* buffer)
+{
+	if(buffer->elements == 0)
+			return 0;
+			
+		for(int i = 0; i < buffer->elements; ++i)
+		{
+				if(*buffer->queue[i] != '\n')
+					return i;
+		}
+		return -1;
 }
