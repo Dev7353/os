@@ -127,11 +127,30 @@ main (int argc, char **argv)
 			  abort ();
 		  }
 
+	
 
 	initBuffer(&buffer, bufferRows, colsPerRows);
-	readStdin(&buffer);
-	printf("RESULT\n");
+	if(input != NULL)
+	{
+		printf("[READ FROM FILE]\n"); readFile(&buffer, input);
+	}
+	else
+	{
+		printf("[READ FROM STDIN]\n"); 
+		readStdin(&buffer);
+	}
+	//little test
+	printf("[QUEUE]\n");
 	printBuffer(&buffer);
+
+	char* popped;
+	printf("[POP]] %s\n", (popped=pop(&buffer, 0)));
+	free(popped);
+
+	printf("[QUEUE]\n");
+	printBuffer(&buffer);
+
+	printf("elements -> %d\n", buffer.elements);
 	destroyBuffer(&buffer);
 
 	return 0;
