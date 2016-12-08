@@ -24,18 +24,26 @@ void initBuffer(Buffer* buffer, int rows, int cols)
 
 void add(Buffer* buffer, char* element, int row)
 {
+	if(strcmp(element, "") != 0) //empty strings will ignored
+		buffer->elements++;
 	assert(row >= 0);
 	assert(buffer->isFull == false);
 	memcpy(buffer->queue[row], element, sizeof(char)* buffer->stringLength);
 	buffer->isEmpty = false;
-	buffer->elements++;
 	if(buffer->storage == buffer->elements)
 		buffer->isFull = true;
 }
 
-char* pop(Buffer* buffer)
+char* pop(Buffer* buffer, int row)
 {
-	return "Todo";
+	assert(row >= 0);
+	char* popped = (char*) malloc(sizeof(char) * buffer->stringLength);
+	strncpy(popped, buffer->queue[row], buffer->stringLength);
+	char* empty = "";
+	add(buffer, empty, row);
+	buffer->elements--;
+	
+	return popped;
 }
 
 void destroyBuffer(Buffer* buffer)

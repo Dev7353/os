@@ -17,6 +17,6 @@ typedef struct {
 
 void initBuffer(Buffer* buffer, int rows, int cols);
 void add(Buffer* buffer, char* element, int row);
-char* pop(Buffer* buffer);
+char* pop(Buffer* buffer, int row);
 void destroyBuffer(Buffer* buffer);
 #endif
