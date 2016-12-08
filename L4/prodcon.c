@@ -7,7 +7,7 @@
 #include "buffer.h"
 #include "prodcon-api.h"
 
-Buffer buffer;
+Buffer buffer, input;
 int
 main (int argc, char **argv)
 {
@@ -25,7 +25,7 @@ main (int argc, char **argv)
 	int consumerThreads = 1;
 	int producerThreads = 1;
 	
-	int delay = 500; // number of millisecs for the passvie sleep
+	int delay = 0; // number of millisecs for the passvie sleep
 	int upperBorder = 10; //default in sec
 	int lowerBorder = 0; //default in sec
 	int busyLoopFactor = 0; // default
@@ -144,7 +144,7 @@ main (int argc, char **argv)
 	printBuffer(&buffer);
 
 	char* popped;
-	printf("[POP]] %s\n", (popped=pop(&buffer, 0)));
+	printf("[POP] %s\n", (popped=pop(&buffer, 0)));
 	free(popped);
 
 	printf("[QUEUE]\n");
