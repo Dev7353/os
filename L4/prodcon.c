@@ -3,16 +3,34 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "buffer.h"
 #include "prodcon-api.h"
 
-Buffer buffer, input;
+//struct for thread arguments
+
+typedef struct{
+	int start;
+	int stop;
+} thread_args_t;
+
+//Function prototypes
+void* consumer(void* args);
+void* producer(void* args);
+
+//mutex and cv
+pthread_cond_t cv;
+pthread_mutex_t mutex;
+
+//global buffers
+Buffer buffer, inputBuffer;
 int
 main (int argc, char **argv)
 {
-	
 
+	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&cv, NULL);
 
 	bool verbose = false;
 	int c; //argument
@@ -28,8 +46,7 @@ main (int argc, char **argv)
 	int delay = 0; // number of millisecs for the passvie sleep
 	int upperBorder = 10; //default in sec
 	int lowerBorder = 0; //default in sec
-	int busyLoopFactor = 0; // default
-	
+	int busyLoopFactor = 0; // default	
 
 	while ((c = getopt (argc, argv, "vhi:o:L:C:c:p:t:r:R:a:")) != -1)
 		switch (c)
@@ -126,45 +143,70 @@ main (int argc, char **argv)
 		  default:
 			  abort ();
 		  }
+		  
+		  	
 
-	
-
-	initBuffer(&buffer, bufferRows, colsPerRows);
+	initBuffer(&inputBuffer, bufferRows, colsPerRows);
 	if(input != NULL)
 	{
 		printf("[READ FROM FILE]\n"); 
-		readFile(&buffer, input);
+		readFile(&inputBuffer, input);
 	}
 	else
 	{
 		printf("[READ FROM STDIN]\n"); 
-		readStdin(&buffer);
+		readStdin(&inputBuffer);
 	}
-	//little test
-	printf("[QUEUE]\n");
-	printBuffer(&buffer);
-	printf("elements -> %d\n", buffer.head);
-	char* popped;
-	printf("______________________________________\n");
-	printf("[POP] %s\n", (popped=pop(&buffer)));
-	free(popped);
-	printf("[POP] %s\n", (popped=pop(&buffer)));
-	free(popped);
-	printf("[POP] %s\n", (popped=pop(&buffer)));
-	free(popped);
-	printf("[POP] %s\n", (popped=pop(&buffer)));
-	free(popped);
-	printf("[POP] %s\n", (popped=pop(&buffer)));
-	printf("______________________________________\n");
 	
+	//pthread_t consumer[consumerThreads];
+	pthread_t producers[producerThreads];
+	thread_args_t argsProducer[producerThreads];
+	initBuffer(&buffer, bufferRows, colsPerRows);
+	for(int i = 0; i < producerThreads; ++i)
+	{
+		argsProducer[i].start = i * (bufferRows / producerThreads);
+		argsProducer[i].stop = (i+1) * (bufferRows / producerThreads);
+		pthread_create(&producers[i], NULL, (void *(*)(void *))producer, &argsProducer[i]);
+	}
 	
-	free(popped);
+	/*for(int i = 0; i < consumerThreads; ++i)
+	{
+		pthread_create(consumer[i], NULL, consumer, NULL);
+	}
+	
+	for(int i = 0; i < consumerThreads; ++i)
+	{
+		pthread_join(consumer[i], NULL);
+	}*/
+	
+	for(int i = 0; i < producerThreads; ++i)
+	{
+		pthread_join(producers[i], NULL);
+	}
 
-	printf("[QUEUE]\n");
-	printBuffer(&buffer);
-
-	printf("elements -> %d\n", buffer.head);
 	destroyBuffer(&buffer);
+	destroyBuffer(&inputBuffer);
 
 	return 0;
+}
+
+void* consumer(void* args)
+{
+	pthread_exit(0);
+}
+
+
+void* producer(void* args)
+{
+	thread_args_t* arg = (thread_args_t*) args;
+	
+	pthread_mutex_lock(&mutex);
+	for(int i = arg->start; i  < arg->stop; ++i)
+	{
+		add(&buffer, inputBuffer.queue[i]);
+	}
+	
+	pthread_mutex_unlock(&mutex); 
+	
+	pthread_exit(0);
 }

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 
 void readStdin(Buffer* buffer)
@@ -43,3 +44,4 @@ void printBuffer(Buffer* buffer)
 	for(int i = 0; i < buffer->head; ++i)
 		printf("%s\n", buffer->queue[i]);
 }
+
