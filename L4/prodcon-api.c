@@ -30,6 +30,8 @@ void readFile(Buffer* buffer, char* filename)
 	{
 		if(*string != ' ')
 		{
+			if(buffer->head == buffer->storage)
+				break;
 			add(buffer, string);
 			++i;
 		}

@@ -160,7 +160,7 @@ main (int argc, char **argv)
 	//pthread_t consumer[consumerThreads];
 	pthread_t producers[producerThreads];
 	thread_args_t argsProducer[producerThreads];
-	thread_args_t argsConsumer[consumerThreads];
+	//thread_args_t argsConsumer[consumerThreads];
 	initBuffer(&buffer, bufferRows, colsPerRows);
 	
 	for(int i = 0; i < producerThreads; ++i)
@@ -170,17 +170,17 @@ main (int argc, char **argv)
 		pthread_create(&producers[i], NULL, (void *(*)(void *))producer, &argsProducer[i]);
 	}
 	
-	for(int i = 0; i < consumerThreads; ++i)
-	{
-		argsProducer[i].start = i * (inputBuffer.head / producerThreads);
-		argsProducer[i].stop = (i+1) * (inputBuffer.head / producerThreads);
-		pthread_create(consumer[i], NULL, consumer, NULL);
-	}
+	//for(int i = 0; i < consumerThreads; ++i)
+	//{
+		//argsProducer[i].start = i * (inputBuffer.head / producerThreads);
+		//argsProducer[i].stop = (i+1) * (inputBuffer.head / producerThreads);
+		//pthread_create(consumer[i], NULL, consumer, NULL);
+	//}
 	
-	for(int i = 0; i < consumerThreads; ++i)
-	{
-		pthread_join(consumer[i], NULL);
-	}
+	//for(int i = 0; i < consumerThreads; ++i)
+	//{
+		//pthread_join(consumer[i], NULL);
+	//}
 	
 	for(int i = 0; i < producerThreads; ++i)
 	{
