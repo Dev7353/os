@@ -183,7 +183,8 @@ main (int argc, char **argv)
 	{
 		pthread_join(producers[i], NULL);
 	}
-
+	
+	printBuffer(&buffer);
 	destroyBuffer(&buffer);
 	destroyBuffer(&inputBuffer);
 

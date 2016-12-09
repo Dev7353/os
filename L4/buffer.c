@@ -28,7 +28,8 @@ void initBuffer(Buffer* buffer, int rows, int cols)
 void add(Buffer* buffer, char* element)
 {
 	assert(buffer->isFull == false);
-	
+	if(*element == '\0')
+		return;
 	memcpy(buffer->queue[buffer->head], element, sizeof(char)* buffer->stringLength);
 	buffer->isEmpty = false;
 	if(buffer->storage == buffer->head-1)
