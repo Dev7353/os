@@ -5,9 +5,8 @@
 #include <assert.h>
 
 
-void readStdin(void* b)
+void readStdin(Buffer* buffer)
 {
-	Buffer* buffer = (Buffer*) b;
 	char* string = (char*) malloc(sizeof(char) * buffer->stringLength);
 	int i = 0;
 	while(((scanf(" %[^\n]s", string)) != EOF) && buffer->isFull == false)
@@ -19,9 +18,8 @@ void readStdin(void* b)
 	free(string);
 }
 
-void readFile(void* b, char* filename)
+void readFile(Buffer* buffer, char* filename)
 {
-	Buffer* buffer = (Buffer*) b;
 	FILE* file;
 	char* string = (char*) malloc(sizeof(char) * buffer->stringLength);
 	file = fopen(filename, "r");
@@ -29,18 +27,19 @@ void readFile(void* b, char* filename)
 	int i = 0;
 	while(fgets(string, buffer->stringLength, file))
 	{
-		add(buffer, string);
-		++i;
+		if(*string != ' ')
+		{
+			add(buffer, string);
+			++i;
+		}
 	}
 	fclose(file);
 	
 	free(string);
 }
 
-void printBuffer(void* b)
+void printBuffer(Buffer* buffer)
 {
-	Buffer* buffer = (Buffer*) b;
-
-	for(int i = 0; i < buffer->storage; ++i)
-		printf("%s", buffer->queue[i]);
+	for(int i = 0; i < buffer->head; ++i)
+		printf("%s\n", buffer->queue[i]);
 }

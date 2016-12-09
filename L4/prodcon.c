@@ -147,9 +147,13 @@ main (int argc, char **argv)
 	char* popped;
 	printf("______________________________________\n");
 	printf("[POP] %s\n", (popped=pop(&buffer)));
+	free(popped);
 	printf("[POP] %s\n", (popped=pop(&buffer)));
+	free(popped);
 	printf("[POP] %s\n", (popped=pop(&buffer)));
+	free(popped);
 	printf("[POP] %s\n", (popped=pop(&buffer)));
+	free(popped);
 	printf("[POP] %s\n", (popped=pop(&buffer)));
 	printf("______________________________________\n");
 	

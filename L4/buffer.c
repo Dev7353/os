@@ -41,10 +41,9 @@ char* pop(Buffer* buffer)
 {
 	if(buffer->isEmpty)
 		return 0;
-	printf("HEAD with %s %d\n", buffer->queue[buffer->head],  buffer->head);
 	char* popped = (char*) malloc(sizeof(char) * buffer->stringLength);
-	memcpy(popped, buffer->queue[buffer->head], buffer->stringLength);
-	memcpy(buffer->queue[buffer->head], "\0", buffer->stringLength);
+	memcpy(popped, buffer->queue[buffer->head-1], buffer->stringLength);
+	memcpy(buffer->queue[buffer->head-1], "\0", buffer->stringLength);
 	
 	if(buffer->head > 0)
 		--buffer->head;
