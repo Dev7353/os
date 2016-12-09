@@ -2,9 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 #include <pthread.h>
-
+#include <string.h>
 #include "buffer.h"
 #include "prodcon-api.h"
 
@@ -13,11 +12,14 @@
 typedef struct{
 	int start;
 	int stop;
+	int delay;
 } thread_args_t;
 
 //Function prototypes
 void* consumer(void* args);
 void* producer(void* args);
+bool available(int start, int stop);
+char* convert(char* string);
 
 //mutex and cv
 pthread_cond_t cv;
@@ -44,7 +46,7 @@ main (int argc, char **argv)
 	int consumerThreads = 1;
 	int producerThreads = 1;
 	
-	int delay = 0; // number of millisecs for the passvie sleep
+	int delay = 2000; // number of millisecs for the passvie sleep
 	int upperBorder = 10; //default in sec
 	int lowerBorder = 0; //default in sec
 	int busyLoopFactor = 0; // default	
@@ -157,37 +159,39 @@ main (int argc, char **argv)
 		readStdin(&inputBuffer);
 	}
 	
-	//pthread_t consumer[consumerThreads];
+	pthread_t consumers[consumerThreads];
 	pthread_t producers[producerThreads];
 	thread_args_t argsProducer[producerThreads];
-	//thread_args_t argsConsumer[consumerThreads];
+	thread_args_t argsConsumer[consumerThreads];
 	initBuffer(&buffer, bufferRows, colsPerRows);
 	
 	for(int i = 0; i < producerThreads; ++i)
 	{
 		argsProducer[i].start = i * (inputBuffer.head / producerThreads);
 		argsProducer[i].stop = (i+1) * (inputBuffer.head / producerThreads);
+		argsProducer[i].delay = delay;
 		pthread_create(&producers[i], NULL, (void *(*)(void *))producer, &argsProducer[i]);
 	}
 	
-	//for(int i = 0; i < consumerThreads; ++i)
-	//{
-		//argsProducer[i].start = i * (inputBuffer.head / producerThreads);
-		//argsProducer[i].stop = (i+1) * (inputBuffer.head / producerThreads);
-		//pthread_create(consumer[i], NULL, consumer, NULL);
-	//}
+	for(int i = 0; i < consumerThreads; ++i)
+	{
+		sleep(2);
+		argsConsumer[i].start = i * (buffer.head / consumerThreads);
+		argsConsumer[i].stop = (i+1) * (buffer.head / consumerThreads);
+		printf("%d %d\n", argsConsumer[i].start, argsConsumer[i].stop);
+		pthread_create(&consumers[i], NULL, (void *(*)(void *))consumer, &argsConsumer[i]);
+	}
 	
-	//for(int i = 0; i < consumerThreads; ++i)
-	//{
-		//pthread_join(consumer[i], NULL);
-	//}
+	for(int i = 0; i < consumerThreads; ++i)
+	{
+		pthread_join(consumers[i], NULL);
+	}
 	
 	for(int i = 0; i < producerThreads; ++i)
 	{
 		pthread_join(producers[i], NULL);
 	}
 	
-	printBuffer(&buffer);
 	destroyBuffer(&buffer);
 	destroyBuffer(&inputBuffer);
 
@@ -196,14 +200,53 @@ main (int argc, char **argv)
 
 void* consumer(void* args)
 {
+	thread_args_t* arg = (thread_args_t*) args;
+	pthread_mutex_lock(&mutex);
+	while(available(arg->start, arg->stop) == false)
+	{
+		printf("Go sleep\n");
+		pthread_cond_wait(&cv, &mutex);
+	}
+	pthread_mutex_unlock(&mutex);
+	
+	pthread_mutex_lock(&mutex);
+	for(int i = arg->start; i  < arg->stop; ++i)
+	{
+		//verbose
+		printf("threadid consumes %s\n", buffer.queue[i]);
+		printf("threadid reports (time) %s\n", convert(buffer.queue[i])); //needs id
+	}
+	
+	pthread_mutex_unlock(&mutex);
 	pthread_exit(0);
 }
+
+bool available(int start, int stop)
+{
+	for(int i = start; i  < stop; ++i)
+		if(*buffer.queue[i] == '\0')
+			return false;
+	return true;
+}
+
+char* convert(char* string)
+{
+	for(int i = 0; ; ++i)
+	{
+		string[i] = toupper(string[i]);
+		if(string[i] == '\0')
+			break;
+	}
+	return string;
+}
+
 
 
 void* producer(void* args)
 {
 	thread_args_t* arg = (thread_args_t*) args;
 	pthread_mutex_lock(&mutex);
+	//sleep(arg->delay/1000);
 	for(int i = arg->start; i  < arg->stop; ++i)
 		add(&buffer, inputBuffer.queue[i]);
 
