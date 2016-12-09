@@ -25,6 +25,7 @@ pthread_mutex_t mutex;
 
 //global buffers
 Buffer buffer, inputBuffer;
+
 int
 main (int argc, char **argv)
 {
@@ -144,8 +145,6 @@ main (int argc, char **argv)
 			  abort ();
 		  }
 		  
-		  	
-
 	initBuffer(&inputBuffer, bufferRows, colsPerRows);
 	if(input != NULL)
 	{
@@ -161,23 +160,27 @@ main (int argc, char **argv)
 	//pthread_t consumer[consumerThreads];
 	pthread_t producers[producerThreads];
 	thread_args_t argsProducer[producerThreads];
+	thread_args_t argsConsumer[consumerThreads];
 	initBuffer(&buffer, bufferRows, colsPerRows);
+	
 	for(int i = 0; i < producerThreads; ++i)
 	{
-		argsProducer[i].start = i * (bufferRows / producerThreads);
-		argsProducer[i].stop = (i+1) * (bufferRows / producerThreads);
+		argsProducer[i].start = i * (inputBuffer.head / producerThreads);
+		argsProducer[i].stop = (i+1) * (inputBuffer.head / producerThreads);
 		pthread_create(&producers[i], NULL, (void *(*)(void *))producer, &argsProducer[i]);
 	}
 	
-	/*for(int i = 0; i < consumerThreads; ++i)
+	for(int i = 0; i < consumerThreads; ++i)
 	{
+		argsProducer[i].start = i * (inputBuffer.head / producerThreads);
+		argsProducer[i].stop = (i+1) * (inputBuffer.head / producerThreads);
 		pthread_create(consumer[i], NULL, consumer, NULL);
 	}
 	
 	for(int i = 0; i < consumerThreads; ++i)
 	{
 		pthread_join(consumer[i], NULL);
-	}*/
+	}
 	
 	for(int i = 0; i < producerThreads; ++i)
 	{
@@ -200,12 +203,10 @@ void* consumer(void* args)
 void* producer(void* args)
 {
 	thread_args_t* arg = (thread_args_t*) args;
-	
 	pthread_mutex_lock(&mutex);
 	for(int i = arg->start; i  < arg->stop; ++i)
-	{
 		add(&buffer, inputBuffer.queue[i]);
-	}
+
 	
 	pthread_mutex_unlock(&mutex); 
 	

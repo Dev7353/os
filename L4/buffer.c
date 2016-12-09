@@ -9,8 +9,8 @@ int head(Buffer* buffer); // returns head (fifo)
 
 void initBuffer(Buffer* buffer, int rows, int cols)
 {
+	
 	assert(rows > 0 && cols > 0);
-
 	buffer->queue = (char**) malloc(sizeof(char*) * rows);
 	for(int i = 0; i < rows; ++i)
 	{
