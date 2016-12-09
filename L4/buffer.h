@@ -7,7 +7,7 @@ typedef int bool;
 typedef struct {
 
 	char** queue;
-	int elements;
+	int head;
 	bool isEmpty;
 	bool isFull;
 	int storage; //number of maximum Strings in buffer

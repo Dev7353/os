@@ -41,6 +41,6 @@ void printBuffer(void* b)
 {
 	Buffer* buffer = (Buffer*) b;
 
-	for(int i = 0; i < buffer->elements; ++i)
-		printf("%s\n", buffer->queue[i]);
+	for(int i = 0; i < buffer->storage; ++i)
+		printf("%s", buffer->queue[i]);
 }

@@ -17,39 +17,37 @@ void initBuffer(Buffer* buffer, int rows, int cols)
 		buffer->queue[i] = (char*) malloc(sizeof(char) * cols);
 	}
 	
-	buffer->elements = 0;
 	buffer->isEmpty = true;
 	buffer->isFull = false;
 	buffer->storage = rows;
 	buffer->stringLength = cols;
+	buffer->head = 0;
 	
 }
 
 void add(Buffer* buffer, char* element)
 {
 	assert(buffer->isFull == false);
-	int n = next(buffer);
-	printf	("%d\n", n);
-	assert(n > -1);
 	
-	memcpy(buffer->queue[n], element, sizeof(char)* buffer->stringLength);
+	memcpy(buffer->queue[buffer->head], element, sizeof(char)* buffer->stringLength);
 	buffer->isEmpty = false;
-	if(buffer->storage == buffer->elements)
+	if(buffer->storage == buffer->head-1)
 		buffer->isFull = true;
-	
-	buffer->elements++;
+
+		++buffer->head;
 }
 
 char* pop(Buffer* buffer)
 {
-	
-	int h = head(buffer);
-	assert(h != -1);
+	if(buffer->isEmpty)
+		return 0;
+	printf("HEAD with %s %d\n", buffer->queue[buffer->head],  buffer->head);
 	char* popped = (char*) malloc(sizeof(char) * buffer->stringLength);
-	memcpy(popped, buffer->queue[h], buffer->stringLength);
-	char* empty = "";
-	add(buffer, empty);
-	buffer->elements--;
+	memcpy(popped, buffer->queue[buffer->head], buffer->stringLength);
+	memcpy(buffer->queue[buffer->head], "\0", buffer->stringLength);
+	
+	if(buffer->head > 0)
+		--buffer->head;
 	
 	return popped;
 }
@@ -63,29 +61,4 @@ void destroyBuffer(Buffer* buffer)
 	free(buffer->queue);
 }
 
-int next(Buffer* buffer)
-{
-		if(buffer->elements == 0)
-			return 0;
-			
-		for(int i = 0; i < buffer->elements; ++i)
-		{
-				printf("DEBUG queue %s\n", buffer->queue[i]);
-				if(*buffer->queue[i+1] == '\n')
-					printf("frei\n");
-		}
-		return -1;
-}
 
-int head(Buffer* buffer)
-{
-	if(buffer->elements == 0)
-			return 0;
-			
-		for(int i = 0; i < buffer->elements; ++i)
-		{
-				if(*buffer->queue[i] != '\n')
-					return i;
-		}
-		return -1;
-}

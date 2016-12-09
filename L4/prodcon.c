@@ -130,7 +130,6 @@ main (int argc, char **argv)
 	
 
 	initBuffer(&buffer, bufferRows, colsPerRows);
-	printBuffer(&buffer);
 	if(input != NULL)
 	{
 		printf("[READ FROM FILE]\n"); 
@@ -144,15 +143,23 @@ main (int argc, char **argv)
 	//little test
 	printf("[QUEUE]\n");
 	printBuffer(&buffer);
-
+	printf("elements -> %d\n", buffer.head);
 	char* popped;
+	printf("______________________________________\n");
 	printf("[POP] %s\n", (popped=pop(&buffer)));
+	printf("[POP] %s\n", (popped=pop(&buffer)));
+	printf("[POP] %s\n", (popped=pop(&buffer)));
+	printf("[POP] %s\n", (popped=pop(&buffer)));
+	printf("[POP] %s\n", (popped=pop(&buffer)));
+	printf("______________________________________\n");
+	
+	
 	free(popped);
 
 	printf("[QUEUE]\n");
 	printBuffer(&buffer);
 
-	printf("elements -> %d\n", buffer.elements);
+	printf("elements -> %d\n", buffer.head);
 	destroyBuffer(&buffer);
 
 	return 0;
