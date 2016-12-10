@@ -33,7 +33,8 @@ pthread_mutex_t mutex;
 Buffer buffer, inputBuffer;
 time_t sec;
 bool verbose = false;
-pthread_barrier_t barr;
+int consumerThreads = 1;
+int producerThreads = 1;
 
 typedef struct
 {
@@ -57,9 +58,6 @@ main (int argc, char **argv)
 	
 	int bufferRows = 20; //default
 	int colsPerRows = 20; //default
-	
-	int consumerThreads = 1;
-	int producerThreads = 1;
 	
 	int delay = 2000; // number of millisecs for the passvie sleep
 	int upperBorder = 1; //default in sec
@@ -181,7 +179,7 @@ main (int argc, char **argv)
 	thread_args_t argsProducer[producerThreads];
 	thread_args_t argsConsumer[consumerThreads];
 	
-	pthread_barrier_init(&barr, NULL, consumerThreads);
+
 	
 	s.access = (int**) malloc(sizeof(int**) * producerThreads);
 	assert(access != NULL);
@@ -240,20 +238,31 @@ void* consumer(void* args)
 {
 	thread_args_t* arg = (thread_args_t*) args;
 	
-	pthread_barrier_wait(&barr);
 	pthread_mutex_lock(&mutex);
-	char* c = pop(&buffer);
-	printf("C%d consumes %s\n",arg->id, c);
-	
-	time(&sec);
-	int s = (random () % arg->upper) + arg->lower;
-	sleep (s);
-
-	//wait busy or passive
-	
-	printf("C%d reports (time) %s\n",arg->id, convert(c)); //needs id
-	
+	while(buffer.isEmpty == true)
+	{
+		pthread_cond_wait(&cv, &mutex);
+		
+	}
 	pthread_mutex_unlock(&mutex);
+	int start = arg->id * buffer.tail/consumerThreads;
+	int stop = (arg->id +1) * buffer.tail/consumerThreads;
+	for(int i = start; i < stop; ++i)
+	{	
+		pthread_mutex_lock(&mutex);
+		char* c = pop(&buffer);
+		printf("C%d consumes %s\n",arg->id, c);
+		
+		time(&sec);
+		int s = (random () % arg->upper) + arg->lower;
+		sleep (s);
+
+		//wait busy or passive
+		
+		printf("C%d reports (time) %s\n",arg->id, convert(c)); //needs id
+		
+		pthread_mutex_unlock(&mutex);
+	}
 	pthread_exit(0);
 }
 
@@ -269,7 +278,7 @@ void* producer(void* args)
 		add(&buffer, input);
 		printf("P%d produces %s\n", arg->id, inputBuffer.queue[i]);
 		pthread_mutex_unlock(&mutex);
-		pthread_cond_signal(&cv);
+		pthread_cond_broadcast(&cv);
 	}
 	pthread_exit(0);
 }
