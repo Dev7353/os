@@ -28,6 +28,8 @@ void readFile(Buffer* buffer, char* filename)
 	int i = 0;
 	while(fgets(string, buffer->stringLength, file))
 	{
+		if(i == buffer->storage)
+			break;
 		if(*string != ' ')
 		{
 			if(buffer->head == buffer->storage)

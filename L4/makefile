@@ -5,7 +5,7 @@ CFLAGS=-Wall -pedantic -Werror -g
 all: mutex event prodcon
 
 clean: 
-	$(RM) -rf *.o mutex event prodcon
+	$(RM) -rf *.o mutex event prodcon output
 
 mutex: mutex.c
 	$(CC) $(CFLAGS) -lpthread $< -o $@
@@ -14,7 +14,7 @@ event: event.c
 	$(CC) $(CFLAGS) -lpthread $< -o $@
 	
 prodcon: prodcon.c buffer.c prodcon-api.c
-	$(CC) $(CFLAGS) -lpthread $^ -o $@
+	$(CC) $(CFLAGS) -lpthread -lm $^ -o $@
 	
 
 

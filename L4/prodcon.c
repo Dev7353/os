@@ -8,12 +8,13 @@
 #include "prodcon-api.h"
 #include <assert.h>
 #include <time.h>
+#include <math.h>
 
 //struct for thread arguments
 
 typedef struct{
-	int start;
-	int stop;
+	double start;
+	double stop;
 	int delay;
 	int upper,lower;
 	int id;
@@ -34,7 +35,7 @@ Buffer buffer, inputBuffer;
 time_t sec;
 bool verbose = false;
 int consumerThreads = 1;
-int producerThreads = 1;
+char* output = NULL;
 
 typedef struct
 {
@@ -54,7 +55,6 @@ main (int argc, char **argv)
 
 	int c; //argument
 	char* input = NULL;
-	char* output;
 	
 	int bufferRows = 20; //default
 	int colsPerRows = 20; //default
@@ -63,6 +63,8 @@ main (int argc, char **argv)
 	int upperBorder = 1; //default in sec
 	int lowerBorder = 1; //default in sec
 	int busyLoopFactor = 0; // default	
+	
+	int producerThreads = 1;
 	
 	srandom((unsigned int) sec);
 	
@@ -161,7 +163,7 @@ main (int argc, char **argv)
 		  default:
 			  abort ();
 		  }
-		  
+	
 	initBuffer(&inputBuffer, bufferRows, colsPerRows);
 	if(input != NULL)
 	{
@@ -195,8 +197,8 @@ main (int argc, char **argv)
 	printf("%d Producer startet\n", producerThreads);
 	for(int i = 0; i < producerThreads; ++i)
 	{
-		argsProducer[i].start = i * (inputBuffer.tail / producerThreads);
-		argsProducer[i].stop = (i+1) * (inputBuffer.tail / producerThreads);
+		argsProducer[i].start = round(i * (inputBuffer.tail / producerThreads));
+		argsProducer[i].stop = round((i+1) * (inputBuffer.tail / producerThreads));
 		argsProducer[i].delay = delay;
 		argsProducer[i].id = i;
 		pthread_create(&producers[i], NULL, (void *(*)(void *))producer, &argsProducer[i]);
@@ -245,9 +247,9 @@ void* consumer(void* args)
 		
 	}
 	pthread_mutex_unlock(&mutex);
-	int start = arg->id * buffer.tail/consumerThreads;
-	int stop = (arg->id +1) * buffer.tail/consumerThreads;
-	for(int i = start; i < stop; ++i)
+	double start = round(arg->id * inputBuffer.tail/consumerThreads);
+	double stop = round((arg->id +1) * inputBuffer.tail/consumerThreads);
+	for(int i = (int)start; i < (int)stop; ++i)
 	{	
 		pthread_mutex_lock(&mutex);
 		char* c = pop(&buffer);
@@ -260,6 +262,11 @@ void* consumer(void* args)
 		//wait busy or passive
 		
 		printf("C%d reports (time) %s\n",arg->id, convert(c)); //needs id
+		if(output != NULL)
+		{
+			FILE* file = fopen("output", "a");
+			fprintf(file, "%s\n", convert(c));
+		}
 		
 		pthread_mutex_unlock(&mutex);
 	}
@@ -269,7 +276,7 @@ void* consumer(void* args)
 void* producer(void* args)
 {
 	thread_args_t* arg = (thread_args_t*) args;
-	for(int i = arg->start; i  < arg->stop; ++i)
+	for(int i = (int) arg->start; i  < (int)arg->stop; ++i)
 	{
 		pthread_mutex_lock(&mutex);
 		//read from input
@@ -277,8 +284,8 @@ void* producer(void* args)
 		sleep(arg->delay/1000);
 		add(&buffer, input);
 		printf("P%d produces %s\n", arg->id, inputBuffer.queue[i]);
+		pthread_cond_signal(&cv);
 		pthread_mutex_unlock(&mutex);
-		pthread_cond_broadcast(&cv);
 	}
 	pthread_exit(0);
 }
