@@ -22,6 +22,7 @@ void initBuffer(Buffer* buffer, int rows, int cols)
 	buffer->storage = rows;
 	buffer->stringLength = cols;
 	buffer->head = 0;
+	buffer->tail = 0;
 	
 }
 
@@ -29,12 +30,12 @@ void add(Buffer* buffer, char* element)
 {
 	if(*element == '\0')
 		return;
-	memcpy(buffer->queue[buffer->head], element, sizeof(char)* buffer->stringLength);
+	memcpy(buffer->queue[buffer->tail], element, sizeof(char)* buffer->stringLength);
 	buffer->isEmpty = false;
 	if(buffer->storage == buffer->head)
 		buffer->isFull = true;
 
-		++buffer->head;
+	++buffer->tail;
 }
 
 char* pop(Buffer* buffer)
@@ -42,11 +43,11 @@ char* pop(Buffer* buffer)
 	if(buffer->isEmpty)
 		return 0;
 	char* popped = (char*) malloc(sizeof(char) * buffer->stringLength);
-	memcpy(popped, buffer->queue[buffer->head-1], buffer->stringLength);
-	memcpy(buffer->queue[buffer->head-1], "\0", buffer->stringLength);
+	memcpy(popped, buffer->queue[buffer->head], buffer->stringLength);
+	//memcpy(buffer->queue[buffer->head], "\0", buffer->stringLength);
 	
-	if(buffer->head > 0)
-		--buffer->head;
+	if(buffer->head < buffer->tail)
+		++buffer->head;
 	
 	return popped;
 }

@@ -8,6 +8,7 @@ typedef struct {
 
 	char** queue;
 	int head;
+	int tail;
 	bool isEmpty;
 	bool isFull;
 	int storage; //number of maximum Strings in buffer
