@@ -45,14 +45,6 @@ bool* accessConsumer;
 char* output = NULL;
 int operations = 0;
 
-typedef struct
-{
-	int** access;
-	int pt;
-} synchronize;
-
-//global observable
-synchronize s;
 
 int
 main (int argc, char **argv)
@@ -238,6 +230,8 @@ main (int argc, char **argv)
 		pthread_join(consumers[i], NULL);
 	}
 	
+	pthread_join(observer, NULL);
+	
 	destroyBuffer(&buffer);
 	destroyBuffer(&inputBuffer);
 	
@@ -251,12 +245,23 @@ main (int argc, char **argv)
 void* consumer(void* args)
 {
 	thread_args_t* arg = (thread_args_t*) args;
-	while(1)
+	while(true)
 	{
 		if(operationsLeft() == false)
+		{
+			printf("Theres no work left\n");
+			pthread_cond_signal(&cv);
 			break;
+		}
 		pthread_mutex_lock(&mutex);
 		pthread_cond_wait(&vars[arg->id], &mutex);
+		
+		if(operationsLeft() == false)
+		{
+			printf("C%d im out\n", arg->id);
+			pthread_mutex_unlock(&mutex);
+			break;
+		}
 		
 		--operations;
 		accessConsumer[arg->id] = true;
@@ -309,29 +314,30 @@ void* observe(void* arg)
 {
 	while(1)
 	{
-		if(operationsLeft() == true)
-		{
-			pthread_mutex_lock(&mutex);
-			pthread_cond_wait(&cv, &mutex);
-			pthread_mutex_unlock(&mutex);
-		}
-		else
-			break;
+		pthread_mutex_lock(&mutex);
+		pthread_cond_wait(&cv, &mutex);
+		pthread_mutex_unlock(&mutex);
+		for(int i = 0; i < consumerThreads; ++i)
+			printf("%d ", accessConsumer[i]);
+			
+		printf("\n");
+			
 		//release next consumer thread
 		if(consumersAreDone() == true && operationsLeft() == true)
 		{
 			refreshConsumers();
 		} 
-		else if(consumersAreDone() == false && operationsLeft() == false)
-		{
-			for(int i = 0; i < consumerThreads; ++i)
-				pthread_cond_signal(&vars[i]);
-			
+				
+		if(operationsLeft() == false)
 			break;
-		}
 		pthread_cond_signal(&vars[nextConsumer()]);
 	}
 
+	for(int i = 0; i < consumerThreads; ++i)
+	{
+		pthread_cond_signal(&vars[i]);
+	}
+	printf("Observe is done\n");
 	pthread_exit(0);	
 }
 
