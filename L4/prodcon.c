@@ -31,19 +31,33 @@ int nextConsumer();
 bool operationsLeft();
 bool consumersAreDone();
 
+void* observeProducers(void* args);
+bool enoughProduced();
+int nextProducer();
+bool producersAreDone();
+bool additionsLeft();
+void refreshProducers();
+
 //mutex and cv
-pthread_cond_t cv;
+pthread_cond_t cv, pv;
 pthread_mutex_t mutex;
 
 //global variables
 Buffer buffer, inputBuffer;
 time_t sec;
 bool verbose = false;
+char* output = NULL;
+
 int consumerThreads = 1;
 pthread_cond_t *vars;
 bool* accessConsumer; 
-char* output = NULL;
 int operations = 0;
+
+int producerThreads = 1;
+pthread_cond_t *varsP;
+bool* accessProducer;
+int additions = 0;
+int turn = 0;
 
 
 int
@@ -52,6 +66,7 @@ main (int argc, char **argv)
 	
 	pthread_mutex_init(&mutex, NULL);
 	pthread_cond_init(&cv, NULL);	
+	pthread_cond_init(&pv, NULL);
 
 	int c; //argument
 	char* input = NULL;
@@ -63,8 +78,6 @@ main (int argc, char **argv)
 	int upperBorder = 1; //default in sec
 	int lowerBorder = 2; //default in sec
 	int busyLoopFactor = 0; // default	
-	
-	int producerThreads = 1;
 	
 	srandom((unsigned int) sec);
 	
@@ -164,6 +177,12 @@ main (int argc, char **argv)
 			  abort ();
 		  }
 		  
+	
+	varsP = (pthread_cond_t*) malloc(sizeof(pthread_cond_t) * producerThreads);
+	for(int i = 0; i < producerThreads; ++i)
+	{
+		pthread_cond_init(&varsP[i], NULL);
+	}
 		  
 	vars = (pthread_cond_t*) malloc(sizeof(pthread_cond_t) * consumerThreads);
 	for(int i = 0; i < consumerThreads; ++i)
@@ -174,6 +193,10 @@ main (int argc, char **argv)
 	accessConsumer = (bool*) malloc(sizeof(bool) * consumerThreads);
 	assert(accessConsumer != NULL);
 	refreshConsumers();
+	
+	accessProducer = (bool*) malloc(producerThreads * sizeof(bool));
+	assert(accessProducer != NULL);
+	refreshProducers();
 	
 	initBuffer(&inputBuffer, bufferRows, colsPerRows);
 	if(input != NULL)
@@ -190,13 +213,13 @@ main (int argc, char **argv)
 	operations = inputBuffer.tail;
 	pthread_t consumers[consumerThreads];
 	pthread_t producers[producerThreads];
-	pthread_t observer;
+	pthread_t observer, observerP;
 	thread_args_t argsProducer[producerThreads];
 	thread_args_t argsConsumer[consumerThreads];
 	
 	initBuffer(&buffer, bufferRows, colsPerRows);
 	
-	printf("Observer started\n");
+	printf("Consumer Observer started\n");
 	pthread_create(&observer, NULL, observe, NULL);
 	
 	printf("%d Consumer startet\n", consumerThreads);
@@ -218,6 +241,9 @@ main (int argc, char **argv)
 		pthread_create(&producers[i], NULL, (void *(*)(void *))producer, &argsProducer[i]);
 	}
 	
+	printf("Producer Observer started\n");
+	pthread_create(&observerP, NULL, observeProducers, NULL);
+	
 	//joins
 	
 	for(int i = 0; i < producerThreads; ++i)
@@ -231,6 +257,9 @@ main (int argc, char **argv)
 	}
 	
 	pthread_join(observer, NULL);
+	pthread_join(observerP, NULL);
+	while(additions != inputBuffer.tail)
+		pthread_cond_signal(&pv);
 	
 	destroyBuffer(&buffer);
 	destroyBuffer(&inputBuffer);
@@ -255,7 +284,6 @@ void* consumer(void* args)
 		}
 		pthread_mutex_lock(&mutex);
 		pthread_cond_wait(&vars[arg->id], &mutex);
-		
 		if(operationsLeft() == false)
 		{
 			printf("C%d im out\n", arg->id);
@@ -270,7 +298,7 @@ void* consumer(void* args)
 		printf("C%d consumes %s\n",arg->id, c);
 		
 		pthread_mutex_unlock(&mutex);
-		
+		pthread_cond_signal(&pv);
 		time(&sec);
 		int s = (random () % arg->upper) + arg->lower;
 		sleep (s);
@@ -283,15 +311,21 @@ void* consumer(void* args)
 void* producer(void* args)
 {
 	thread_args_t* arg = (thread_args_t*) args;
+	pthread_mutex_lock(&mutex);
+	
+	while(turn != arg->id)
+		pthread_cond_wait(&varsP[arg->id], &mutex);
+	
 	for(int i = (int) arg->start; i  < (int)arg->stop; ++i)
 	{
-		pthread_mutex_lock(&mutex);
 		//read from input
 		char* input = pop(&inputBuffer);
 		add(&buffer, input);
-		pthread_mutex_unlock(&mutex);
-		pthread_cond_signal(&cv);
+		++additions;
+		accessProducer[arg->id] = true;
 		printf("P%d produces %s\n", arg->id, input);
+		pthread_cond_signal(&cv);
+		pthread_mutex_unlock(&mutex);
 		free(input);
 		
 		sleep(arg->delay/1000);
@@ -312,15 +346,11 @@ char* convert(char* string)
 
 void* observe(void* arg)
 {
-	while(1)
+	while(true)
 	{
 		pthread_mutex_lock(&mutex);
 		pthread_cond_wait(&cv, &mutex);
 		pthread_mutex_unlock(&mutex);
-		for(int i = 0; i < consumerThreads; ++i)
-			printf("%d ", accessConsumer[i]);
-			
-		printf("\n");
 			
 		//release next consumer thread
 		if(consumersAreDone() == true && operationsLeft() == true)
@@ -339,6 +369,75 @@ void* observe(void* arg)
 	}
 	printf("Observe is done\n");
 	pthread_exit(0);	
+}
+
+void* observeProducers(void* args)
+{
+	while(true)
+	{
+		turn = nextProducer();
+		pthread_cond_signal(&varsP[turn]);
+		
+		pthread_mutex_lock(&mutex);
+		pthread_cond_wait(&pv, &mutex);
+		pthread_mutex_unlock(&mutex);
+		
+		if(enoughProduced() == true)
+			break;
+		if(producersAreDone() == true && additionsLeft() == true)
+		{
+			refreshProducers();
+		} 
+	}
+	
+	pthread_exit(0);
+}
+
+bool enoughProduced()
+{
+	if(additions == inputBuffer.tail)
+		return true;
+	return false;
+}
+
+int nextProducer()
+{
+	for(int i = 0; i < producerThreads; ++i)
+	{
+		if(accessProducer[i] == false)
+			return i;
+	}
+	
+	return -1;
+}
+
+
+
+bool producersAreDone()
+{
+	for(int i = 0; i < producerThreads; ++i)
+	{
+		if(accessProducer[i] == false)
+			return false;
+	}
+	
+	return true;
+}
+
+bool additionsLeft()
+{
+	if(additions == inputBuffer.tail)
+		return false;
+	
+	return true;
+}
+
+void refreshProducers()
+{
+	for(int i = 0; i < producerThreads; ++i)
+	{
+		accessProducer[i] = false;
+	}
 }
 
 bool consumersAreDone()
