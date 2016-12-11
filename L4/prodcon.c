@@ -26,6 +26,11 @@ void* producer(void* args);
 char* convert(char* string);
 void* observe(void* args);
 
+void refreshConsumers();
+int nextConsumer();
+bool operationsLeft();
+bool consumersAreDone();
+
 //mutex and cv
 pthread_cond_t cv;
 pthread_mutex_t mutex;
@@ -35,7 +40,10 @@ Buffer buffer, inputBuffer;
 time_t sec;
 bool verbose = false;
 int consumerThreads = 1;
+pthread_cond_t *vars;
+bool* accessConsumer; 
 char* output = NULL;
+int operations = 0;
 
 typedef struct
 {
@@ -49,9 +57,9 @@ synchronize s;
 int
 main (int argc, char **argv)
 {
-
+	
 	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&cv, NULL);
+	pthread_cond_init(&cv, NULL);	
 
 	int c; //argument
 	char* input = NULL;
@@ -59,9 +67,9 @@ main (int argc, char **argv)
 	int bufferRows = 20; //default
 	int colsPerRows = 20; //default
 	
-	int delay = 2000; // number of millisecs for the passvie sleep
+	int delay = 3000; // number of millisecs for the passvie sleep
 	int upperBorder = 1; //default in sec
-	int lowerBorder = 1; //default in sec
+	int lowerBorder = 2; //default in sec
 	int busyLoopFactor = 0; // default	
 	
 	int producerThreads = 1;
@@ -163,6 +171,17 @@ main (int argc, char **argv)
 		  default:
 			  abort ();
 		  }
+		  
+		  
+	vars = (pthread_cond_t*) malloc(sizeof(pthread_cond_t) * consumerThreads);
+	for(int i = 0; i < consumerThreads; ++i)
+	{
+		pthread_cond_init(&vars[i], NULL);
+	}
+	
+	accessConsumer = (bool*) malloc(sizeof(bool) * consumerThreads);
+	assert(accessConsumer != NULL);
+	refreshConsumers();
 	
 	initBuffer(&inputBuffer, bufferRows, colsPerRows);
 	if(input != NULL)
@@ -176,23 +195,26 @@ main (int argc, char **argv)
 		readStdin(&inputBuffer);
 	}
 	
+	operations = inputBuffer.tail;
 	pthread_t consumers[consumerThreads];
 	pthread_t producers[producerThreads];
+	pthread_t observer;
 	thread_args_t argsProducer[producerThreads];
 	thread_args_t argsConsumer[consumerThreads];
 	
-
-	
-	s.access = (int**) malloc(sizeof(int**) * producerThreads);
-	assert(access != NULL);
-	for(int i = 0; i < producerThreads; ++i)
-	{
-		s.access[i] = (int*) malloc(sizeof(int) * 2);
-		assert(s.access[i] != NULL);
-		
-	}
-	
 	initBuffer(&buffer, bufferRows, colsPerRows);
+	
+	printf("Observer started\n");
+	pthread_create(&observer, NULL, observe, NULL);
+	
+	printf("%d Consumer startet\n", consumerThreads);
+	for(int i = 0; i < consumerThreads; ++i)
+	{
+		argsConsumer[i].id = i;
+		argsConsumer[i].upper = upperBorder;
+		argsConsumer[i].lower = lowerBorder;
+		pthread_create(&consumers[i], NULL, (void *(*)(void *))consumer, &argsConsumer[i]);
+	}
 	
 	printf("%d Producer startet\n", producerThreads);
 	for(int i = 0; i < producerThreads; ++i)
@@ -202,15 +224,6 @@ main (int argc, char **argv)
 		argsProducer[i].delay = delay;
 		argsProducer[i].id = i;
 		pthread_create(&producers[i], NULL, (void *(*)(void *))producer, &argsProducer[i]);
-	}
-	
-	printf("%d Consumer startet\n", consumerThreads);
-	for(int i = 0; i < consumerThreads; ++i)
-	{
-		argsConsumer[i].id = i;
-		argsConsumer[i].upper = upperBorder;
-		argsConsumer[i].lower = lowerBorder;
-		pthread_create(&consumers[i], NULL, (void *(*)(void *))consumer, &argsConsumer[i]);
 	}
 	
 	//joins
@@ -229,46 +242,35 @@ main (int argc, char **argv)
 	destroyBuffer(&inputBuffer);
 	
 	
-	//free access
-	for(int i = 0; i < producerThreads; ++i)
-		free(s.access[i]);
-	free(s.access);
+	//free pointers
+	
+	free(vars);
 	return 0;
 }
 
 void* consumer(void* args)
 {
 	thread_args_t* arg = (thread_args_t*) args;
-	
-	pthread_mutex_lock(&mutex);
-	while(buffer.isEmpty == true)
+	while(1)
 	{
-		pthread_cond_wait(&cv, &mutex);
-		
-	}
-	pthread_mutex_unlock(&mutex);
-	double start = round(arg->id * inputBuffer.tail/consumerThreads);
-	double stop = round((arg->id +1) * inputBuffer.tail/consumerThreads);
-	for(int i = (int)start; i < (int)stop; ++i)
-	{	
+		if(operationsLeft() == false)
+			break;
 		pthread_mutex_lock(&mutex);
+		pthread_cond_wait(&vars[arg->id], &mutex);
+		
+		--operations;
+		accessConsumer[arg->id] = true;
+	
 		char* c = pop(&buffer);
 		printf("C%d consumes %s\n",arg->id, c);
+		
+		pthread_mutex_unlock(&mutex);
 		
 		time(&sec);
 		int s = (random () % arg->upper) + arg->lower;
 		sleep (s);
-
-		//wait busy or passive
-		
 		printf("C%d reports (time) %s\n",arg->id, convert(c)); //needs id
-		if(output != NULL)
-		{
-			FILE* file = fopen("output", "a");
-			fprintf(file, "%s\n", convert(c));
-		}
 		
-		pthread_mutex_unlock(&mutex);
 	}
 	pthread_exit(0);
 }
@@ -281,11 +283,13 @@ void* producer(void* args)
 		pthread_mutex_lock(&mutex);
 		//read from input
 		char* input = pop(&inputBuffer);
-		sleep(arg->delay/1000);
 		add(&buffer, input);
-		printf("P%d produces %s\n", arg->id, inputBuffer.queue[i]);
-		pthread_cond_signal(&cv);
 		pthread_mutex_unlock(&mutex);
+		pthread_cond_signal(&cv);
+		printf("P%d produces %s\n", arg->id, input);
+		free(input);
+		
+		sleep(arg->delay/1000);
 	}
 	pthread_exit(0);
 }
@@ -299,4 +303,72 @@ char* convert(char* string)
 			break;
 	}
 	return string;
+}
+
+void* observe(void* arg)
+{
+	while(1)
+	{
+		if(operationsLeft() == true)
+		{
+			pthread_mutex_lock(&mutex);
+			pthread_cond_wait(&cv, &mutex);
+			pthread_mutex_unlock(&mutex);
+		}
+		else
+			break;
+		//release next consumer thread
+		if(consumersAreDone() == true && operationsLeft() == true)
+		{
+			refreshConsumers();
+		} 
+		else if(consumersAreDone() == false && operationsLeft() == false)
+		{
+			for(int i = 0; i < consumerThreads; ++i)
+				pthread_cond_signal(&vars[i]);
+			
+			break;
+		}
+		pthread_cond_signal(&vars[nextConsumer()]);
+	}
+
+	pthread_exit(0);	
+}
+
+bool consumersAreDone()
+{
+	for(int i = 0; i < consumerThreads; ++i)
+	{
+		if(accessConsumer[i] == false)
+			return false;
+	}
+	
+	return true;
+}
+
+bool operationsLeft()
+{
+	if(operations == 0)
+		return false;
+	
+	return true;
+}
+
+int nextConsumer()
+{
+	for(int i = 0; i < consumerThreads; ++i)
+	{
+		if(accessConsumer[i] == false)
+			return i;
+	}
+	
+	return -1;
+}
+
+void refreshConsumers()
+{
+	for(int i = 0; i < consumerThreads; ++i)
+	{
+		accessConsumer[i] = false;
+	}
 }
