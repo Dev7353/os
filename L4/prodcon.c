@@ -39,8 +39,8 @@ bool additionsLeft();
 void refreshProducers();
 
 //mutex and cv
-pthread_cond_t cv, pv;
-pthread_mutex_t mutex;
+pthread_cond_t cv, pv, currentProducer;
+pthread_mutex_t mutex, mutexwait;
 
 //global variables
 Buffer buffer, inputBuffer;
@@ -58,15 +58,17 @@ pthread_cond_t *varsP;
 bool* accessProducer;
 int additions = 0;
 int turn = 0;
-
+bool complete = false;
 
 int
 main (int argc, char **argv)
 {
 	
 	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_init(&mutexwait, NULL);
 	pthread_cond_init(&cv, NULL);	
 	pthread_cond_init(&pv, NULL);
+	pthread_cond_init(&currentProducer, NULL);
 
 	int c; //argument
 	char* input = NULL;
@@ -210,7 +212,7 @@ main (int argc, char **argv)
 		readStdin(&inputBuffer);
 	}
 	
-	operations = inputBuffer.tail;
+	operations = inputBuffer.tail + 1;
 	pthread_t consumers[consumerThreads];
 	pthread_t producers[producerThreads];
 	pthread_t observer, observerP;
@@ -218,7 +220,6 @@ main (int argc, char **argv)
 	thread_args_t argsConsumer[consumerThreads];
 	
 	initBuffer(&buffer, bufferRows, colsPerRows);
-	
 	printf("Consumer Observer started\n");
 	pthread_create(&observer, NULL, observe, NULL);
 	
@@ -234,8 +235,8 @@ main (int argc, char **argv)
 	printf("%d Producer startet\n", producerThreads);
 	for(int i = 0; i < producerThreads; ++i)
 	{
-		argsProducer[i].start = round(i * (inputBuffer.tail / producerThreads));
-		argsProducer[i].stop = round((i+1) * (inputBuffer.tail / producerThreads));
+		argsProducer[i].start = round(i * ((double)inputBuffer.tail / producerThreads));
+		argsProducer[i].stop = round((i+1) * ((double)inputBuffer.tail / producerThreads));
 		argsProducer[i].delay = delay;
 		argsProducer[i].id = i;
 		pthread_create(&producers[i], NULL, (void *(*)(void *))producer, &argsProducer[i]);
@@ -276,6 +277,7 @@ void* consumer(void* args)
 	thread_args_t* arg = (thread_args_t*) args;
 	while(true)
 	{
+		printf("operations %d\n", operations);
 		if(operationsLeft() == false)
 		{
 			printf("Theres no work left\n");
@@ -284,6 +286,7 @@ void* consumer(void* args)
 		}
 		pthread_mutex_lock(&mutex);
 		pthread_cond_wait(&vars[arg->id], &mutex);
+		
 		if(operationsLeft() == false)
 		{
 			printf("C%d im out\n", arg->id);
@@ -291,10 +294,10 @@ void* consumer(void* args)
 			break;
 		}
 		
-		--operations;
 		accessConsumer[arg->id] = true;
 	
 		char* c = pop(&buffer);
+		--operations;
 		printf("C%d consumes %s\n",arg->id, c);
 		
 		pthread_mutex_unlock(&mutex);
@@ -303,7 +306,6 @@ void* consumer(void* args)
 		int s = (random () % arg->upper) + arg->lower;
 		sleep (s);
 		printf("C%d reports (time) %s\n",arg->id, convert(c)); //needs id
-		
 	}
 	pthread_exit(0);
 }
@@ -311,25 +313,34 @@ void* consumer(void* args)
 void* producer(void* args)
 {
 	thread_args_t* arg = (thread_args_t*) args;
-	pthread_mutex_lock(&mutex);
 	
+	pthread_mutex_lock(&mutex);
 	while(turn != arg->id)
 		pthread_cond_wait(&varsP[arg->id], &mutex);
+	pthread_mutex_unlock(&mutex);
 	
 	for(int i = (int) arg->start; i  < (int)arg->stop; ++i)
 	{
+		printf("go from %d to %d, %d\n", (int)arg->start, (int)arg->stop, i);
+		pthread_mutex_lock(&mutex);
 		//read from input
 		char* input = pop(&inputBuffer);
 		add(&buffer, input);
 		++additions;
 		accessProducer[arg->id] = true;
 		printf("P%d produces %s\n", arg->id, input);
-		pthread_cond_signal(&cv);
-		pthread_mutex_unlock(&mutex);
 		free(input);
-		
+		pthread_mutex_unlock(&mutex);
 		sleep(arg->delay/1000);
+		pthread_cond_signal(&cv);
+		
+		pthread_mutex_lock(&mutexwait);
+		pthread_cond_wait(&currentProducer, &mutexwait);
+		pthread_mutex_unlock(&mutexwait);
+		printf("P%d wake up\n", arg->id);
 	}
+	complete = true;
+	pthread_cond_signal(&cv);
 	pthread_exit(0);
 }
 
@@ -360,7 +371,9 @@ void* observe(void* arg)
 				
 		if(operationsLeft() == false)
 			break;
+
 		pthread_cond_signal(&vars[nextConsumer()]);
+
 	}
 
 	for(int i = 0; i < consumerThreads; ++i)
@@ -373,14 +386,23 @@ void* observe(void* arg)
 
 void* observeProducers(void* args)
 {
+	int ctr = 0;
 	while(true)
 	{
-		turn = nextProducer();
-		pthread_cond_signal(&varsP[turn]);
-		
-		pthread_mutex_lock(&mutex);
-		pthread_cond_wait(&pv, &mutex);
-		pthread_mutex_unlock(&mutex);
+		if(complete == true)
+		{
+			turn = nextProducer();
+			pthread_cond_signal(&varsP[turn]);
+			complete = false;
+		}
+		else
+		{
+			if(ctr == 0)
+				pthread_cond_signal(&varsP[turn]);
+			
+			sleep(2);
+			pthread_cond_signal(&currentProducer);
+		}
 		
 		if(enoughProduced() == true)
 			break;
@@ -388,6 +410,13 @@ void* observeProducers(void* args)
 		{
 			refreshProducers();
 		} 
+		
+		printf("I go sleep, P%d go ahead\n", turn);
+		pthread_mutex_lock(&mutex);
+		pthread_cond_wait(&pv, &mutex);
+		pthread_mutex_unlock(&mutex);
+		printf("i wake up\n");
+		
 	}
 	
 	pthread_exit(0);

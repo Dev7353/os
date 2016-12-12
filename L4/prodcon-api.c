@@ -32,7 +32,7 @@ void readFile(Buffer* buffer, char* filename)
 			break;
 		if(*string != ' ')
 		{
-			if(buffer->head == buffer->storage)
+			if(buffer->tail == buffer->storage)
 				break;
 			add(buffer, string);
 			++i;
@@ -45,7 +45,7 @@ void readFile(Buffer* buffer, char* filename)
 
 void printBuffer(Buffer* buffer)
 {
-	for(int i = 0; i < buffer->head; ++i)
-		printf("%s\n", buffer->queue[i]);
+	for(int i = 0; i < buffer->tail; ++i)
+		printf("|%s|\n", buffer->queue[i]);
 }
 
