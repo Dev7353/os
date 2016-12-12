@@ -212,7 +212,7 @@ main (int argc, char **argv)
 		readStdin(&inputBuffer);
 	}
 	
-	operations = inputBuffer.tail + 1;
+	operations = inputBuffer.tail;
 	pthread_t consumers[consumerThreads];
 	pthread_t producers[producerThreads];
 	pthread_t observer, observerP;
@@ -297,6 +297,12 @@ void* consumer(void* args)
 		accessConsumer[arg->id] = true;
 	
 		char* c = pop(&buffer);
+		if(*c == '\0')
+		{	
+			pthread_mutex_unlock(&mutex);
+			pthread_cond_signal(&pv);
+			continue;
+		}
 		--operations;
 		printf("C%d consumes %s\n",arg->id, c);
 		

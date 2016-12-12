@@ -22,11 +22,15 @@ void readStdin(Buffer* buffer)
 void readFile(Buffer* buffer, char* filename)
 {
 	FILE* file;
-	char* string = (char*) malloc(sizeof(char) * buffer->stringLength);
+	char* string = (char*) malloc(sizeof(char) * 32);
+	assert(string != NULL);
+	char *cache;
+	cache = (char*) malloc(sizeof(char) * buffer->stringLength+1);
+	assert(cache != NULL);
 	file = fopen(filename, "r");
 	assert(file != NULL);
 	int i = 0;
-	while(fgets(string, buffer->stringLength, file))
+	while(fgets(string, 32, file))
 	{
 		if(i == buffer->storage)
 			break;
@@ -34,12 +38,16 @@ void readFile(Buffer* buffer, char* filename)
 		{
 			if(buffer->tail == buffer->storage)
 				break;
-			add(buffer, string);
+			memcpy(cache, string, buffer->stringLength+1);
+			cache[buffer->stringLength] = '\0';
+			printf("insert %s\n", cache);
+			add(buffer, cache);
 			++i;
 		}
 	}
 	fclose(file);
 	
+	free(cache);
 	free(string);
 }
 
