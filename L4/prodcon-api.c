@@ -40,7 +40,7 @@ void readFile(Buffer* buffer, char* filename)
 				break;
 			memcpy(cache, string, buffer->stringLength+1);
 			cache[buffer->stringLength] = '\0';
-			printf("insert %s\n", cache);
+			//printf("insert %s\n", cache);
 			add(buffer, cache);
 			++i;
 		}

@@ -220,7 +220,7 @@ main (int argc, char **argv)
 	thread_args_t argsConsumer[consumerThreads];
 	
 	initBuffer(&buffer, bufferRows, colsPerRows);
-	printf("Consumer Observer started\n");
+	//printf("Consumer Observer started\n");
 	pthread_create(&observer, NULL, observe, NULL);
 	
 	printf("%d Consumer startet\n", consumerThreads);
@@ -242,7 +242,7 @@ main (int argc, char **argv)
 		pthread_create(&producers[i], NULL, (void *(*)(void *))producer, &argsProducer[i]);
 	}
 	
-	printf("Producer Observer started\n");
+	//printf("Producer Observer started\n");
 	pthread_create(&observerP, NULL, observeProducers, NULL);
 	
 	//joins
@@ -277,7 +277,7 @@ void* consumer(void* args)
 	thread_args_t* arg = (thread_args_t*) args;
 	while(true)
 	{
-		printf("operations %d\n", operations);
+		//printf("operations %d\n", operations);
 		if(operationsLeft() == false)
 		{
 			printf("Theres no work left\n");
@@ -286,6 +286,8 @@ void* consumer(void* args)
 		}
 		pthread_mutex_lock(&mutex);
 		pthread_cond_wait(&vars[arg->id], &mutex);
+		
+		printf("MY TURN !! >>> C%d\n", arg->id);
 		
 		if(operationsLeft() == false)
 		{
@@ -324,11 +326,12 @@ void* producer(void* args)
 	while(turn != arg->id)
 		pthread_cond_wait(&varsP[arg->id], &mutex);
 	pthread_mutex_unlock(&mutex);
+	printf("MY TURN !! >>> P%d\n", arg->id);
 	
+	pthread_mutex_lock(&mutex);
 	for(int i = (int) arg->start; i  < (int)arg->stop; ++i)
 	{
-		printf("go from %d to %d, %d\n", (int)arg->start, (int)arg->stop, i);
-		pthread_mutex_lock(&mutex);
+		
 		//read from input
 		char* input = pop(&inputBuffer);
 		add(&buffer, input);
@@ -336,15 +339,10 @@ void* producer(void* args)
 		accessProducer[arg->id] = true;
 		printf("P%d produces %s\n", arg->id, input);
 		free(input);
-		pthread_mutex_unlock(&mutex);
-		sleep(arg->delay/1000);
-		pthread_cond_signal(&cv);
-		
-		pthread_mutex_lock(&mutexwait);
-		pthread_cond_wait(&currentProducer, &mutexwait);
-		pthread_mutex_unlock(&mutexwait);
-		printf("P%d wake up\n", arg->id);
+
 	}
+	pthread_mutex_unlock(&mutex);
+	sleep(arg->delay/1000);
 	complete = true;
 	pthread_cond_signal(&cv);
 	pthread_exit(0);
@@ -406,7 +404,7 @@ void* observeProducers(void* args)
 			if(ctr == 0)
 				pthread_cond_signal(&varsP[turn]);
 			
-			sleep(2);
+			//sleep(2);
 			pthread_cond_signal(&currentProducer);
 		}
 		
@@ -417,11 +415,11 @@ void* observeProducers(void* args)
 			refreshProducers();
 		} 
 		
-		printf("I go sleep, P%d go ahead\n", turn);
+		//printf("I go sleep, P%d go ahead\n", turn);
 		pthread_mutex_lock(&mutex);
 		pthread_cond_wait(&pv, &mutex);
 		pthread_mutex_unlock(&mutex);
-		printf("i wake up\n");
+		//printf("i wake up\n");
 		
 	}
 	
