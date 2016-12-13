@@ -305,6 +305,13 @@ void* consumer(void* args)
 		--operations;
 		printf("C%d consumes %s\n",arg->id, c);
 		
+		c = convert(c);
+		if(output != NULL)
+		{
+			FILE* file = fopen(output, "a");
+			fputs(c, file);
+		}
+		
 		pthread_mutex_unlock(&mutex);
 
 		time(&sec);	
@@ -324,7 +331,7 @@ void* consumer(void* args)
 			s*= 1000;
 		}
 
-		printf("C%d reports (%d) %s\n",arg->id, s, convert(c)); //needs id
+		printf("C%d reports (%d) %s\n",arg->id, s, c); //needs id
 		free(c);
 		pthread_cond_signal(&pv);
 	}
