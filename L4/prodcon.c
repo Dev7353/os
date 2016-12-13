@@ -234,7 +234,8 @@ main (int argc, char **argv)
 
 	pthread_create(&observer, NULL, observe, NULL);
 	
-	printf("%d Consumer startet\n", consumerThreads);
+	printf("%d Consumer startet ", consumerThreads);
+	printIds(consumerThreads);
 	for(int i = 0; i < consumerThreads; ++i)
 	{
 		argsConsumer[i].id = i;
@@ -243,7 +244,8 @@ main (int argc, char **argv)
 		pthread_create(&consumers[i], NULL, (void *(*)(void *))consumer, &argsConsumer[i]);
 	}
 	
-	printf("%d Producer startet\n", producerThreads);
+	printf("%d Producer startet ", producerThreads);
+	printIds(producerThreads);
 	for(int i = 0; i < producerThreads; ++i)
 	{
 		argsProducer[i].start = round(i * ((double)inputBuffer.tail / producerThreads));
@@ -291,6 +293,7 @@ void* consumer(void* args)
 		if(operationsLeft() == false)
 		{
 			pthread_cond_signal(&cv);
+			printf("C%d finished\n", arg->id);
 			break;
 		}
 		pthread_mutex_lock(&mutex);
@@ -300,6 +303,7 @@ void* consumer(void* args)
 		if(operationsLeft() == false)
 		{
 			pthread_mutex_unlock(&mutex);
+			printf("C%d finished\n", arg->id);
 			break;
 		}
 		
@@ -313,7 +317,9 @@ void* consumer(void* args)
 			continue;
 		}
 		--operations;
-		printf("C%d consumes %s\n",arg->id, c);
+		
+		if(verbose == true)
+			printf("C%d consumes %s\n",arg->id, c);
 		
 		c = convert(c);
 		if(output != NULL)
@@ -342,7 +348,8 @@ void* consumer(void* args)
 			s*= 1000;
 		}
 
-		printf("C%d reports (%d) %s\n",arg->id, s, c); //needs id
+		if(verbose==true)
+			printf("C%d reports (%d) %s\n",arg->id, s, c); //needs id
 		free(c);
 		pthread_cond_signal(&pv);
 	}
@@ -367,7 +374,8 @@ void* producer(void* args)
 		add(&buffer, input);
 		++additions;
 		accessProducer[arg->id] = true;
-		printf("P%d produces %s\n", arg->id, input);
+		if(verbose == true)
+			printf("P%d produces %s\n", arg->id, input);
 		free(input);
 
 	}
@@ -376,6 +384,7 @@ void* producer(void* args)
 		sleep(arg->delay/1000);
 	complete = true;
 	pthread_cond_signal(&cv);
+	printf("P%d finished\n", arg->id);
 	pthread_exit(0);
 }
 

@@ -57,3 +57,12 @@ void printBuffer(Buffer* buffer)
 		printf("|%s|\n", buffer->queue[i]);
 }
 
+void printIds(int threads)
+{
+	printf("(");
+	for(int i = 0; i < threads; ++i)
+		printf("%d, ", i);
+	
+	printf(")\n");
+}
+

@@ -5,4 +5,5 @@
 void readStdin(Buffer* b);
 void readFile(Buffer* b, char* filename);
 void printBuffer(Buffer* buffer);
+void printIds(int threads);
 #endif
