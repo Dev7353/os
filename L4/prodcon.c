@@ -327,6 +327,7 @@ void* consumer(void* args)
 			FILE* file = fopen(output, "a");
 			fputs(c, file);
 			fputc('\n', file);
+			fclose(file);
 		}
 		
 		pthread_mutex_unlock(&mutex);
