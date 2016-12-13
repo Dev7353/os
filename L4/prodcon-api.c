@@ -30,7 +30,7 @@ void readFile(Buffer* buffer, char* filename)
 	file = fopen(filename, "r");
 	assert(file != NULL);
 	int i = 0;
-	while(fgets(string, 32, file))
+	while(fgets(string, 1024, file))
 	{
 		if(i == buffer->storage)
 			break;
@@ -40,7 +40,7 @@ void readFile(Buffer* buffer, char* filename)
 				break;
 			memcpy(cache, string, buffer->stringLength+1);
 			cache[buffer->stringLength] = '\0';
-			//printf("insert %s\n", cache);
+			
 			add(buffer, cache);
 			++i;
 		}

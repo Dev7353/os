@@ -13,7 +13,7 @@ mutex: mutex.c
 event: event.c
 	$(CC) $(CFLAGS) -lpthread $< -o $@
 	
-prodcon: prodcon.c buffer.c prodcon-api.c
+prodcon: prodcon.c buffer.c prodcon-api.c busyloop.c
 	$(CC) $(CFLAGS) -lpthread -lm $^ -o $@
 	
 

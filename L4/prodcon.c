@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <time.h>
 #include <math.h>
+#include "busyloop.h"
 
 //struct for thread arguments
 
@@ -47,6 +48,7 @@ Buffer buffer, inputBuffer;
 time_t sec;
 bool verbose = false;
 char* output = NULL;
+int busyLoopFactor = 0; // default	
 
 int consumerThreads = 1;
 pthread_cond_t *vars;
@@ -63,7 +65,7 @@ bool complete = false;
 int
 main (int argc, char **argv)
 {
-	
+	int status;
 	pthread_mutex_init(&mutex, NULL);
 	pthread_mutex_init(&mutexwait, NULL);
 	pthread_cond_init(&cv, NULL);	
@@ -76,10 +78,9 @@ main (int argc, char **argv)
 	int bufferRows = 20; //default
 	int colsPerRows = 20; //default
 	
-	int delay = 3000; // number of millisecs for the passvie sleep
-	int upperBorder = 1; //default in sec
-	int lowerBorder = 2; //default in sec
-	int busyLoopFactor = 0; // default	
+	int delay = 0; // number of millisecs for the passvie sleep
+	int upperBorder = 2; //default in sec
+	int lowerBorder = 1; //default in sec
 	
 	srandom((unsigned int) sec);
 	
@@ -256,19 +257,18 @@ main (int argc, char **argv)
 		pthread_join(consumers[i], NULL);
 	}
 	
-	pthread_join(observer, NULL);
+	pthread_join(observer,(void*) &status);
 	pthread_join(observerP, NULL);
-	while(additions != inputBuffer.tail)
-		pthread_cond_signal(&pv);
 	
 	destroyBuffer(&buffer);
 	destroyBuffer(&inputBuffer);
 	
-	
+
 	//free pointers
-	
 	free(vars);
 	free(varsP);
+	free(accessConsumer);
+	free(accessProducer);
 	return 0;
 }
 
@@ -289,7 +289,6 @@ void* consumer(void* args)
 		
 		if(operationsLeft() == false)
 		{
-			printf("C%d im out\n", arg->id);
 			pthread_mutex_unlock(&mutex);
 			break;
 		}
@@ -307,10 +306,26 @@ void* consumer(void* args)
 		printf("C%d consumes %s\n",arg->id, c);
 		
 		pthread_mutex_unlock(&mutex);
-		time(&sec);
-		int s = (random () % arg->upper) + arg->lower;
-		sleep (s);
-		printf("C%d reports (time) %s\n",arg->id, convert(c)); //needs id
+
+		time(&sec);	
+		int s = 0;
+		s = random () % (arg->upper + 1 - arg->lower) + arg->lower;
+		if(busyLoopFactor != 0)
+		{
+		
+			int asec, msec;
+			asec = (busyLoopFactor / 1000) + s;
+			msec = (busyLoopFactor - (asec*1000) + s*1000);
+			s = busyLoop(asec, msec);
+		}
+		else
+		{
+			sleep (s);
+			s*= 1000;
+		}
+
+		printf("C%d reports (%d) %s\n",arg->id, s, convert(c)); //needs id
+		free(c);
 		pthread_cond_signal(&pv);
 	}
 	pthread_exit(0);
@@ -339,7 +354,8 @@ void* producer(void* args)
 
 	}
 	pthread_mutex_unlock(&mutex);
-	sleep(arg->delay/1000);
+	if(arg->delay != 0)
+		sleep(arg->delay/1000);
 	complete = true;
 	pthread_cond_signal(&cv);
 	pthread_exit(0);
@@ -381,7 +397,6 @@ void* observe(void* arg)
 	{
 		pthread_cond_signal(&vars[i]);
 	}
-	printf("Observe is done\n");
 	pthread_exit(0);	
 }
 
