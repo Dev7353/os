@@ -284,6 +284,7 @@ void* consumer(void* args)
 			pthread_cond_signal(&cv);
 			break;
 		}
+		printf("i want to sleep again >>> C%d\n", arg->id);
 		pthread_mutex_lock(&mutex);
 		pthread_cond_wait(&vars[arg->id], &mutex);
 		
@@ -309,11 +310,11 @@ void* consumer(void* args)
 		printf("C%d consumes %s\n",arg->id, c);
 		
 		pthread_mutex_unlock(&mutex);
-		pthread_cond_signal(&pv);
 		time(&sec);
 		int s = (random () % arg->upper) + arg->lower;
 		sleep (s);
 		printf("C%d reports (time) %s\n",arg->id, convert(c)); //needs id
+		pthread_cond_signal(&pv);
 	}
 	pthread_exit(0);
 }
@@ -423,6 +424,13 @@ void* observeProducers(void* args)
 		
 	}
 	
+	printf("enough observed im out\n");
+	
+	if(operationsLeft() == true)
+	{
+		printf("Oh my gosh, there are %d operations left?! C%d go ahead!\n", operations, nextConsumer());
+		pthread_cond_signal(&vars[nextConsumer()]);
+	}
 	pthread_exit(0);
 }
 
