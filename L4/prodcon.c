@@ -104,27 +104,36 @@ main (int argc, char **argv)
 			  break;
 		  case 'L':
 			  bufferRows =  atoi(optarg);
+			  assert(bufferRows >= 0);
 			  break;
 		  case 'C':
 			  colsPerRows = atoi(optarg);
+			  assert(colsPerRows >= 0);
 			  break;
 		  case 'c':
 			  consumerThreads = atoi(optarg);
+			  assert(consumerThreads > 0);
 			  break;
 		  case 'p':
 		      producerThreads =  atoi(optarg);
+			  assert(producerThreads > 0);
 			  break;
 		  case 't':
 			  delay = atoi(optarg);
+			  assert(delay >= 0);
 			  break;
 		  case 'r':
 			  lowerBorder = atoi(optarg);
+			  assert(lowerBorder >= 0);
 			  break;
 		  case 'R':
 			  upperBorder = atoi(optarg);
+			  assert(upperBorder >= 0);
+			  assert(upperBorder > lowerBorder);
 			  break;
 		  case 'a':
 			  busyLoopFactor = atoi(optarg);
+			  assert(busyLoopFactor >= 0);
 			  break;
 		  case '?':
 			  if (optopt == 'i')
@@ -209,7 +218,8 @@ main (int argc, char **argv)
 	}
 	else
 	{
-		printf("[READ FROM STDIN]\n"); 
+		printf("[READ FROM STDIN]\n");
+		printf("WARNING: DO NOT PASTE FROM CLIPBOARD\n"); 
 		readStdin(&inputBuffer);
 	}
 	
@@ -310,6 +320,7 @@ void* consumer(void* args)
 		{
 			FILE* file = fopen(output, "a");
 			fputs(c, file);
+			fputc('\n', file);
 		}
 		
 		pthread_mutex_unlock(&mutex);
