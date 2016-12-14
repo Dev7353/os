@@ -40,7 +40,7 @@ bool additionsLeft();
 void refreshProducers();
 
 //mutex and cv
-pthread_cond_t cv, pv, currentProducer;
+pthread_cond_t cv, pv;
 pthread_cond_t *varsP;
 pthread_cond_t *varsC;
 pthread_mutex_t mutex;
@@ -56,7 +56,6 @@ main (int argc, char **argv)
 	pthread_mutex_init(&mutex, NULL);
 	pthread_cond_init(&cv, NULL);	
 	pthread_cond_init(&pv, NULL);
-	pthread_cond_init(&currentProducer, NULL);
 
 	int c; //argument
 	char* input = NULL;
@@ -423,8 +422,7 @@ void* observeProducers(void* args)
 		{
 			if(ctr == 0)
 				pthread_cond_signal(&varsP[turn]);
-			
-			pthread_cond_signal(&currentProducer);
+
 		}
 
 		if(threadsAreDone(producerThreads, accessProducer) == true && additionsLeft() == true)
