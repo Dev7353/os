@@ -97,6 +97,13 @@ bool threadsAreDone(int threads, int access[])
 	
 	return true;
 }
+void refreshThreads(int threads, int access[])
+{
+	for(int i = 0; i < threads; ++i)
+	{
+		access[i] = false;
+	}
+}
 
 
 

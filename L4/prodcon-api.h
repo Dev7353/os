@@ -8,6 +8,7 @@ void printBuffer(Buffer* buffer);
 void printIds(int threads);
 int nextThread(int threads, int access[]);
 bool threadsAreDone(int threads, int access[]);
+void refreshThreads(int threads, int access[]);
 
 bool verbose;
 char* output;

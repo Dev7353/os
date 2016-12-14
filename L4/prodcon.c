@@ -191,12 +191,12 @@ main (int argc, char **argv)
 	
 	accessConsumer = (bool*) malloc(sizeof(bool) * consumerThreads);
 	assert(accessConsumer != NULL);
-	refreshConsumers();
+	refreshThreads(consumerThreads, accessConsumer);
 	
 	accessProducer = (bool*) malloc(producerThreads * sizeof(bool));
 	assert(accessProducer != NULL);
-	refreshProducers();
-	
+	refreshThreads(producerThreads, accessProducer);
+		
 	initBuffer(&inputBuffer, bufferRows, colsPerRows);
 	if(input != NULL)
 	{
@@ -376,17 +376,6 @@ void* producer(void* args)
 	pthread_exit(0);
 }
 
-char* convert(char* string)
-{
-	for(int i = 0; ; ++i)
-	{
-		string[i] = toupper(string[i]);
-		if(string[i] == '\0')
-			break;
-	}
-	return string;
-}
-
 void* observeConsumer(void* arg)
 {
 	while(true)
@@ -398,7 +387,7 @@ void* observeConsumer(void* arg)
 		//release next consumer thread
 		if(threadsAreDone(consumerThreads, accessConsumer) == true && operationsLeft() == true)
 		{
-			refreshConsumers();
+			refreshThreads(producerThreads, accessConsumer);
 		} 
 				
 		if(operationsLeft() == false)
@@ -441,7 +430,7 @@ void* observeProducers(void* args)
 
 		if(threadsAreDone(producerThreads, accessProducer) == true && additionsLeft() == true)
 		{
-			refreshProducers();
+			refreshThreads(consumerThreads, accessProducer);
 		} 
 		pthread_mutex_lock(&mutex);
 		pthread_cond_wait(&pv, &mutex);
@@ -451,7 +440,7 @@ void* observeProducers(void* args)
 	
 	while(operationsLeft() == true)
 	{
-		refreshConsumers();
+		refreshThreads(consumerThreads, accessConsumer);
 		int n = nextThread(consumerThreads, accessConsumer);
 		pthread_cond_signal(&varsC[n]);
 		
@@ -477,15 +466,6 @@ bool additionsLeft()
 	return true;
 }
 
-void refreshProducers()
-{
-	for(int i = 0; i < producerThreads; ++i)
-	{
-		accessProducer[i] = false;
-	}
-}
-
-
 bool operationsLeft()
 {
 	if(operations == 0)
@@ -494,10 +474,14 @@ bool operationsLeft()
 	return true;
 }
 
-void refreshConsumers()
+char* convert(char* string)
 {
-	for(int i = 0; i < consumerThreads; ++i)
+	for(int i = 0; ; ++i)
 	{
-		accessConsumer[i] = false;
+		string[i] = toupper(string[i]);
+		if(string[i] == '\0')
+			break;
 	}
+	return string;
 }
+
