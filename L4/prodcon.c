@@ -43,7 +43,7 @@ void refreshProducers();
 pthread_cond_t cv, pv, currentProducer;
 pthread_cond_t *varsP;
 pthread_cond_t *varsC;
-pthread_mutex_t mutex, mutexwait;
+pthread_mutex_t mutex;
 //global variables
 Buffer buffer, inputBuffer;
 time_t sec;
@@ -54,7 +54,6 @@ main (int argc, char **argv)
 {
 	int status;
 	pthread_mutex_init(&mutex, NULL);
-	pthread_mutex_init(&mutexwait, NULL);
 	pthread_cond_init(&cv, NULL);	
 	pthread_cond_init(&pv, NULL);
 	pthread_cond_init(&currentProducer, NULL);
