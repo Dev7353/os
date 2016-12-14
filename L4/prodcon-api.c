@@ -25,7 +25,7 @@ void readStdin(Buffer* buffer)
 	{
 		memcpy(cache, string, buffer->stringLength+1);
 		cache[buffer->stringLength] = '\0';
-		add(cache, string);
+		add(buffer, cache);
 		++i;	
 	}
 

@@ -44,7 +44,6 @@ char* pop(Buffer* buffer)
 		return 0;
 	char* popped = (char*) malloc(sizeof(char) * buffer->stringLength);
 	memcpy(popped, buffer->queue[buffer->head], buffer->stringLength);
-	//memcpy(buffer->queue[buffer->head], "\0", buffer->stringLength);
 	
 	if(buffer->head < buffer->tail)
 		++buffer->head;
