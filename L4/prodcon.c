@@ -287,7 +287,7 @@ consumer (void *args)
 	thread_args_t *arg = (thread_args_t *) args;
 	while (true)
 	{
-		if (operationsLeft () == false)
+		if(operationsLeft() == false)
 		{
 			pthread_cond_signal (&cv);
 			printf ("C%d finished\n", arg->id);
@@ -348,10 +348,10 @@ consumer (void *args)
 			s *= 1000;
 		}
 
-		if (verbose == true)
-			printf ("C%d reports (%d) %s\n", arg->id, s, c);
-		free (c);
-		pthread_cond_signal (&pv);
+		if(verbose==true)
+			printf("C%d reports (%d) %s\n",arg->id, s, c); //needs id
+		free(c);
+		pthread_cond_signal(&pv);
 	}
 	pthread_exit (0);
 }
@@ -424,17 +424,16 @@ void *
 observeProducers (void *args)
 {
 	int ctr = 0;
-	while (true)
-	{
-		printf ("complete is %d\n", complete);
-		if (enoughProduced () == true)
+
+	while(true)
+	{	
+		if(enoughProduced() == true)
 			break;
 
 		if (complete == true)
 		{
-			turn = nextThread (producerThreads, accessProducer);
-			pthread_cond_signal (&varsP[turn]);
-			//complete = false;
+			turn = nextThread(producerThreads, accessProducer);
+			pthread_cond_signal(&varsP[turn]);
 		}
 		else
 		{
@@ -446,12 +445,14 @@ observeProducers (void *args)
 		if (threadsAreDone (producerThreads, accessProducer) == true
 		    && additionsLeft () == true)
 		{
-			refreshThreads (consumerThreads, accessProducer);
-		}
 
-		pthread_mutex_lock (&mutex);
-		pthread_cond_wait (&pv, &mutex);
-		pthread_mutex_unlock (&mutex);
+			refreshThreads(consumerThreads, accessProducer);
+		} 
+		
+		pthread_mutex_lock(&mutex);
+		pthread_cond_wait(&pv, &mutex);
+		pthread_mutex_unlock(&mutex);
+
 	}
 
 	if (operationsLeft () == true)
@@ -467,9 +468,12 @@ observeProducers (void *args)
 			continue;
 		}
 
-		pthread_mutex_lock (&mutex);
-		pthread_cond_wait (&pv, &mutex);
-		pthread_mutex_unlock (&mutex);
+		pthread_cond_signal(&varsC[n]);
+		
+		pthread_mutex_lock(&mutex);
+		pthread_cond_wait(&pv, &mutex);
+		pthread_mutex_unlock(&mutex);
+
 	}
 	pthread_exit (0);
 }
