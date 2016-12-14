@@ -5,6 +5,16 @@
 #include <assert.h>
 #include <string.h>
 
+bool verbose = false;	
+
+int consumerThreads = 1;
+int operations = 0;
+
+int producerThreads = 1;
+int additions = 0;
+int turn = 0;
+bool complete = false;
+int busyLoopFactor = 0;
 
 void readStdin(Buffer* buffer)
 {
@@ -65,4 +75,6 @@ void printIds(int threads)
 	
 	printf(")\n");
 }
+
+
 
