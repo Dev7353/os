@@ -13,77 +13,84 @@ typedef int bool;
 #define false 0
 
 int ctrProducer, ctrConsumer;
-void* observe(void* args);
+void *observe (void *args);
 
-static void *producer( void *arg )
+static void *
+producer (void *arg)
 {
-        unsigned long count=0;
+	unsigned long count = 0;
 
-        while( 1 ) {
-                printf("producer: wait...\n");
-				pthread_mutex_lock( &mutex ); // enter critical section
-                while(ctrProducer > 0)
-					pthread_cond_wait(&cond_consumed, &mutex);
-			
-                printf("producer: PRODUCE %ld...\n", count++);
-                ++ctrProducer;
-                //pthread_cond_signal( &cond_produced );
-                pthread_mutex_unlock( &mutex ); // leave critical section
-        }
-        return NULL;
-}
-
-static void *consumer( void *arg )
-{
-        unsigned long count=0; 
-		sleep(1);
-        pthread_cond_signal( &cond_consumed );
-        while( 1 ) {
-                printf("consumer: wait...\n");
-                pthread_mutex_lock( &mutex );
-                while(ctrConsumer > 0)
-					pthread_cond_wait( &cond_produced, &mutex );
-                printf("consumer: CONSUME %ld...\n", count++);
-                ++ctrConsumer;
-                //pthread_cond_signal( &cond_consumed );                
-                pthread_mutex_unlock( &mutex );
-        }
-        return NULL;
-}
-
-void* observe(void* args)
-{
-	while(true)
+	while (1)
 	{
-			if(ctrProducer == 1 & ctrConsumer == 1)
-			{
-					pthread_mutex_lock(&mutex);
-					ctrProducer = 0;
-					ctrConsumer = 0;
-					pthread_mutex_unlock(&mutex);
-					pthread_cond_signal(&cond_consumed);
-					pthread_cond_signal(&cond_produced);
-			}
+		printf ("producer: wait...\n");
+		pthread_mutex_lock (&mutex);	// enter critical section
+		while (ctrProducer > 0)
+			pthread_cond_wait (&cond_consumed, &mutex);
+
+		printf ("producer: PRODUCE %ld...\n", count++);
+		++ctrProducer;
+		//pthread_cond_signal( &cond_produced );
+		pthread_mutex_unlock (&mutex);	// leave critical section
 	}
-} 
+	return NULL;
+}
 
-int main( int argc, char **argv, char **envp )
+static void *
+consumer (void *arg)
 {
-        pthread_t p1, p2;
+	unsigned long count = 0;
+	sleep (1);
+	pthread_cond_signal (&cond_consumed);
+	while (1)
+	{
+		printf ("consumer: wait...\n");
+		pthread_mutex_lock (&mutex);
+		while (ctrConsumer > 0)
+			pthread_cond_wait (&cond_produced, &mutex);
+		printf ("consumer: CONSUME %ld...\n", count++);
+		++ctrConsumer;
+		//pthread_cond_signal( &cond_consumed );                
+		pthread_mutex_unlock (&mutex);
+	}
+	return NULL;
+}
 
-        if (pthread_mutex_init( &mutex, NULL )) {
-                perror("pthread_mutex_init");
-                return -1;
-        }
+void *
+observe (void *args)
+{
+	while (true)
+	{
+		if (ctrProducer == 1 & ctrConsumer == 1)
+		{
+			pthread_mutex_lock (&mutex);
+			ctrProducer = 0;
+			ctrConsumer = 0;
+			pthread_mutex_unlock (&mutex);
+			pthread_cond_signal (&cond_consumed);
+			pthread_cond_signal (&cond_produced);
+		}
+	}
+}
 
-        pthread_create( &p2, NULL, consumer, NULL );
-        pthread_create( &p1, NULL, producer, NULL );
-        pthread_create(&observer, NULL, observe, NULL);
+int
+main (int argc, char **argv, char **envp)
+{
+	pthread_t p1, p2;
 
-        pthread_join( p1, NULL );
-        pthread_join( p2, NULL );
-        pthread_join(observer, NULL );
+	if (pthread_mutex_init (&mutex, NULL))
+	{
+		perror ("pthread_mutex_init");
+		return -1;
+	}
 
-        pthread_mutex_destroy( &mutex );
-        return 0;
+	pthread_create (&p2, NULL, consumer, NULL);
+	pthread_create (&p1, NULL, producer, NULL);
+	pthread_create (&observer, NULL, observe, NULL);
+
+	pthread_join (p1, NULL);
+	pthread_join (p2, NULL);
+	pthread_join (observer, NULL);
+
+	pthread_mutex_destroy (&mutex);
+	return 0;
 }

@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <string.h>
 
-bool verbose = false;	
+bool verbose = false;
 
 int consumerThreads = 1;
 int operations = 0;
@@ -16,97 +16,104 @@ int turn = 0;
 bool complete = false;
 int busyLoopFactor = 0;
 
-void readStdin(Buffer* buffer)
+void
+readStdin (Buffer * buffer)
 {
-	char* string = (char*) malloc(sizeof(char) * buffer->stringLength);
-	char *cache = (char*) malloc(sizeof(char) * buffer->stringLength+1);
+	char *string = (char *) malloc (sizeof (char) * buffer->stringLength);
+	char *cache =
+		(char *) malloc (sizeof (char) * buffer->stringLength + 1);
 	int i = 0;
-	while(((scanf(" %[^\n]s", string)) != EOF) && buffer->isFull == false)
+	while (((scanf (" %[^\n]s", string)) != EOF)
+	       && buffer->isFull == false)
 	{
-		memcpy(cache, string, buffer->stringLength+1);
+		memcpy (cache, string, buffer->stringLength + 1);
 		cache[buffer->stringLength] = '\0';
-		add(buffer, cache);
-		++i;	
+		add (buffer, cache);
+		++i;
 	}
 
-	free(string);
+	free (string);
 }
 
-void readFile(Buffer* buffer, char* filename)
+void
+readFile (Buffer * buffer, char *filename)
 {
-	FILE* file;
-	char* string = (char*) malloc(sizeof(char) * 32);
-	assert(string != NULL);
+	FILE *file;
+	char *string = (char *) malloc (sizeof (char) * 32);
+	assert (string != NULL);
 	char *cache;
-	cache = (char*) malloc(sizeof(char) * buffer->stringLength+1);
-	assert(cache != NULL);
-	file = fopen(filename, "r");
-	assert(file != NULL);
+	cache = (char *) malloc (sizeof (char) * buffer->stringLength + 1);
+	assert (cache != NULL);
+	file = fopen (filename, "r");
+	assert (file != NULL);
 	int i = 0;
-	while(fgets(string, 1024, file))
+	while (fgets (string, 1024, file))
 	{
-		if(i == buffer->storage)
+		if (i == buffer->storage)
 			break;
-		if(*string != ' ')
+		if (*string != ' ')
 		{
-			if(buffer->tail == buffer->storage)
+			if (buffer->tail == buffer->storage)
 				break;
-			memcpy(cache, string, buffer->stringLength+1);
+			memcpy (cache, string, buffer->stringLength + 1);
 			cache[buffer->stringLength] = '\0';
-			
-			add(buffer, cache);
+
+			add (buffer, cache);
 			++i;
 		}
 	}
-	fclose(file);
-	
-	free(cache);
-	free(string);
+	fclose (file);
+
+	free (cache);
+	free (string);
 }
 
-void printBuffer(Buffer* buffer)
+void
+printBuffer (Buffer * buffer)
 {
-	for(int i = 0; i < buffer->tail; ++i)
-		printf("|%s|\n", buffer->queue[i]);
+	for (int i = 0; i < buffer->tail; ++i)
+		printf ("|%s|\n", buffer->queue[i]);
 }
 
-void printIds(int threads)
+void
+printIds (int threads)
 {
-	printf("(");
-	for(int i = 0; i < threads; ++i)
-		printf("%d, ", i);
-	
-	printf(")\n");
+	printf ("(");
+	for (int i = 0; i < threads; ++i)
+		printf ("%d, ", i);
+
+	printf (")\n");
 }
 
-int nextThread(int threads, int access[])
+int
+nextThread (int threads, int access[])
 {
-	for(int i = 0; i < threads; ++i)
+	for (int i = 0; i < threads; ++i)
 	{
-		if(access[i] == false)
+		if (access[i] == false)
 			return i;
 	}
-	
+
 	return -1;
 }
 
-bool threadsAreDone(int threads, int access[])
+bool
+threadsAreDone (int threads, int access[])
 {
-	for(int i = 0; i < threads; ++i)
+	for (int i = 0; i < threads; ++i)
 	{
-		if(access[i] == false)
+		if (access[i] == false)
 			return false;
 	}
-	
+
 	return true;
 }
-void refreshThreads(int threads, int access[])
+
+void
+refreshThreads (int threads, int access[])
 {
-	for(int i = 0; i < threads; ++i)
+	for (int i = 0; i < threads; ++i)
 	{
 		access[i] = false;
 	}
 }
-
-
-
