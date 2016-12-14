@@ -20,7 +20,7 @@ test:
 	make clean
 	make prodcon
 	@echo '------------------------------------------------------------------------'
-	./prodcon -i dict -p 80 -c 33 -L 100 -t 0 -r 0 -R 1 -a 12 -v -o output
+	./prodcon -i /group/labworks/public/dict -p 80 -c 33 -L 100 -t 0 -r 0 -R 1 -a 12 -v -o output
 	@echo '------------------------------------------------------------------------'
 	@echo '>>FINISH<<'
 	
