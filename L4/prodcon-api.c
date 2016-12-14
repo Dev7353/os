@@ -19,10 +19,13 @@ int busyLoopFactor = 0;
 void readStdin(Buffer* buffer)
 {
 	char* string = (char*) malloc(sizeof(char) * buffer->stringLength);
+	char *cache = (char*) malloc(sizeof(char) * buffer->stringLength+1);
 	int i = 0;
 	while(((scanf(" %[^\n]s", string)) != EOF) && buffer->isFull == false)
 	{
-		add(buffer, string);
+		memcpy(cache, string, buffer->stringLength+1);
+		cache[buffer->stringLength] = '\0';
+		add(cache, string);
 		++i;	
 	}
 

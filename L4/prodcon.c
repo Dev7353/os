@@ -14,11 +14,11 @@
 //struct for thread arguments
 
 typedef struct{
-	double start;
-	double stop;
-	int delay;
-	int upper,lower;
-	int id;
+	double start; // producer
+	double stop; // producer
+	int delay; // producer
+	int upper,lower; //consumer
+	int id; // both
 } thread_args_t;
 
 //Function prototypes
