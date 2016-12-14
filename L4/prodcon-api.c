@@ -76,5 +76,16 @@ void printIds(int threads)
 	printf(")\n");
 }
 
+int nextThread(int threads, int access[])
+{
+	for(int i = 0; i < threads; ++i)
+	{
+		if(access[i] == false)
+			return i;
+	}
+	
+	return -1;
+}
+
 
 

@@ -404,7 +404,8 @@ void* observeConsumer(void* arg)
 		if(operationsLeft() == false)
 			break;
 
-		pthread_cond_signal(&varsC[nextConsumer()]);
+		int n = nextThread(consumerThreads, accessConsumer);
+		pthread_cond_signal(&varsC[n]);
 
 	}
 
@@ -426,7 +427,7 @@ void* observeProducers(void* args)
 			
 		if(complete == true)
 		{
-			turn = nextProducer();
+			turn = nextThread(producerThreads, accessProducer);
 			pthread_cond_signal(&varsP[turn]);
 			complete = false;
 		}
@@ -451,7 +452,8 @@ void* observeProducers(void* args)
 	while(operationsLeft() == true)
 	{
 		refreshConsumers();
-		pthread_cond_signal(&varsC[nextConsumer()]);
+		int n = nextThread(consumerThreads, accessConsumer);
+		pthread_cond_signal(&varsC[n]);
 		
 		pthread_mutex_lock(&mutex);
 		pthread_cond_wait(&pv, &mutex);
@@ -465,17 +467,6 @@ bool enoughProduced()
 	if(additions == inputBuffer.tail)
 		return true;
 	return false;
-}
-
-int nextProducer()
-{
-	for(int i = 0; i < producerThreads; ++i)
-	{
-		if(accessProducer[i] == false)
-			return i;
-	}
-	
-	return -1;
 }
 
 
@@ -524,17 +515,6 @@ bool operationsLeft()
 		return false;
 	
 	return true;
-}
-
-int nextConsumer()
-{
-	for(int i = 0; i < consumerThreads; ++i)
-	{
-		if(accessConsumer[i] == false)
-			return i;
-	}
-	
-	return -1;
 }
 
 void refreshConsumers()

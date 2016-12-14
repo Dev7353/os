@@ -6,6 +6,7 @@ void readStdin(Buffer* b);
 void readFile(Buffer* b, char* filename);
 void printBuffer(Buffer* buffer);
 void printIds(int threads);
+int nextThread(int threads, int access[]);
 
 bool verbose;
 char* output;
