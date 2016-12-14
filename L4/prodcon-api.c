@@ -87,5 +87,16 @@ int nextThread(int threads, int access[])
 	return -1;
 }
 
+bool threadsAreDone(int threads, int access[])
+{
+	for(int i = 0; i < threads; ++i)
+	{
+		if(access[i] == false)
+			return false;
+	}
+	
+	return true;
+}
+
 
 

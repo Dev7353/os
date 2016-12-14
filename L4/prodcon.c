@@ -396,7 +396,7 @@ void* observeConsumer(void* arg)
 		pthread_mutex_unlock(&mutex);
 			
 		//release next consumer thread
-		if(consumersAreDone() == true && operationsLeft() == true)
+		if(threadsAreDone(consumerThreads, accessConsumer) == true && operationsLeft() == true)
 		{
 			refreshConsumers();
 		} 
@@ -439,7 +439,7 @@ void* observeProducers(void* args)
 			pthread_cond_signal(&currentProducer);
 		}
 
-		if(producersAreDone() == true && additionsLeft() == true)
+		if(threadsAreDone(producerThreads, accessProducer) == true && additionsLeft() == true)
 		{
 			refreshProducers();
 		} 
@@ -469,19 +469,6 @@ bool enoughProduced()
 	return false;
 }
 
-
-
-bool producersAreDone()
-{
-	for(int i = 0; i < producerThreads; ++i)
-	{
-		if(accessProducer[i] == false)
-			return false;
-	}
-	
-	return true;
-}
-
 bool additionsLeft()
 {
 	if(additions == inputBuffer.tail)
@@ -498,16 +485,6 @@ void refreshProducers()
 	}
 }
 
-bool consumersAreDone()
-{
-	for(int i = 0; i < consumerThreads; ++i)
-	{
-		if(accessConsumer[i] == false)
-			return false;
-	}
-	
-	return true;
-}
 
 bool operationsLeft()
 {
