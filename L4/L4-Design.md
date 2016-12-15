@@ -58,7 +58,7 @@ terminiert. Ähnlich verfährt der co.
 
 Im Falle das die Arbeit nicht beendet ist, jedoch alle Producer bzw. Consumer im Suspend Zustand sind, werde diese wieder geweckt. 
 
-#### Interne Verarbeitung
+#### Interne Verarbeitung & Probleme
 Der globale Buffer wird über einen Mutex geschützt. Jeder Thread hat eine eigene Condition Variable. Die Notwendigkeit hierfür war,
 das die Threads nur intern Wissen, wer sie sind (anhand der id). Da die Zugriffsmatrizen außerhalb der Threads von co bzw. po gesteuert
 werden müssen die Threads ebenfalls von außen bekannt sein. Ein Broadcast bzw. Signal würde nur den nächsten Thread starten ohne das po oder co
@@ -104,11 +104,56 @@ einer Datei (zurechtschneiden usw.).
 Nachdem der InputBuffer nun gefüllt ist, werden die Threads, wie bereits beschrieben nacheinander gestartet.
 
 Der po holt über die Funktion nextThread den Index des nächsten Producer Thread. Der Index ist equivalent zum Index der Zugriffsmatrix für
-den Producer. Somit schläft zu Beginn jeder Producer auf seiner eigenen Condition Variable.  
+den Producer. Somit schläft zu Beginn jeder Producer auf seiner eigenen Condition Variable. Der erste Producer wird gestartet.
+Die Anzahl der Zeilen, welcher der Producer bearbeitet werden bereits zur Thread erzeugung festgelegt. Die Producer werden über eine Anzahl Threads
+in einer For Schleife erzeugt. Der Index i ist hierbei der Index für den producer und für die Zugriffsmatrix.
+Die Grenzen der Threads, also Zeilenanfang bis Zeilenende, werden in einer Struktur gespeichert. Jeder Producer hat ebenfalls eine Strukturinstanz.
 
+Die Grenzen werden wie folgt berechnet. Der Startpunkt ist der Index des Threads * (Anzahl Zeilen/Anzahl Producer).
+Der Endpunkt ist genauso nur mit dem Unterschied, das der Index um 1 inkrementiert ist.
+Ein sehr wichtiger Punkt hierbei, war darauf zu achten die richtigen Datentypen zu verwenden. Falls Integer geteilt werden, wird der Rest nicht 
+berücksichtigt. Da der Rest jedoch ausschlaggebend ist müssen die Zahlen zuvor nach Double gecastet werden. Nun können die Ergebnisse über die 
+Funktion round gerundet werden und die nächst größere zahl als Start bzw. Endpunkt verwendet werden. Bei 5 zeilen und 2 Producer Threads wären die
+Grenzen also für Thread 0: 0 bis 3 und für Thread 1: 3 bis 5.
+
+Jeder Producer berechnet im exklusiven Zugriff auf den Buffer sämtliche Datensätze. Im kritischen Bereich wird die add Funktion aufgerufen.
+In jedem Schleifendurchlauf des Producers wird jedesmal neuer Speicher für einen String allokiert und freigegeben. Der Producer 
+holt mit dem pop Befehl das nächste Element aus dem inputBuffer und fügt es dem richtigen globalen Buffer hinzu. Da die pop Funktion
+Speicher für einen String allokiert, jedoch nicht freigibt, muss nach jedem pop aufruf das Ergbnis freigegeben werden. Daher auch der free Befehl
+in jedem Schleifendurchlauf. 
+
+Kurz vor dem verlassen des kritischen Bereichs  wird in der Zugriffsmatrix an der Stelle des Indexes der Zugriff auf true gesetzt. Somit 
+wird verhindert, dass der Scheduler nicht nach Zufall den nächsten Producer wählt. Der nächste producer wird anhand der Zugriffsmatrix bestimmt, also
+welcher Thread einen false eintrag hat, wird als nächstes geweckt.
+
+Nach dem verlassen des kritischen Bereichs wartet Thread passiv und weckt den co. Der co verfährt Analog und wählt anhand der Zugriffsmatrix
+den nächsten freien Consumer Thread.
+
+Durch die Zugriffsmatrizen entstehen eine vielzahl neuer Probleme bezüglich der Synchronisierung. So haben zu Beginn z.B. die Observer Threads
+terminiert, sobald alle Producer/Consumer-Threads fertig waren, also die Zugriffsmatrizen alle gefüllt sind. Da die Zeilen jedoch unabhängig
+von der Anzal Producer und Consumer vollständig verarbeitet werden müssen die Zugriffsmatrizen geleert werden. Die Observer Threads dürfen
+daher nicht terminieren wenn die Zugriffmatrizen voll sind und es noch Arbeit gibt. Stattdessen müssen die Matrizen zurückgesetzt werden
+und die Threads erneut die Arbeit aufnehmen.
+Die Consumer Threads haben keine bestimmte Anzahl an Elemente welche sie verarbeiten. Ein Consumer läuft in einer Unendlichkeitsschleife.
+Der Grund hierfür ist, dass weitere Grenzen dem Umgang mit den Consumern stärker verkomplizieren als es ohnehin schon ist.
+Somit ergibt sich das Problem, dass ein Consumer wissen muss, wann er terminiert. Diese Aufgabe übernimmt der co. Da jeder Consumer Thread nach jedem
+Schleifendurchgang in den Suspend Zustand geht muss der Co falls e keine Arbeit mehr gibt, alle Consumer frei geben. Jeder Consumer
+prüft intern ebenfalls ob noch Arbeit vorhanden ist, falls nein, dann wird die Unendlichkeitsschleife verlassen. Ansonten würde der Co garnicht erst
+alle Consumer nacheinander aufrufen, wenn es Arbeit geben würde. 
+Die Anzahl an verbliebener Arbeit wird in einer globalen Integer Variable (operations) abgespeichert und regelmäßig vom Co geprüft.
+
+Ähnlich verfährt auch der Po. Allerdings verläuft die Logik in entgegengesetzer Richtung. Es wird ebenfalls in einer globalen Integer Variablen
+(additions) ein Wert abgespeichert. Allerdings ist der Wert die Anzahl der Elemente des Queue des inputBuffers. Da hat den Grund, das der Po ebenfalls
+eine Bedingung braucht, wann er tatsächlich terminieren darf. Und das nur falls genausoviele Elemente auf die Queue gelegt werden wie der InputBuffer
+zu Beginn hat. 
+
+Nach der Terminierung der Observer Threads, sollten keine weiteren Threads mehr aktiv sein. Im Hauptthread wurden derweil sämtliche Join Befehle
+ausgeführt um die Threads zu schließen. 
+Da jeder Thread die Pthread_exit Funktion aufruft ist das joinen eigentlich überflüssig, jedoch bestehen wir trotzdem darauf, da die joins zuerst da
+waren.
+
+Zum Ende werden noch allokierte Speicherbereiche freigegeben. Darunter sind die Condition Variablen und die Zugriffsmatrizen.
 
 
 ### Kritik
-- Instabilität
-- rowsPerCosl Bug
--
+
