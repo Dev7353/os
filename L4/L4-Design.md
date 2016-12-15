@@ -4,7 +4,7 @@
 
 ### Vorüberlegung
 Ziel dieser Aufgabe ist es das Consumer/Producer Problem für n,m Threads zu lösen.
-Ein wichtiger Punkt hierbei ist der Umgang mit einem Buffer worin die Datengespeichert bzw. woraus gelesen werden sollen. 
+Ein wichtiger Punkt hierbei ist der Umgang mit einem Buffer dh. worin die Daten gespeichert bzw. woraus gelesen werden soll. 
 Eine Möglichkeit wäre eine simple globale Matrix aus char Typen zu erstellen, sodass die Threads abwechselnd darauf zugreifen.
 Ein Hindernis ist jedoch, dass die Zugriffsoperationen in jedem Thread definiert werden müssen, da jeder Thread über seine interne ID zugreift. 
 Eine Lösung hierfür wäre eine FIFO Queue zu realisieren die mit einfachen init, destroy, push und pop Operationen die Daten modifiziert. 
@@ -52,7 +52,7 @@ Im Falle das die Arbeit nicht beendet ist, jedoch alle Producer bzw. Consumer im
 Der globale Buffer wird über einen Mutex geschützt. Jeder Thread hat eine eigene Condition-Variable. Die Notwendigkeit hierfür war, das die Threads nur intern wissen, wer sie sind (anhand der ID). 
 Da die Zugriffsmatrizen außerhalb der Threads von *CO* bzw. *PO* gesteuert werden müssen die Threads ebenfalls von außen bekannt sein. Ein Broadcast bzw. Signal würde nur den nächsten Thread starten ohne das *PO* oder *CO* wissen wer im Moment die Daten verarbeitet. 
 Weiterhin ergibt sich das Problem falls Consumer und Producer sich gleichzeitig im Suspend Zustand befinden. 
-Um diese Synchronisationshemnisse zu beseitigen werden Arrays von Condition Variablen benötigt. So kann jeder der Observer den spezifischen Thread starten welcher suspended ist und es noch Arbeit gibt.
+Um diese Synchronisationshemnisse zu beseitigen werden Arrays von Condition Variablen benötigt. So kann jeder Observer den spezifischen Thread starten welcher im Zustand Suspend ist, falls es noch Arbeit gibt.
 
 Zusätzlich hat jeder Observer jeweils eine Condition-Variable sodass sie über diese aufgeweckt werden können.
 
@@ -111,7 +111,7 @@ Da die pop Funktion Speicher für einen String allokiert, jedoch nicht freigibt,
 
 Kurz vor dem Verlassen des kritischen Bereichs  wird in der Zugriffsmatrix an der Stelle des Indexes der Zugriff auf *true* gesetzt. 
 Somit wird verhindert, dass der Scheduler nicht nach Zufall den nächsten Producer wählt. 
-Der nächste Producer wird anhand der Zugriffsmatrix bestimmt. Der Thread einen *false* Eintrag hat, wird also als nächstes geweckt.
+Der nächste Producer wird anhand der Zugriffsmatrix bestimmt. Falls der Thread einen *false* Eintrag hat, wird dieser als nächstes geweckt.
 
 Nach dem Verlassen des kritischen Bereichs wartet der Thread passiv und weckt den *CO*. Der *CO* verfährt analog und wählt anhand der Zugriffsmatrix den nächsten freien Consumer Thread.
 
