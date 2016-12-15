@@ -77,11 +77,8 @@ main (int argc, char **argv)
 			verbose = true;
 			break;
 		case 'h':
-			printf ("HELP\n");	// todo:
-			printf ("Current Git HEAD commit number: \n");
-			const char *gitversion = "git rev-parse HEAD";
-			system (gitversion);
-			break;
+			printHelp();
+			return 0;
 		case 'i':
 			input = optarg;
 			break;

@@ -117,3 +117,24 @@ refreshThreads (int threads, int access[])
 		access[i] = false;
 	}
 }
+
+void
+printHelp()
+{
+printf ("Help\n");
+	printf("-h --help \t Help\n");
+	printf("-i --input \t Input filename or path to file\n");
+	printf("-o --output \t Output filename or path to file\n");
+	printf("-L --lines \t Number of Lines which stored in the buffer\n");
+	printf("-C --columns \t Size of Strings\n");
+	printf("-c --consumer \t Number of Consumers\n");
+	printf("-p --producer \t Number of producers\n");
+	printf("-t --time \t Delay of Producers\n");
+	printf("-r --lower \t Lower Border to generate Random Number\n");
+	printf("-r --upper \t Upper Border to generate Random Number\n");
+	printf("-a --busy \t Activates busyloop in addition of -r and -R\n");
+	printf("============================================================\n");
+	printf ("Current Git HEAD commit number: \n");
+	const char *gitversion = "git rev-parse HEAD";
+	system (gitversion);
+}
