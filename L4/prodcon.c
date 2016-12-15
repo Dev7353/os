@@ -112,7 +112,7 @@ main (int argc, char **argv)
 		case 'R':
 			upperBorder = atoi (optarg);
 			assert (upperBorder >= 0);
-			assert (upperBorder > lowerBorder);
+			assert (upperBorder >= lowerBorder);
 			break;
 		case 'a':
 			busyLoopFactor = atoi (optarg);
@@ -331,6 +331,8 @@ consumer (void *args)
 		time (&sec);
 		int s = 0;
 		s = random () % (arg->upper + 1 - arg->lower) + arg->lower;
+		if(arg->upper == 0 && arg->lower == 0)
+			s = 0;
 		if (busyLoopFactor != 0)
 		{
 

@@ -146,3 +146,12 @@ Da wir jedoch die Vorbereitungsaufgabe ebenfalls mit Observern gelöst haben, la
 Dennoch, durch unseren Lösungsansatz wurde unser Code um viele Zeilen länger, denn nicht nur mussten wir die Producer und Consumer programmieren, wir mussten ebenso schauen dass die Observer korrekt funktionieren.
 Dies führte möglicherweise zu den paar Fehlern, die Helgrind uns ausgibt - Jedoch konnten wir nicht herausfinden was diese bedeuten, noch haben wir eine Beeinträchtigung in der Funktionalität unseres Programms gefunden.
 
+Ein weiterer Punkt ist ein Bug der nicht gefixt werden konnte. An sich hat das Programm in allen Konfigurationen keine Speicherlecks mit Ausnahme der -C Option.
+Die Option limitiert lediglich die maximale größe des String Elements eingelesen werden soll.
+Allerdings führt dies zu einem Speicherleck der nicht näher beseitigt werden konnte. Das Programm verfährt zwar nach wie vor und liefert das richtige Ergebnis, jedoch wird der Speicher nicht korrekt
+verwaltet.
+
+Weiterhin funktioniert das Programm nicht korrekt, wenn mehr Producer und/oder Consumer Threads starten, wie Zeilen zu verarbeiten sind. Das Programm läuft stabiler, wenn die Anzahl an Producer und Consumer
+überschaubar bleibt.
+
+Die Untersuchung mti time zeigt, dass die Ausführungszeit mit zunehmender Anzahl Strings steigt. 

@@ -20,10 +20,18 @@ test:
 	make clean
 	make prodcon
 	@echo '------------------------------------------------------------------------'
-	./prodcon -i /group/labworks/public/dict -p 80 -c 33 -L 100 -t 0 -r 0 -R 1 -a 12 -v -o output
+	time ./prodcon -i /group/labworks/public/dict -p 80 -c 33 -L 100 -t 0 -r 0 -R 1 -a 12 -v -o output
 	@echo '------------------------------------------------------------------------'
 	@echo '>>FINISH<<'
-	
+
+test2:
+	make clean
+	make prodcon
+	@echo '------------------------------------------------------------------------'
+	./prodcon -i input -p 2 -c 2 -v
+	@echo '------------------------------------------------------------------------'
+	@echo '>>FINISH<<'
+
 
 
 
