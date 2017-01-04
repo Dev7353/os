@@ -4,9 +4,12 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <pthread.h>
+#include <stdlib.h>
 
 /*function prototypes*/
 int linux_scheduler_test();
+int pthread_scheduler_test();
 
 int main(int argc, char* argv[])
 {
@@ -21,6 +24,8 @@ int main(int argc, char* argv[])
 			return 0;
 		case 'l':
 			return linux_scheduler_test();
+		case 'p':
+			return pthread_scheduler_test();
 		case '?':
 			break;
 		}
@@ -31,6 +36,8 @@ int main(int argc, char* argv[])
 
 int linux_scheduler_test()
 {
+	#ifdef __linux__
+	
 	pid_t pid = 0; //mainthread
 	struct sched_param param;
 	errno = 0;
@@ -127,5 +134,69 @@ int linux_scheduler_test()
 		printf("\tERRNO: %d\n", errno);
 	}else
 		printf("\tsuccessfully call, intervall is %ld s %lu ns\n", iv.tv_sec, iv.tv_nsec);
+		
+	#endif
+	return 0;
+}
+
+int pthread_scheduler_test()
+{
+	printf("[Get scheduling parameter test]\n");
+	pthread_attr_t attr;
+	struct sched_param param;
+	errno = 0;
+	if(pthread_attr_getschedparam(&attr, &param) != 0)
+	{
+		fprintf(stderr, "\tcannt get the scheduling parameter\n");
+		printf("\tERRNO: %d\n", errno);
+	}else
+		printf("\tgot successfully the scheduling parameter\n");
+	
+	printf("[Set scheduling parameter test]\n");
+	errno = 0;
+	if(pthread_attr_getschedparam(&attr, &param) != 0)
+	{
+		fprintf(stderr, "\tcannt set the scheduling parameter\n");
+		printf("\tERRNO: %d\n", errno);
+	}else
+		printf("\tset successfully the scheduling parameter\n");
+	
+	printf("[Get policy test]\n");
+	errno = 0;
+	int policy = 0;
+	if(pthread_attr_getschedpolicy(&attr, &policy) != 0)
+	{
+		fprintf(stderr, "\tcannot get the scheduling policy\n");
+		printf("\tERRNO: %d\n", errno);
+	}else
+		printf("\tsuccessfully get the scheduling policy\n");
+	
+	printf("[Set policy test]\n");
+	errno = 0;
+	if(pthread_attr_setschedpolicy(&attr, SCHED_OTHER) != 0)
+	{
+		fprintf(stderr, "\tcannot set the scheduling policy\n");
+		printf("\tERRNO: %d\n", errno);
+	}else
+		printf("\tsuccessfully set the schedling policy\n");
+	
+	printf("[Get inherit scheduler attribute test]\n");
+	errno = 0;
+	int inherit = 0;
+	if(pthread_attr_getinheritsched(&attr, &inherit) != 0)
+	{
+		fprintf(stderr, "\tcannot get the inherit scheduler info\n");
+		printf("\tERRNO: %d\n", errno);
+	}else
+		printf("\tsuccessfully get the inherit scheduler info\n");
+	
+	printf("[Set inherit scheduler attribute test]\n");
+	errno = 0;
+	if(pthread_attr_setinheritsched(&attr, PTHREAD_INHERIT_SCHED) != 0)
+	{
+		fprintf(stderr, "\tcannot set the inherit scheduler\n");
+		printf("\tERRNO: %d\n", errno);
+	}else
+		printf("\tsuccessfully set the inherit scheduler\n");
 	return 0;
 }
