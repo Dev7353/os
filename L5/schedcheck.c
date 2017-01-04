@@ -10,7 +10,7 @@
 /*function prototypes*/
 int linux_scheduler_test ();
 int pthread_scheduler_test ();
-void printHelp();
+void printHelp ();
 
 int
 main (int argc, char *argv[])
@@ -22,7 +22,7 @@ main (int argc, char *argv[])
 		switch (c)
 		{
 		case 'h':
-			printHelp();
+			printHelp ();
 			return 0;
 		case 'l':
 			return linux_scheduler_test ();
@@ -222,13 +222,13 @@ pthread_scheduler_test ()
 }
 
 void
-printHelp()
+printHelp ()
 {
-printf ("Help\n");
-	printf("-h --help \t\t Help\n");
-	printf("-p --pthread api \t starts tests for pthread scheduling api\n");
-	printf("-l --linux thread api \t starts tests for linux scheduling api. Only Linux support.\n");
-	printf("============================================================\n");
+	printf ("Help\n");
+	printf ("-h --help \t\t Help\n");
+	printf ("-p --pthread api \t starts tests for pthread scheduling api\n");
+	printf ("-l --linux thread api \t starts tests for linux scheduling api. Only Linux support.\n");
+	printf ("============================================================\n");
 	printf ("Current Git HEAD commit number: \n");
 	const char *gitversion = "git rev-parse HEAD";
 	system (gitversion);
