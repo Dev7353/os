@@ -8,9 +8,8 @@
 #include "scheduler-api.h"
 
 /*define function prototypes incl thread functions*/
-void cat(void* arg);
-void dog(void* arg);
-void mouse(void* arg);
+void scheduler(void* arg);
+void eat(void* arg);
 
 /*define global variables*/
 
@@ -147,7 +146,8 @@ int main(int argc, char* argv[])
 		cat_args[i].num_eat = ce;
 		cat_args[i].eating_time = random () % (E + 1 - e) + e;
 		cat_args[i].satisfied_time = ct;
-		assert(pthread_create(&cats[i], NULL, (void *(*)(void *))&cat, &cat_args[i]) == 0);
+		cat_args[i].animal_type = CAT;
+		assert(pthread_create(&cats[i], NULL, (void *(*)(void *))&eat, &cat_args[i]) == 0);
 		
 	}
 	
@@ -156,7 +156,8 @@ int main(int argc, char* argv[])
 		dog_args[i].num_eat = ce;
 		dog_args[i].eating_time = random () % (E + 1 - e) + e;
 		dog_args[i].satisfied_time = ct;
-		assert(pthread_create(&dogs[i], NULL, (void *(*)(void *))&dog, &dog_args[i]) == 0);
+		dog_args[i].animal_type = DOG;
+		assert(pthread_create(&dogs[i], NULL, (void *(*)(void *))&eat, &dog_args[i]) == 0);
 
 	}
 		
@@ -165,7 +166,8 @@ int main(int argc, char* argv[])
 		mouse_args[i].num_eat = ce;
 		mouse_args[i].eating_time = random () % (E + 1 - e) + e;
 		mouse_args[i].satisfied_time = ct;
-		assert(pthread_create(&mice[i], NULL, (void *(*)(void *))&mouse, &mouse_args[i]) == 0);
+		mouse_args[i].animal_type = MOUSE;
+		assert(pthread_create(&mice[i], NULL, (void *(*)(void *))&eat, &mouse_args[i]) == 0);
 
 	}
 	
@@ -192,33 +194,20 @@ int main(int argc, char* argv[])
 	
 }
 
-void cat(void* arg)
+void eat(void* arg)
 {
 	animal_t param = *((animal_t*)arg);
-	
+	printf("%s started eating\n", param.animal_type);
 	while(param.num_eat > 0)
 	{
 		
 	}
+	printf("%s finished eating\n", param.animal_type);
 	
 }
 
-void dog(void* arg)
+void scheduler(void* arg)
 {
-	animal_t param = *((animal_t*)arg);
 	
-	while(param.num_eat > 0)
-	{
-		
-	}
 }
 
-void mouse(void* arg)
-{
-	animal_t param = *((animal_t*)arg);
-	
-	while(param.num_eat > 0)
-	{
-		
-	}
-}

@@ -10,7 +10,12 @@ typedef struct
 	int num_eat;
 	int eating_time; /*in sec*/
 	int satisfied_time;  /*in sec*/
+	char* animal_type;
 } animal_t;
+
+#define CAT "cat"
+#define DOG "dog"
+#define MOUSE "mouse"
 
 void printHelp(); 
  
