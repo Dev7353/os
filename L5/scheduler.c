@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <pthread.h>
+#include <time.h>
 #include "scheduler-api.h"
 
 /*define function prototypes incl thread functions*/
@@ -114,7 +115,7 @@ int main(int argc, char* argv[])
 			E = atoi(optarg);
 				break;
 			case 'o':
-			num_dish = atoi(optarg);
+			num_dishes = atoi(optarg);
 				break;
 			case '?':
 				break;
@@ -131,23 +132,40 @@ int main(int argc, char* argv[])
 	pthread_t dogs[dn];
 	pthread_t mice[mn];
 	
+	animal_t cat_args[cn];
+	animal_t dog_args[dn];
+	animal_t mouse_args[mn];
+
+	time_t sec;
+	time(&sec);
+	srandom ((unsigned int) sec);
+	
 	/*start threads*/
 	
 	for(int i = 0; i < cn; ++i)
 	{
-		assert(pthread_create(&cats[i], NULL, (void *(*)(void *))&cat, NULL) == 0);
+		cat_args[i].num_eat = ce;
+		cat_args[i].eating_time = random () % (E + 1 - e) + e;
+		cat_args[i].satisfied_time = ct;
+		assert(pthread_create(&cats[i], NULL, (void *(*)(void *))&cat, &cat_args[i]) == 0);
 		
 	}
 	
 	for(int i = 0; i < dn; ++i)
 	{
-		assert(pthread_create(&dogs[i], NULL, (void *(*)(void *))&dog, NULL) == 0);
+		dog_args[i].num_eat = ce;
+		dog_args[i].eating_time = random () % (E + 1 - e) + e;
+		dog_args[i].satisfied_time = ct;
+		assert(pthread_create(&dogs[i], NULL, (void *(*)(void *))&dog, &dog_args[i]) == 0);
 
 	}
 		
 	for(int i = 0; i < mn; ++i)
 	{
-		assert(pthread_create(&mice[i], NULL, (void *(*)(void *))&mouse, NULL) == 0);
+		mouse_args[i].num_eat = ce;
+		mouse_args[i].eating_time = random () % (E + 1 - e) + e;
+		mouse_args[i].satisfied_time = ct;
+		assert(pthread_create(&mice[i], NULL, (void *(*)(void *))&mouse, &mouse_args[i]) == 0);
 
 	}
 	
@@ -176,15 +194,31 @@ int main(int argc, char* argv[])
 
 void cat(void* arg)
 {
-	printf("Cat Thread\n");
+	animal_t param = *((animal_t*)arg);
+	
+	while(param.num_eat > 0)
+	{
+		
+	}
+	
 }
 
 void dog(void* arg)
 {
-	printf("Dog Thread\n");
+	animal_t param = *((animal_t*)arg);
+	
+	while(param.num_eat > 0)
+	{
+		
+	}
 }
 
 void mouse(void* arg)
 {
-	printf("Mouse Thread\n");
+	animal_t param = *((animal_t*)arg);
+	
+	while(param.num_eat > 0)
+	{
+		
+	}
 }
