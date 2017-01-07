@@ -2,7 +2,16 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <pthread.h>
 #include "scheduler-api.h"
+
+/*define function prototypes incl thread functions*/
+void cat(void* arg);
+void dog(void* arg);
+void mouse(void* arg);
+
+/*define global variables*/
 
 int main(int argc, char* argv[])
 {
@@ -24,7 +33,7 @@ int main(int argc, char* argv[])
 	int e = 1;
 	int E = 1;
 	
-	int dish = 2;
+	int num_dishes = 2;
 	
 	int c = 0;
 	while(1)
@@ -105,7 +114,7 @@ int main(int argc, char* argv[])
 			E = atoi(optarg);
 				break;
 			case 'o':
-			dish = atoi(optarg);
+			num_dish = atoi(optarg);
 				break;
 			case '?':
 				break;
@@ -116,7 +125,66 @@ int main(int argc, char* argv[])
 		
 	}
 	
-	printf("Mainprogramm starts\n");
+	/*define variables for threads*/
+	
+	pthread_t cats[cn];
+	pthread_t dogs[dn];
+	pthread_t mice[mn];
+	
+	/*start threads*/
+	
+	for(int i = 0; i < cn; ++i)
+	{
+		assert(pthread_create(&cats[i], NULL, (void *(*)(void *))&cat, NULL) == 0);
 		
+	}
+	
+	for(int i = 0; i < dn; ++i)
+	{
+		assert(pthread_create(&dogs[i], NULL, (void *(*)(void *))&dog, NULL) == 0);
 
+	}
+		
+	for(int i = 0; i < mn; ++i)
+	{
+		assert(pthread_create(&mice[i], NULL, (void *(*)(void *))&mouse, NULL) == 0);
+
+	}
+	
+	/*join threads*/
+
+	for(int i = 0; i < cn; ++i)
+	{
+		assert(pthread_join(cats[i], NULL) == 0);
+		
+	}
+	
+	for(int i = 0; i < dn; ++i)
+	{
+		assert(pthread_join(dogs[i], NULL) == 0);
+
+	}
+		
+	for(int i = 0; i < mn; ++i)
+	{
+		assert(pthread_join(mice[i], NULL) == 0);
+
+	}
+	
+	
+}
+
+void cat(void* arg)
+{
+	printf("Cat Thread\n");
+}
+
+void dog(void* arg)
+{
+	printf("Dog Thread\n");
+}
+
+void mouse(void* arg)
+{
+	printf("Mouse Thread\n");
 }
