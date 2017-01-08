@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <semaphore.h>
+#include <string.h>
 #include "scheduler-api.h"
 
 /*define function prototypes incl thread functions*/
@@ -14,7 +15,10 @@ void eat(void* arg);
 
 /*define global variables*/
 food_area area;
-sem_t sem;
+pthread_cond_t* cond_cats;
+pthread_cond_t* cond_dogs; 
+pthread_cond_t* cond_mice;
+pthread_mutex_t mutex;
 
 int main(int argc, char* argv[])
 {
@@ -135,7 +139,14 @@ int main(int argc, char* argv[])
 	pthread_t mice[mn];
 	pthread_t schedule;
 	
-	assert(sem_init(&sem, 0, num_dishes) == 0);
+	assert(pthread_mutex_init(&mutex, NULL) == 0);
+	/*allocate storage for cvs*/
+	cond_cats = (pthread_cond_t*) malloc(cn * sizeof(pthread_cond_t));
+	assert(cond_cats != NULL);
+	cond_dogs = (pthread_cond_t*) malloc(dn * sizeof(pthread_cond_t));
+	assert(cond_dogs != NULL);
+	cond_mice = (pthread_cond_t*) malloc(mn * sizeof(pthread_cond_t));
+	assert(cond_mice != NULL);
 	
 	animal_t cat_args[cn];
 	animal_t dog_args[dn];
@@ -157,6 +168,7 @@ int main(int argc, char* argv[])
 	
 	for(int i = 0; i < cn; ++i)
 	{
+		assert(pthread_cond_init(&cond_cats[i], NULL) == 0);
 		cat_args[i].num_eat = ce;
 		cat_args[i].eating_time = random () % (E + 1 - e) + e;
 		cat_args[i].satisfied_time = ct;
@@ -168,6 +180,7 @@ int main(int argc, char* argv[])
 	
 	for(int i = 0; i < dn; ++i)
 	{
+		assert(pthread_cond_init(&cond_dogs[i], NULL) == 0);
 		dog_args[i].num_eat = ce;
 		dog_args[i].eating_time = random () % (E + 1 - e) + e;
 		dog_args[i].satisfied_time = ct;
@@ -179,6 +192,7 @@ int main(int argc, char* argv[])
 		
 	for(int i = 0; i < mn; ++i)
 	{
+		assert(pthread_cond_init(&cond_mice[i], NULL) == 0);
 		mouse_args[i].num_eat = ce;
 		mouse_args[i].eating_time = random () % (E + 1 - e) + e;
 		mouse_args[i].satisfied_time = ct;
@@ -212,6 +226,10 @@ int main(int argc, char* argv[])
 	
 	free(area.status);
 	free(area.bowles);
+	
+	free(cond_cats);
+	free(cond_dogs);
+	free(cond_mice);
 }
 
 void eat(void* arg)
@@ -219,9 +237,33 @@ void eat(void* arg)
 	animal_t param = *((animal_t*)arg);
 	while(param.num_eat > 0)
 	{
-		sem_wait(&sem);
+		/*animal gets hungry*/
+		if(strcmp(param.animal_type, CAT) == 0)
+		{
+			
+			pthread_mutex_lock(&mutex);
+			pthread_cond_wait(&cond_cats[param.id], &mutex);
+			pthread_mutex_unlock(&mutex);
+		}
+		else if(strcmp(param.animal_type, DOG) == 0)
+		{
+			
+			pthread_mutex_lock(&mutex);
+			pthread_cond_wait(&cond_dogs[param.id], &mutex);
+			pthread_mutex_unlock(&mutex);
+		}
+		else
+		{
+		
+			pthread_mutex_lock(&mutex);
+			pthread_cond_wait(&cond_mice[param.id], &mutex);
+			pthread_mutex_unlock(&mutex);
+		}
+		if(param.num_eat == 0)
+			continue;
+			
 		area.status[nextBowle(area.status)] = param.animal_type[0];
-		printf("%s started eating\n", param.animal_type);
+		printf("[%s] %s started eating\n", area.status, param.animal_type);
 		--param.num_eat;
 		sleep(param.eating_time);
 		printf("%s finished eating\n", param.animal_type);
@@ -233,10 +275,8 @@ void eat(void* arg)
 
 void scheduler(void* arg)
 {
-	for(int i = 0; i < 100; ++i)
-	{
-		sleep(1);
-		sem_post(&sem);
-	}
+	
+	for(int i = 0; i < )
+	pthread_cond_signal(&cond_mice[i]);
 }
 
