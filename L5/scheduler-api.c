@@ -1,5 +1,13 @@
 #include "scheduler-api.h"
 #include <stdio.h>
+#include <time.h>
+int nextBowle(char* status)
+{
+	int i = 0;
+	for(;status[i] != '\0'; ++i){}
+	
+	return i;
+}
 
 void printHelp()
 {

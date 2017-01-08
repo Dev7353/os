@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include <time.h>
+#include <semaphore.h>
 #include "scheduler-api.h"
 
 /*define function prototypes incl thread functions*/
@@ -12,6 +13,8 @@ void scheduler(void* arg);
 void eat(void* arg);
 
 /*define global variables*/
+food_area area;
+sem_t sem;
 
 int main(int argc, char* argv[])
 {
@@ -130,10 +133,19 @@ int main(int argc, char* argv[])
 	pthread_t cats[cn];
 	pthread_t dogs[dn];
 	pthread_t mice[mn];
+	pthread_t schedule;
+	
+	assert(sem_init(&sem, 0, num_dishes) == 0);
 	
 	animal_t cat_args[cn];
 	animal_t dog_args[dn];
 	animal_t mouse_args[mn];
+	
+	area.bowles = (int*) calloc(num_dishes, sizeof(int));
+	area.num_eaten = 0;
+	area.status = (char*) malloc(sizeof(char) * num_dishes);
+	for(int i = 0; i < num_dishes; ++i)
+		area.status[i] = '-';
 
 	time_t sec;
 	time(&sec);
@@ -141,12 +153,15 @@ int main(int argc, char* argv[])
 	
 	/*start threads*/
 	
+	assert(pthread_create(&schedule, NULL, (void *(*)(void *))&scheduler, NULL) == 0);
+	
 	for(int i = 0; i < cn; ++i)
 	{
 		cat_args[i].num_eat = ce;
 		cat_args[i].eating_time = random () % (E + 1 - e) + e;
 		cat_args[i].satisfied_time = ct;
 		cat_args[i].animal_type = CAT;
+		cat_args[i].id = i;
 		assert(pthread_create(&cats[i], NULL, (void *(*)(void *))&eat, &cat_args[i]) == 0);
 		
 	}
@@ -157,6 +172,7 @@ int main(int argc, char* argv[])
 		dog_args[i].eating_time = random () % (E + 1 - e) + e;
 		dog_args[i].satisfied_time = ct;
 		dog_args[i].animal_type = DOG;
+		dog_args[i].id = i;
 		assert(pthread_create(&dogs[i], NULL, (void *(*)(void *))&eat, &dog_args[i]) == 0);
 
 	}
@@ -167,6 +183,7 @@ int main(int argc, char* argv[])
 		mouse_args[i].eating_time = random () % (E + 1 - e) + e;
 		mouse_args[i].satisfied_time = ct;
 		mouse_args[i].animal_type = MOUSE;
+		mouse_args[i].id = i;
 		assert(pthread_create(&mice[i], NULL, (void *(*)(void *))&eat, &mouse_args[i]) == 0);
 
 	}
@@ -190,24 +207,36 @@ int main(int argc, char* argv[])
 		assert(pthread_join(mice[i], NULL) == 0);
 
 	}
+
+	assert(pthread_join(schedule, NULL) == 0);
 	
-	
+	free(area.status);
+	free(area.bowles);
 }
 
 void eat(void* arg)
 {
 	animal_t param = *((animal_t*)arg);
-	printf("%s started eating\n", param.animal_type);
 	while(param.num_eat > 0)
 	{
+		sem_wait(&sem);
+		area.status[nextBowle(area.status)] = param.animal_type[0];
+		printf("%s started eating\n", param.animal_type);
+		--param.num_eat;
+		sleep(param.eating_time);
+		printf("%s finished eating\n", param.animal_type);
+		sleep(param.satisfied_time);
 		
 	}
-	printf("%s finished eating\n", param.animal_type);
 	
 }
 
 void scheduler(void* arg)
 {
-	
+	for(int i = 0; i < 100; ++i)
+	{
+		sleep(1);
+		sem_post(&sem);
+	}
 }
 
