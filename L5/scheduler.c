@@ -18,6 +18,7 @@ food_area area;
 pthread_cond_t* cond_cats;
 pthread_cond_t* cond_dogs; 
 pthread_cond_t* cond_mice;
+pthread_cond_t cond_scheduler;
 pthread_mutex_t mutex;
 
 int main(int argc, char* argv[])
@@ -162,9 +163,12 @@ int main(int argc, char* argv[])
 	time(&sec);
 	srandom ((unsigned int) sec);
 	
-	/*start threads*/
+	scheduler_t scheduler_arg;
+	scheduler_arg.releases = num_dishes;
 	
-	assert(pthread_create(&schedule, NULL, (void *(*)(void *))&scheduler, NULL) == 0);
+	/*start threads*/
+	assert(pthread_cond_init(&cond_scheduler, NULL) == 0);
+	assert(pthread_create(&schedule, NULL, (void *(*)(void *))&scheduler, &scheduler_arg) == 0);
 	
 	for(int i = 0; i < cn; ++i)
 	{
@@ -261,12 +265,15 @@ void eat(void* arg)
 		}
 		if(param.num_eat == 0)
 			continue;
-			
-		area.status[nextBowle(area.status)] = param.animal_type[0];
-		printf("[%s] %s started eating\n", area.status, param.animal_type);
+		
+		int my_dish = nextBowle(area.status);
+		area.status[my_dish] = param.animal_type[0];
+		 printf("[%s] %s started eating from dish %d\n", area.status, param.animal_type, my_dish);
 		--param.num_eat;
 		sleep(param.eating_time);
-		printf("%s finished eating\n", param.animal_type);
+		pthread_cond_signal(&cond_scheduler);
+
+		printf("[%s] %s finished eating from dish %d\n", area.status, param.animal_type, my_dish);
 		sleep(param.satisfied_time);
 		
 	}
@@ -275,8 +282,21 @@ void eat(void* arg)
 
 void scheduler(void* arg)
 {
+	scheduler_t* sched_arg = (scheduler_t*) arg; 
+	//should replaced!!
+	sleep(5); // for getting sure every thread is waiting
 	
-	for(int i = 0; i < )
-	pthread_cond_signal(&cond_mice[i]);
+	while(true)
+	{
+		for(int i = 0; i < sched_arg->releases; ++i)
+		{
+			pthread_cond_signal(&cond_mice[i]);
+			pthread_mutex_lock(&mutex);
+			pthread_cond_wait(&cond_scheduler, &mutex);
+			pthread_mutex_unlock(&mutex);
+		}
+
+		sleep(5);
+	}
 }
 

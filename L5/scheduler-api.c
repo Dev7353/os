@@ -4,7 +4,7 @@
 int nextBowle(char* status)
 {
 	int i = 0;
-	for(;status[i] != '\0'; ++i){}
+	for(;status[i] != '-'; ++i){}
 	
 	return i;
 }
