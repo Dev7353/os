@@ -12,6 +12,7 @@
 /*define function prototypes incl thread functions*/
 void scheduler(void* arg);
 void eat(void* arg);
+pthread_cond_t* nextAnimal(int animal);
 
 /*define global variables*/
 food_area area;
@@ -20,6 +21,14 @@ pthread_cond_t* cond_dogs;
 pthread_cond_t* cond_mice;
 pthread_cond_t cond_scheduler;
 pthread_cond_t** cond_container; //wrapper for animal cvs
+typedef struct 
+{
+	pthread_cond_t** container;
+	int* priority;
+	
+}prio_queue_t;
+
+prio_queue_t prio;
 pthread_mutex_t mutex;
 boolean verbose = false;
 
@@ -49,7 +58,7 @@ int main(int argc, char* argv[])
 	{
 		struct option long_options[] = 
 		{
-			{"verbose", 	no_argument, 		&verbose, 	true},
+			{"v", 	no_argument, 		&verbose, 	true},
 			{"file", 	required_argument,	0,		'f'},
 			{"help", 	no_argument,		0,		'h'},
 			{"cn", 		required_argument,	0,		'a'},
@@ -155,12 +164,15 @@ int main(int argc, char* argv[])
 	cond_container[1] = cond_dogs;
 	cond_container[2] = cond_mice;
 	
+	prio.container = cond_container;
+	prio.priority = (int*) calloc(cn+dn+mn , sizeof(int));
+	
 	animal_t* cat_args = (animal_t*) malloc(cn * sizeof(animal_t));
 	animal_t* dog_args = (animal_t*) malloc(dn * sizeof(animal_t));
 	animal_t* mouse_args = (animal_t*) malloc(mn * sizeof(animal_t));
 	
 	
-	area.bowles = (int*) calloc(num_dishes, sizeof(int));
+	area.bowles = num_dishes;
 	area.num_eaten = 0;
 	area.status = (char*) malloc(sizeof(char) * num_dishes);
 	for(int i = 0; i < num_dishes; ++i)
@@ -170,12 +182,9 @@ int main(int argc, char* argv[])
 	time(&sec);
 	srandom ((unsigned int) sec);
 	
-	scheduler_t scheduler_arg;
-	scheduler_arg.releases = num_dishes;
-	
 	/*start threads*/
 	assert(pthread_cond_init(&cond_scheduler, NULL) == 0);
-	assert(pthread_create(&schedule, NULL, (void *(*)(void *))&scheduler, &scheduler_arg) == 0);
+	assert(pthread_create(&schedule, NULL, (void *(*)(void *))&scheduler, NULL) == 0);
 	
 	for(int i = 0; i < cn; ++i)
 	{
@@ -236,7 +245,6 @@ int main(int argc, char* argv[])
 	assert(pthread_join(schedule, NULL) == 0);
 	
 	free(area.status);
-	free(area.bowles);
 	
 	free(cond_cats);
 	free(cond_dogs);
@@ -249,6 +257,10 @@ void eat(void* arg)
 	while(param.num_eat > 0)
 	{
 		/*animal gets hungry*/
+		sleep(param.satisfied_time);
+		if(verbose == true)
+			printf("%s *sound* is hungry\n", param.animal_type);
+		
 		if(strcmp(param.animal_type, CAT) == 0)
 		{
 			
@@ -280,11 +292,7 @@ void eat(void* arg)
 		sleep(param.eating_time);
 		printf("\t[%s] %s finished eating from dish %d\n", area.status, param.animal_type, my_dish);
 		pthread_cond_signal(&cond_scheduler);
-		
-		sleep(param.satisfied_time);
-		
-		if(verbose == true)
-			printf("Dang it, %s hungry again\n", param.animal_type);
+			
 		
 	}
 	
@@ -292,9 +300,8 @@ void eat(void* arg)
 
 void scheduler(void* arg)
 {
-	scheduler_t* sched_arg = (scheduler_t*) arg; 
 	//should replaced!!
-	sleep(5); // for getting sure every thread is waiting
+	sleep(15); // for getting sure every thread is waiting
 	int cnt = 0;
 	while(true)
 	{
@@ -303,9 +310,9 @@ void scheduler(void* arg)
 			
 		for(int i = 0; i < 3; ++i)
 		{
-			for(int j = 0; j < sched_arg->releases; ++j)
+			for(int j = 0; j < area.bowles; ++j)
 			{
-				pthread_cond_signal(&cond_container[i][j]);
+				pthread_cond_signal(nextAnimal(i));
 				pthread_mutex_lock(&mutex);
 				pthread_cond_wait(&cond_scheduler, &mutex);
 				pthread_mutex_unlock(&mutex);
@@ -314,5 +321,13 @@ void scheduler(void* arg)
 		sleep(3);
 		++cnt;
 	}
+}
+
+pthread_cond_t* nextAnimal(int animal) 
+{
+	pthread_cond_t* min = &prio.container[0][0];
+	
+	return min;
+
 }
 

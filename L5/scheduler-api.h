@@ -16,16 +16,11 @@ typedef struct
 
 typedef struct
 {
-	int* bowles;
+	int bowles;
 	char* status;
 	int num_eaten;
 }food_area;
 
-
-typedef struct
-{
-	int releases;
-}scheduler_t;
 #define CAT "cat"
 #define DOG "dog"
 #define MOUSE "mouse"
