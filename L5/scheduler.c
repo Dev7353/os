@@ -15,17 +15,17 @@ void eat(void* arg);
 
 /*define global variables*/
 food_area area;
-animal_t** animal_container;
 pthread_cond_t* cond_cats;
 pthread_cond_t* cond_dogs; 
 pthread_cond_t* cond_mice;
 pthread_cond_t cond_scheduler;
+pthread_cond_t** cond_container; //wrapper for animal cvs
 pthread_mutex_t mutex;
+boolean verbose = false;
 
 int main(int argc, char* argv[])
 {
 	
-	boolean verbose = false;
 	char* filename = NULL;
 	int cn = 6;
 	int dn = 4;
@@ -150,15 +150,15 @@ int main(int argc, char* argv[])
 	cond_mice = (pthread_cond_t*) malloc(mn * sizeof(pthread_cond_t));
 	assert(cond_mice != NULL);
 	
+	cond_container = (pthread_cond_t**) malloc(3 * sizeof(pthread_cond_t*));
+	cond_container[0] = cond_cats;
+	cond_container[1] = cond_dogs;
+	cond_container[2] = cond_mice;
+	
 	animal_t* cat_args = (animal_t*) malloc(cn * sizeof(animal_t));
 	animal_t* dog_args = (animal_t*) malloc(dn * sizeof(animal_t));
 	animal_t* mouse_args = (animal_t*) malloc(mn * sizeof(animal_t));
 	
-	animal_container = (animal_t**) malloc(3 *sizeof(animal_t*));
-	
-	animal_container[0] = cat_args;
-	animal_container[1] = dog_args;
-	animal_container[2] = mouse_args;
 	
 	area.bowles = (int*) calloc(num_dishes, sizeof(int));
 	area.num_eaten = 0;
@@ -274,14 +274,17 @@ void eat(void* arg)
 			continue;
 		
 		int my_dish = nextBowle(area.status);
-		area.status[my_dish] = param.animal_type[0];
-		 printf("[%s] %s started eating from dish %d\n", area.status, param.animal_type, my_dish);
+		//area.status[my_dish] = param.animal_type[0];
+		 printf("\t[%s] %s started eating from dish %d\n", area.status, param.animal_type, my_dish);
 		--param.num_eat;
 		sleep(param.eating_time);
+		printf("\t[%s] %s finished eating from dish %d\n", area.status, param.animal_type, my_dish);
 		pthread_cond_signal(&cond_scheduler);
-
-		printf("[%s] %s finished eating from dish %d\n", area.status, param.animal_type, my_dish);
+		
 		sleep(param.satisfied_time);
+		
+		if(verbose == true)
+			printf("Dang it, %s hungry again\n", param.animal_type);
 		
 	}
 	
@@ -292,18 +295,24 @@ void scheduler(void* arg)
 	scheduler_t* sched_arg = (scheduler_t*) arg; 
 	//should replaced!!
 	sleep(5); // for getting sure every thread is waiting
-	
+	int cnt = 0;
 	while(true)
 	{
-		for(int i = 0; i < sched_arg->releases; ++i)
-		for(int j = 0; j < sched_arg->releases; ++j)
+		if(verbose == true)
+			printf("Scheduler starts round number %d\n", cnt);
+			
+		for(int i = 0; i < 3; ++i)
 		{
-			pthread_cond_signal(&cond_mice[j]);
-			pthread_mutex_lock(&mutex);
-			pthread_cond_wait(&cond_scheduler, &mutex);
-			pthread_mutex_unlock(&mutex);
+			for(int j = 0; j < sched_arg->releases; ++j)
+			{
+				pthread_cond_signal(&cond_container[i][j]);
+				pthread_mutex_lock(&mutex);
+				pthread_cond_wait(&cond_scheduler, &mutex);
+				pthread_mutex_unlock(&mutex);
+			}
 		}
-
+		sleep(3);
+		++cnt;
 	}
 }
 
