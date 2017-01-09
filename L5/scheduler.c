@@ -15,6 +15,7 @@ void eat(void* arg);
 
 /*define global variables*/
 food_area area;
+animal_t** animal_container;
 pthread_cond_t* cond_cats;
 pthread_cond_t* cond_dogs; 
 pthread_cond_t* cond_mice;
@@ -149,9 +150,15 @@ int main(int argc, char* argv[])
 	cond_mice = (pthread_cond_t*) malloc(mn * sizeof(pthread_cond_t));
 	assert(cond_mice != NULL);
 	
-	animal_t cat_args[cn];
-	animal_t dog_args[dn];
-	animal_t mouse_args[mn];
+	animal_t* cat_args = (animal_t*) malloc(cn * sizeof(animal_t));
+	animal_t* dog_args = (animal_t*) malloc(dn * sizeof(animal_t));
+	animal_t* mouse_args = (animal_t*) malloc(mn * sizeof(animal_t));
+	
+	animal_container = (animal_t**) malloc(3 *sizeof(animal_t*));
+	
+	animal_container[0] = cat_args;
+	animal_container[1] = dog_args;
+	animal_container[2] = mouse_args;
 	
 	area.bowles = (int*) calloc(num_dishes, sizeof(int));
 	area.num_eaten = 0;
@@ -289,14 +296,14 @@ void scheduler(void* arg)
 	while(true)
 	{
 		for(int i = 0; i < sched_arg->releases; ++i)
+		for(int j = 0; j < sched_arg->releases; ++j)
 		{
-			pthread_cond_signal(&cond_mice[i]);
+			pthread_cond_signal(&cond_mice[j]);
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_scheduler, &mutex);
 			pthread_mutex_unlock(&mutex);
 		}
 
-		sleep(5);
 	}
 }
 
