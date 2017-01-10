@@ -17,6 +17,7 @@ int nextGroup();
 
 /*define global variables*/
 food_area area;
+volatile int isReady[GROUPS];
 pthread_cond_t* cond_cats;
 pthread_cond_t* cond_dogs; 
 pthread_cond_t* cond_mice;
@@ -216,7 +217,7 @@ int main(int argc, char* argv[])
 		assert(pthread_cond_init(&cond_dogs[i], NULL) == 0);
 		dog_args[i].num_eat = ce;
 		dog_args[i].eating_time = random () % (E + 1 - e) + e;
-		dog_args[i].satisfied_time = ct;
+		dog_args[i].satisfied_time = dt;
 		dog_args[i].animal_type = DOG;
 		dog_args[i].id = i;
 		assert(pthread_create(&dogs[i], NULL, (void *(*)(void *))&eat, &dog_args[i]) == 0);
@@ -228,7 +229,7 @@ int main(int argc, char* argv[])
 		assert(pthread_cond_init(&cond_mice[i], NULL) == 0);
 		mouse_args[i].num_eat = ce;
 		mouse_args[i].eating_time = random () % (E + 1 - e) + e;
-		mouse_args[i].satisfied_time = ct;
+		mouse_args[i].satisfied_time = mt;
 		mouse_args[i].animal_type = MOUSE;
 		mouse_args[i].id = i;
 		assert(pthread_create(&mice[i], NULL, (void *(*)(void *))&eat, &mouse_args[i]) == 0);
@@ -276,21 +277,21 @@ void eat(void* arg)
 		
 		if(strcmp(param.animal_type, CAT) == 0)
 		{
-			
+			isReady[0]++;
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_cats[param.id], &mutex);
 			pthread_mutex_unlock(&mutex);
 		}
 		else if(strcmp(param.animal_type, DOG) == 0)
 		{
-			
+			isReady[1]++;
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_dogs[param.id], &mutex);
 			pthread_mutex_unlock(&mutex);
 		}
 		else
 		{
-		
+			isReady[2]++;
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_mice[param.id], &mutex);
 			pthread_mutex_unlock(&mutex);
@@ -313,30 +314,36 @@ void eat(void* arg)
 
 void scheduler(void* arg)
 {
-	//should replaced!!
-	sleep(20); // for getting sure every thread is waiting
 	int cnt = 0;
 	while(true)
 	{
+		int animal = nextGroup();
+	
+		while(true)
+		{
+			if(isReady[animal] >= area.bowles)
+			{
+					break;
+			}
+		}
+		
 		if(verbose == true)
 			printf("-------------------------------- Scheduler starts round number %d\n", cnt);
 			
 		for(int j = 0; j < area.bowles; ++j)
 		{
-			pthread_cond_signal(nextAnimal());
+			pthread_cond_signal(nextAnimal(animal));
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_scheduler, &mutex);
 			pthread_mutex_unlock(&mutex);
 		}
 		
-		sleep(20);
 		++cnt;
 	}
 }
 
-pthread_cond_t* nextAnimal() 
+pthread_cond_t* nextAnimal(int animal) 
 {
-	int animal = nextGroup();
 	int min = prio.priority[animal][0];
 	int index = 0;
 	for(int i = 0; i < prio.threads_per_group[animal]; ++i)
