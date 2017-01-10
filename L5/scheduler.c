@@ -46,8 +46,8 @@ int main(int argc, char* argv[])
 	
 	prio.threads_per_group = (int*) malloc(GROUPS * sizeof(int));
 	prio.threads_per_group[0] = cn;
-	prio.threads_per_group[1] = cn;
-	prio.threads_per_group[2] = cn;
+	prio.threads_per_group[1] = dn;
+	prio.threads_per_group[2] = mn;
 	
 	prio.group_priority = (int*) calloc(GROUPS, sizeof(int));
 	
@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
 	for(int i = 0; i < dn; ++i)
 	{
 		assert(pthread_cond_init(&cond_dogs[i], NULL) == 0);
-		dog_args[i].num_eat = ce;
+		dog_args[i].num_eat = de;
 		dog_args[i].eating_time = random () % (E + 1 - e) + e;
 		dog_args[i].satisfied_time = dt;
 		dog_args[i].animal_type = DOG;
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
 	for(int i = 0; i < mn; ++i)
 	{
 		assert(pthread_cond_init(&cond_mice[i], NULL) == 0);
-		mouse_args[i].num_eat = ce;
+		mouse_args[i].num_eat = me;
 		mouse_args[i].eating_time = random () % (E + 1 - e) + e;
 		mouse_args[i].satisfied_time = mt;
 		mouse_args[i].animal_type = MOUSE;
@@ -296,6 +296,7 @@ void eat(void* arg)
 			pthread_cond_wait(&cond_mice[param.id], &mutex);
 			pthread_mutex_unlock(&mutex);
 		}
+		
 		if(param.num_eat == 0)
 			continue;
 		
@@ -303,12 +304,16 @@ void eat(void* arg)
 		//area.status[my_dish] = param.animal_type[0];
 		 printf("\t[%s] %s %d started eating from dish %d\n", area.status, param.animal_type, param.id, my_dish);
 		--param.num_eat;
-		pthread_cond_signal(&cond_scheduler);
+		++area.num_eaten;
 		sleep(param.eating_time);
+		pthread_cond_signal(&cond_scheduler); //send signal after eating time
+		
+		--area.num_eaten;
 		printf("\t[%s] %s %d finished eating from dish %d\n", area.status, param.animal_type, param.id, my_dish);
 			
-		
 	}
+	
+	printf("%d %s is done\n", param.id, param.animal_type);
 	
 }
 
@@ -321,10 +326,11 @@ void scheduler(void* arg)
 	
 		while(true)
 		{
-			if(isReady[animal] >= area.bowles)
+			if(isReady[animal] < area.bowles)
 			{
-					break;
+					continue;
 			}
+			break;
 		}
 		
 		if(verbose == true)
@@ -333,10 +339,23 @@ void scheduler(void* arg)
 		for(int j = 0; j < area.bowles; ++j)
 		{
 			pthread_cond_signal(nextAnimal(animal));
+			while(true)
+			{	
+				if(area.num_eaten == 0)
+				{
+					continue;
+				}
+				break;
+			}
+			if(verbose == true)
+				printf("-------------------------------- SCHEDULER GOES SLEEP\n");
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_scheduler, &mutex);
 			pthread_mutex_unlock(&mutex);
+			if(verbose == true)
+				printf("-------------------------------- SCHEDULER WAKES UP\n");
 		}
+
 		
 		++cnt;
 	}
@@ -373,16 +392,20 @@ pthread_cond_t* nextAnimal(int animal)
 
 int nextGroup()
 {
-	int min = 0;
+	int min_index = 0;
 	
 	for(int i = 0; i < GROUPS; ++i)
 	{
-		if(prio.group_priority[i] < min)
+		if(prio.group_priority[i] <= min_index)
 		{
-			min = prio.group_priority[i]; 
+			min_index = i;
 		}
+		
 	}
 	
-	return min;
+	prio.group_priority[min_index]++; 
+	
+	return min_index;
+	
 }
 
