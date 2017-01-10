@@ -24,6 +24,7 @@ typedef struct
 #define CAT "cat"
 #define DOG "dog"
 #define MOUSE "mouse"
+#define GROUPS 3
 
 void printHelp(); 
 int nextBowle(char* status); 

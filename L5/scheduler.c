@@ -12,7 +12,8 @@
 /*define function prototypes incl thread functions*/
 void scheduler(void* arg);
 void eat(void* arg);
-pthread_cond_t* nextAnimal(int animal);
+pthread_cond_t* nextAnimal();
+int nextGroup();
 
 /*define global variables*/
 food_area area;
@@ -23,8 +24,10 @@ pthread_cond_t cond_scheduler;
 pthread_cond_t** cond_container; //wrapper for animal cvs
 typedef struct 
 {
-	pthread_cond_t** container;
-	int* priority;
+	pthread_cond_t** container; //wrapper for cvs for eah animal
+	int** priority; // prioritiy for each animal 
+	int* group_priority; // priority for each animal group
+	int* threads_per_group;
 	
 }prio_queue_t;
 
@@ -39,6 +42,13 @@ int main(int argc, char* argv[])
 	int cn = 6;
 	int dn = 4;
 	int mn = 2;
+	
+	prio.threads_per_group = (int*) malloc(GROUPS * sizeof(int));
+	prio.threads_per_group[0] = cn;
+	prio.threads_per_group[1] = cn;
+	prio.threads_per_group[2] = cn;
+	
+	prio.group_priority = (int*) calloc(GROUPS, sizeof(int));
 	
 	int ct = 15;
 	int dt = 10;
@@ -165,7 +175,10 @@ int main(int argc, char* argv[])
 	cond_container[2] = cond_mice;
 	
 	prio.container = cond_container;
-	prio.priority = (int*) calloc(cn+dn+mn , sizeof(int));
+	prio.priority = (int**) malloc(3 * sizeof(int));
+	prio.priority[0] = (int*) calloc(cn, sizeof(int));
+	prio.priority[1] = (int*) calloc(dn, sizeof(int));
+	prio.priority[2] = (int*) calloc(mn, sizeof(int));
 	
 	animal_t* cat_args = (animal_t*) malloc(cn * sizeof(animal_t));
 	animal_t* dog_args = (animal_t*) malloc(dn * sizeof(animal_t));
@@ -259,7 +272,7 @@ void eat(void* arg)
 		/*animal gets hungry*/
 		sleep(param.satisfied_time);
 		if(verbose == true)
-			printf("%s *sound* is hungry\n", param.animal_type);
+			printf("%s %d is hungry\n", param.animal_type, param.id);
 		
 		if(strcmp(param.animal_type, CAT) == 0)
 		{
@@ -287,11 +300,11 @@ void eat(void* arg)
 		
 		int my_dish = nextBowle(area.status);
 		//area.status[my_dish] = param.animal_type[0];
-		 printf("\t[%s] %s started eating from dish %d\n", area.status, param.animal_type, my_dish);
+		 printf("\t[%s] %s %d started eating from dish %d\n", area.status, param.animal_type, my_dish, param.id);
 		--param.num_eat;
+		pthread_cond_signal(&cond_scheduler);
 		sleep(param.eating_time);
 		printf("\t[%s] %s finished eating from dish %d\n", area.status, param.animal_type, my_dish);
-		pthread_cond_signal(&cond_scheduler);
 			
 		
 	}
@@ -301,33 +314,66 @@ void eat(void* arg)
 void scheduler(void* arg)
 {
 	//should replaced!!
-	sleep(15); // for getting sure every thread is waiting
+	sleep(20); // for getting sure every thread is waiting
 	int cnt = 0;
 	while(true)
 	{
 		if(verbose == true)
 			printf("Scheduler starts round number %d\n", cnt);
 			
-		for(int i = 0; i < 3; ++i)
+		for(int j = 0; j < area.bowles; ++j)
 		{
-			for(int j = 0; j < area.bowles; ++j)
-			{
-				pthread_cond_signal(nextAnimal(i));
-				pthread_mutex_lock(&mutex);
-				pthread_cond_wait(&cond_scheduler, &mutex);
-				pthread_mutex_unlock(&mutex);
-			}
+			pthread_cond_signal(nextAnimal());
+			pthread_mutex_lock(&mutex);
+			pthread_cond_wait(&cond_scheduler, &mutex);
+			pthread_mutex_unlock(&mutex);
 		}
-		sleep(3);
+		
+		//sleep(3);
 		++cnt;
 	}
 }
 
-pthread_cond_t* nextAnimal(int animal) 
+pthread_cond_t* nextAnimal() 
 {
-	pthread_cond_t* min = &prio.container[0][0];
+	int animal = nextGroup();
+	int min = prio.priority[animal][0];
+	
+	for(int i = 0; i < prio.threads_per_group[animal]; ++i)
+	{
+		if(prio.priority[animal][i] > min)
+		{
+			min = prio.priority[animal][i];
+		}
+	}
+	
+	if(verbose == true)
+	{
+		if(animal == 0)
+			printf("the next animal is cat %d\n", min);
+		if(animal == 1)
+			printf("the next animal is dog %d\n", min);	
+		if(animal == 2)
+			printf("the next animal is mouse %d\n", min);
+	}
+	
+	prio.priority[animal][min]++;
+	return &prio.container[animal][min];
+
+}
+
+int nextGroup()
+{
+	int min = 0;
+	
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		if(prio.group_priority[i] < min)
+		{
+			min = prio.group_priority[i]; 
+		}
+	}
 	
 	return min;
-
 }
 
