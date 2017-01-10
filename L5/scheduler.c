@@ -14,9 +14,11 @@ void scheduler(void* arg);
 void eat(void* arg);
 pthread_cond_t* nextAnimal();
 int nextGroup();
+boolean animalsDone(int animal);
 
 /*define global variables*/
 food_area area;
+int** threadDone;
 volatile int isReady[GROUPS];
 pthread_cond_t* cond_cats;
 pthread_cond_t* cond_dogs; 
@@ -40,10 +42,12 @@ int main(int argc, char* argv[])
 {
 	
 	char* filename = NULL;
+	//Default amount of animals
 	int cn = 6;
 	int dn = 4;
 	int mn = 2;
 	
+	//Default amount threads per animal group
 	prio.threads_per_group = (int*) malloc(GROUPS * sizeof(int));
 	prio.threads_per_group[0] = cn;
 	prio.threads_per_group[1] = dn;
@@ -51,10 +55,12 @@ int main(int argc, char* argv[])
 	
 	prio.group_priority = (int*) calloc(GROUPS, sizeof(int));
 	
+	//Default satisfied time
 	int ct = 15;
 	int dt = 10;
 	int mt = 1;
 	
+	//Default amount the animals want to eat
 	int ce = 5;
 	int de = 5;
 	int me = 5;
@@ -192,6 +198,17 @@ int main(int argc, char* argv[])
 	for(int i = 0; i < num_dishes; ++i)
 		area.status[i] = '-';
 
+	threadDone = (int**) malloc(GROUPS * sizeof(int*));
+	for(int i = 0; i < GROUPS; ++i)
+	{
+			if(i == 0)
+				threadDone[i] = (int*) calloc(cn, sizeof(int));
+			else if(i == 1)
+				threadDone[i] = (int*) calloc(dn, sizeof(int));
+			else
+			threadDone[i] = (int*) calloc(mn, sizeof(int));
+	}
+	
 	time_t sec;
 	time(&sec);
 	srandom ((unsigned int) sec);
@@ -266,7 +283,8 @@ int main(int argc, char* argv[])
 }
 
 void eat(void* arg)
-{
+{	
+	int animal = 0;
 	animal_t param = *((animal_t*)arg);
 	while(param.num_eat > 0)
 	{
@@ -284,6 +302,7 @@ void eat(void* arg)
 		}
 		else if(strcmp(param.animal_type, DOG) == 0)
 		{
+			animal = 1;
 			isReady[1]++;
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_dogs[param.id], &mutex);
@@ -291,6 +310,7 @@ void eat(void* arg)
 		}
 		else
 		{
+			animal = 2;
 			isReady[2]++;
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_mice[param.id], &mutex);
@@ -302,17 +322,22 @@ void eat(void* arg)
 		
 		int my_dish = nextBowle(area.status);
 		//area.status[my_dish] = param.animal_type[0];
-		 printf("\t[%s] %s %d started eating from dish %d\n", area.status, param.animal_type, param.id, my_dish);
+		time_t t = time(NULL);
+		struct tm tm = *localtime(&t);
+		 printf("\t[%d-%d-%d %d:%d:%d] [%s] %s %d started eating from dish %d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish);
 		--param.num_eat;
 		++area.num_eaten;
 		sleep(param.eating_time);
 		pthread_cond_signal(&cond_scheduler); //send signal after eating time
 		
 		--area.num_eaten;
-		printf("\t[%s] %s %d finished eating from dish %d\n", area.status, param.animal_type, param.id, my_dish);
+		t = time(NULL);
+		tm = *localtime(&t);
+		printf("\t[%d-%d-%d %d:%d:%d] [%s] %s %d finished eating from dish %d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish);
 			
 	}
 	
+	threadDone[animal][param.id] = true;
 	printf("%d %s is done\n", param.id, param.animal_type);
 	
 }
@@ -323,7 +348,10 @@ void scheduler(void* arg)
 	while(true)
 	{
 		int animal = nextGroup();
-	
+		
+		if(verbose == true)
+				printf("--------------------------------> SCHEDULER DEBUG INFO: GROUP: %d PRIORITY: %d\n", animal, prio.group_priority[animal]);
+
 		while(true)
 		{
 			if(isReady[animal] < area.bowles)
@@ -358,6 +386,9 @@ void scheduler(void* arg)
 
 		
 		++cnt;
+		
+		/*if(workIsDone() == true)
+			break;*/
 	}
 }
 
@@ -393,14 +424,20 @@ pthread_cond_t* nextAnimal(int animal)
 int nextGroup()
 {
 	int min_index = 0;
+	int min_prio = prio.group_priority[0];
 	
 	for(int i = 0; i < GROUPS; ++i)
 	{
-		if(prio.group_priority[i] <= min_index)
+		if(animalsDone(i) == false)
 		{
-			min_index = i;
-		}
+			
 		
+			if(prio.group_priority[i] < min_prio)
+			{
+				min_index = i;
+				break;
+			}
+		}
 	}
 	
 	prio.group_priority[min_index]++; 
@@ -409,3 +446,12 @@ int nextGroup()
 	
 }
 
+boolean animalsDone(int animal)
+{
+	for(int i = 0; i < prio.threads_per_group[animal]; ++i)
+	{
+		if(threadDone[animal][i] == false)
+			return false;
+	}
+	return true;
+}
