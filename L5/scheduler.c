@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
 	cond_mice = (pthread_cond_t*) malloc(mn * sizeof(pthread_cond_t));
 	assert(cond_mice != NULL);
 	
-	cond_container = (pthread_cond_t**) malloc(3 * sizeof(pthread_cond_t*));
+	cond_container = (pthread_cond_t**) malloc(GROUPS * sizeof(pthread_cond_t*));
 	cond_container[0] = cond_cats;
 	cond_container[1] = cond_dogs;
 	cond_container[2] = cond_mice;
@@ -300,11 +300,11 @@ void eat(void* arg)
 		
 		int my_dish = nextBowle(area.status);
 		//area.status[my_dish] = param.animal_type[0];
-		 printf("\t[%s] %s %d started eating from dish %d\n", area.status, param.animal_type, my_dish, param.id);
+		 printf("\t[%s] %s %d started eating from dish %d\n", area.status, param.animal_type, param.id, my_dish);
 		--param.num_eat;
 		pthread_cond_signal(&cond_scheduler);
 		sleep(param.eating_time);
-		printf("\t[%s] %s finished eating from dish %d\n", area.status, param.animal_type, my_dish);
+		printf("\t[%s] %s %d finished eating from dish %d\n", area.status, param.animal_type, param.id, my_dish);
 			
 		
 	}
@@ -319,7 +319,7 @@ void scheduler(void* arg)
 	while(true)
 	{
 		if(verbose == true)
-			printf("Scheduler starts round number %d\n", cnt);
+			printf("-------------------------------- Scheduler starts round number %d\n", cnt);
 			
 		for(int j = 0; j < area.bowles; ++j)
 		{
@@ -329,7 +329,7 @@ void scheduler(void* arg)
 			pthread_mutex_unlock(&mutex);
 		}
 		
-		//sleep(3);
+		sleep(20);
 		++cnt;
 	}
 }
@@ -338,27 +338,29 @@ pthread_cond_t* nextAnimal()
 {
 	int animal = nextGroup();
 	int min = prio.priority[animal][0];
-	
+	int index = 0;
 	for(int i = 0; i < prio.threads_per_group[animal]; ++i)
 	{
-		if(prio.priority[animal][i] > min)
+		if(prio.priority[animal][i] < min)
 		{
 			min = prio.priority[animal][i];
+			index = i;
 		}
 	}
 	
 	if(verbose == true)
 	{
 		if(animal == 0)
-			printf("the next animal is cat %d\n", min);
+			printf(">>>> the next animal is cat %d\n", index);
 		if(animal == 1)
-			printf("the next animal is dog %d\n", min);	
+			printf(">>>> the next animal is dog %d\n", index);	
 		if(animal == 2)
-			printf("the next animal is mouse %d\n", min);
+			printf(">>>> the next animal is mouse %d\n", index);
 	}
 	
-	prio.priority[animal][min]++;
-	return &prio.container[animal][min];
+	prio.priority[animal][index]++;
+	//printf("DEBUG %d\n", index);
+	return &prio.container[animal][index];
 
 }
 
