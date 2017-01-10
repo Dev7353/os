@@ -15,7 +15,7 @@ void eat(void* arg);
 pthread_cond_t* nextAnimal();
 int nextGroup();
 boolean animalsDone(int animal);
-
+boolean workIsDone();
 /*define global variables*/
 food_area area;
 int** threadDone;
@@ -387,8 +387,8 @@ void scheduler(void* arg)
 		
 		++cnt;
 		
-		/*if(workIsDone() == true)
-			break;*/
+		if(workIsDone() == true)
+			break;
 	}
 }
 
@@ -454,4 +454,15 @@ boolean animalsDone(int animal)
 			return false;
 	}
 	return true;
+}
+
+boolean workIsDone()
+{
+		for(int i = 0; i < GROUPS; ++i)
+		{
+				if(animalsDone(i) == false)
+					return false;
+		}
+		
+		return true;
 }
