@@ -342,7 +342,7 @@ void eat(void* arg)
 		
 		sleep(param.eating_time);
 		
-		// todo
+		//decremtn global variable so that scheduler releases only
 		--isReady[animal];
 		
 		//get current date time
