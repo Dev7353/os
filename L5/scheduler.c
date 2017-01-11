@@ -27,7 +27,7 @@ pthread_cond_t* cond_mice;
 pthread_cond_t** cond_container; //wrapper for animal cvs
 typedef struct 
 {
-	pthread_cond_t** container; //wrapper for cvs for eah animal
+	pthread_cond_t** container; //wrapper for cvs for each animal
 	int** priority; // prioritiy for each animal 
 	int* group_priority; // priority for each animal group
 	int* threads_per_group;
@@ -330,14 +330,14 @@ void eat(void* arg)
 		//area.status[my_dish] = param.animal_type[0];
 		time_t t = time(NULL);
 		struct tm tm = *localtime(&t);
-		 printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tstarted eating from dish %d%s\n", thread_color, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
+		 printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tstarted eating from dish %d%s\n", thread_color, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
 		--param.num_eat;
 		++area.num_eaten;
 		sleep(param.eating_time);
 		isReady[animal] --;
 		t = time(NULL);
 		tm = *localtime(&t);
-		printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tfinished eating from dish %d%s\n", thread_color, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
+		printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tfinished eating from dish %d%s\n", thread_color, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
 		
 		--area.num_eaten;
 	}
@@ -361,15 +361,19 @@ void scheduler(void* arg)
 			break; //all groups are done
 		while(true)
 		{
-			if(isReady[animal] < 1)
+			if(isReady[animal] < area.bowles && prio.threads_per_group[animal] >= area.bowles)
 			{
 				/*if(verbose == true)
 					printf("\t\t\t\t\t\t\t%sBUSYLOOP WAITING FOR ISREADY: %d%s\n", ANSI_COLOR_GREEN, isReady[animal], ANSI_COLOR_RESET);*/
 				continue;
+			} 
+			else if(isReady[animal] < 1 && prio.threads_per_group[animal] < area.bowles) //if you have less threads than number of bowles
+			{
+				continue;
 			}
-			if(verbose == true)
-				printf("%s\t\t\tDEBUG: registered animals are ready: %d%s\n", ANSI_COLOR_GREEN, isReady[animal], ANSI_COLOR_RESET);
 			
+			if(verbose == true)
+				printf(">> RELEASE THREADS <<\n");
 			break;
 		}
 			
@@ -391,7 +395,7 @@ void scheduler(void* arg)
 					printf("-------------------------------- SCHEDULER GOES SLEEP\n");
 				while(true)
 				{	
-					if(area.num_eaten > 0)
+					if(area.num_eaten > 0) //wait for the end of the animal threads
 					{
 						continue;
 					}
