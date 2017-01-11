@@ -33,5 +33,5 @@ typedef struct
 #define GROUPS 3
 
 void printHelp(); 
-int nextBowle(char* status); 
+int nextBowle(char* status, int bowles); 
 #endif

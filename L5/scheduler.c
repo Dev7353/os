@@ -326,19 +326,35 @@ void eat(void* arg)
 		if(param.num_eat == 0)
 			continue;
 		
-		int my_dish = nextBowle(area.status);
-		//area.status[my_dish] = param.animal_type[0];
+		//occupie dish with current animal
+		int my_dish = nextBowle(area.status, area.bowles); 
+		area.status[my_dish] = param.animal_type[0];
+		
 		time_t t = time(NULL);
 		struct tm tm = *localtime(&t);
 		 printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tstarted eating from dish %d%s\n", thread_color, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
-		--param.num_eat;
-		++area.num_eaten;
+		
+		// decrements local number of eating times
+		--param.num_eat; 
+		
+		// wake up scheduler to release the next allowed animal
+		++area.num_eaten; 
+		
 		sleep(param.eating_time);
-		isReady[animal] --;
+		
+		// todo
+		--isReady[animal];
+		
+		//get current date time
 		t = time(NULL);
 		tm = *localtime(&t);
+		
+		//clear the dish occupant 
+		area.status[my_dish] = '-';
+		
 		printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tfinished eating from dish %d%s\n", thread_color, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
 		
+		//wake up scheduler to release the next allowed animal group
 		--area.num_eaten;
 	}
 	
@@ -357,17 +373,19 @@ void scheduler(void* arg)
 			printf("%s--------------------------------------------- Scheduler starts round number %d%s\n", ANSI_COLOR_GREEN, cnt, ANSI_COLOR_RESET);
 			
 		int animal = nextGroup();
+		
+		//check if all groups are done with eating
 		if(animal == -1)
-			break; //all groups are done
+			break; 
+			
 		while(true)
 		{
 			if(isReady[animal] < area.bowles && prio.threads_per_group[animal] >= area.bowles)
 			{
-				/*if(verbose == true)
-					printf("\t\t\t\t\t\t\t%sBUSYLOOP WAITING FOR ISREADY: %d%s\n", ANSI_COLOR_GREEN, isReady[animal], ANSI_COLOR_RESET);*/
 				continue;
 			} 
-			else if(isReady[animal] < 1 && prio.threads_per_group[animal] < area.bowles) //if you have less threads than number of bowles
+			//if you have less threads than number of bowles
+			else if(isReady[animal] < 1 && prio.threads_per_group[animal] < area.bowles) 
 			{
 				continue;
 			}
@@ -377,6 +395,8 @@ void scheduler(void* arg)
 			break;
 		}
 			
+			
+		//release threads in number of bowles	
 		for(int j = 0; j < area.bowles; ++j)
 		{
 			pthread_cond_signal(nextAnimal(animal));
@@ -395,7 +415,8 @@ void scheduler(void* arg)
 					printf("-------------------------------- SCHEDULER GOES SLEEP\n");
 				while(true)
 				{	
-					if(area.num_eaten > 0) //wait for the end of the animal threads
+					//wait for the end of the animal threads
+					if(area.num_eaten > 0) 
 					{
 						continue;
 					}
@@ -409,7 +430,7 @@ void scheduler(void* arg)
 			
 		}
 		
-		//increment group priority
+		//increment group priorities
 		calcGroupPriorities(animal);	
 		
 		++cnt;

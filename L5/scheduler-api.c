@@ -1,12 +1,19 @@
 #include "scheduler-api.h"
 #include <stdio.h>
 #include <time.h>
-int nextBowle(char* status)
+int nextBowle(char* status, int bowles)
 {
-	int i = 0;
-	for(;status[i] != '-'; ++i){}
+	int idx = -1;
+	for(int i = 0; i < bowles; ++i)
+	{
+		if(status[i] == '-')
+		{
+			idx = i;
+			break;
+		}
+	}
 	
-	return i;
+	return idx;
 }
 
 void printHelp()
