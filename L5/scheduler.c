@@ -289,7 +289,8 @@ void eat(void* arg)
 	char* thread_color = ANSI_COLOR_RESET;
 	int animal = 0;
 	animal_t param = *((animal_t*)arg);
-	do
+	
+	while(param.num_eat > 0)
 	{
 		/*animal gets hungry*/
 		sleep(param.satisfied_time);
@@ -334,12 +335,12 @@ void eat(void* arg)
 		++area.num_eaten;
 		sleep(param.eating_time);
 		isReady[animal] --;
-		--area.num_eaten;
 		t = time(NULL);
 		tm = *localtime(&t);
 		printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tfinished eating from dish %d%s\n", thread_color, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
-			
-	} while(param.num_eat > 0);
+		
+		--area.num_eaten;
+	}
 	
 	threadDone[animal][param.id] = true;
 	if(verbose == true)
@@ -356,9 +357,11 @@ void scheduler(void* arg)
 			printf("%s--------------------------------------------- Scheduler starts round number %d%s\n", ANSI_COLOR_GREEN, cnt, ANSI_COLOR_RESET);
 			
 		int animal = nextGroup();
+		if(animal == -1)
+			break; //all groups are done
 		while(true)
 		{
-			if(isReady[animal] < area.bowles)
+			if(isReady[animal] < 1)
 			{
 				/*if(verbose == true)
 					printf("\t\t\t\t\t\t\t%sBUSYLOOP WAITING FOR ISREADY: %d%s\n", ANSI_COLOR_GREEN, isReady[animal], ANSI_COLOR_RESET);*/
@@ -407,13 +410,10 @@ void scheduler(void* arg)
 		
 		++cnt;
 		
-		if(workIsDone() == true)
-		{
-			if(verbose == true)
-				printf("SCHEDULER TERMINATE\n");
-			break;
-		}
 	}
+	
+	if(verbose == true)
+		printf("SCHEDULER TERMINATE\n");
 }
 
 pthread_cond_t* nextAnimal(int animal) 
@@ -448,7 +448,7 @@ pthread_cond_t* nextAnimal(int animal)
 
 int nextGroup()
 {
-	int min_index = 0;
+	int min_index = -1;
 	int min_prio = prio.group_priority[0];
 	
 	for(int i = 0; i < GROUPS; ++i)
@@ -457,7 +457,7 @@ int nextGroup()
 		{	
 			if(verbose == true)
 				printf("%s[GROUP OF %d HAS THE PRIORITY %d]%s\n",ANSI_COLOR_GREEN, i, prio.group_priority[i], ANSI_COLOR_RESET);
-			if(prio.group_priority[i] < min_prio)
+			if(prio.group_priority[i] <= min_prio)
 			{
 				min_index = i;
 				min_prio = prio.group_priority[i];
