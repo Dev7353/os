@@ -14,8 +14,9 @@ void scheduler(void* arg);
 void eat(void* arg);
 pthread_cond_t* nextAnimal();
 int nextGroup();
-boolean animalsDone(int animal);
+boolean groupIsDone(int animal);
 boolean workIsDone();
+void calcGroupPriorities(int current_group);
 /*define global variables*/
 food_area area;
 int** threadDone;
@@ -47,13 +48,6 @@ int main(int argc, char* argv[])
 	int dn = 4;
 	int mn = 2;
 	
-	//Default amount threads per animal group
-	prio.threads_per_group = (int*) malloc(GROUPS * sizeof(int));
-	prio.threads_per_group[0] = cn;
-	prio.threads_per_group[1] = dn;
-	prio.threads_per_group[2] = mn;
-	
-	prio.group_priority = (int*) calloc(GROUPS, sizeof(int));
 	
 	//Default satisfied time
 	int ct = 15;
@@ -181,6 +175,16 @@ int main(int argc, char* argv[])
 	cond_container[1] = cond_dogs;
 	cond_container[2] = cond_mice;
 	
+	prio.threads_per_group = (int*) malloc(GROUPS * sizeof(int));
+	prio.threads_per_group[0] = cn;
+	prio.threads_per_group[1] = dn;
+	prio.threads_per_group[2] = mn;
+	
+	prio.group_priority = (int*) calloc(GROUPS, sizeof(int));
+	prio.group_priority[0] = ct;
+	prio.group_priority[1] = dt;
+	prio.group_priority[2] = mt;
+	
 	prio.container = cond_container;
 	prio.priority = (int**) malloc(3 * sizeof(int));
 	prio.priority[0] = (int*) calloc(cn, sizeof(int));
@@ -284,6 +288,7 @@ int main(int argc, char* argv[])
 
 void eat(void* arg)
 {	
+	char* thread_color = ANSI_COLOR_RESET;
 	int animal = 0;
 	animal_t param = *((animal_t*)arg);
 	while(param.num_eat > 0)
@@ -295,6 +300,7 @@ void eat(void* arg)
 		
 		if(strcmp(param.animal_type, CAT) == 0)
 		{
+			thread_color = ANSI_COLOR_RED;
 			isReady[0]++;
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_cats[param.id], &mutex);
@@ -302,6 +308,7 @@ void eat(void* arg)
 		}
 		else if(strcmp(param.animal_type, DOG) == 0)
 		{
+			thread_color = ANSI_COLOR_BLUE;
 			animal = 1;
 			isReady[1]++;
 			pthread_mutex_lock(&mutex);
@@ -324,7 +331,7 @@ void eat(void* arg)
 		//area.status[my_dish] = param.animal_type[0];
 		time_t t = time(NULL);
 		struct tm tm = *localtime(&t);
-		 printf("\t[%d-%d-%d %d:%d:%d] [%s] %s %d started eating from dish %d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish);
+		 printf("%s\t[%d-%d-%d %d:%d:%d] [%s] %s %d started eating from dish %d%s\n", thread_color, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
 		--param.num_eat;
 		++area.num_eaten;
 		sleep(param.eating_time);
@@ -333,12 +340,12 @@ void eat(void* arg)
 		--area.num_eaten;
 		t = time(NULL);
 		tm = *localtime(&t);
-		printf("\t[%d-%d-%d %d:%d:%d] [%s] %s %d finished eating from dish %d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish);
+		printf("%s\t[%d-%d-%d %d:%d:%d] [%s] %s %d finished eating from dish %d%s\n", thread_color, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
 			
 	}
 	
 	threadDone[animal][param.id] = true;
-	printf("%d %s is done\n", param.id, param.animal_type);
+	printf("%s%d %s is done%s\n", ANSI_COLOR_YELLOW, param.id, param.animal_type, ANSI_COLOR_RESET);
 	
 }
 
@@ -348,21 +355,21 @@ void scheduler(void* arg)
 	while(true)
 	{
 		int animal = nextGroup();
-		
-		if(verbose == true)
-				printf("--------------------------------> SCHEDULER DEBUG INFO: GROUP: %d PRIORITY: %d\n", animal, prio.group_priority[animal]);
 
 		while(true)
 		{
 			if(isReady[animal] < area.bowles)
 			{
-					continue;
+				continue;
 			}
+			if(verbose == true)
+				printf("%s\t\t\tDEBUG: registered animals are ready: %d%s\n", ANSI_COLOR_GREEN, isReady[animal], ANSI_COLOR_RESET);
+			isReady[animal] = 0;
 			break;
 		}
 		
 		if(verbose == true)
-			printf("-------------------------------- Scheduler starts round number %d\n", cnt);
+			printf("%s-------------------------------- Scheduler starts round number %d%s\n", ANSI_COLOR_GREEN, cnt, ANSI_COLOR_RESET);
 			
 		for(int j = 0; j < area.bowles; ++j)
 		{
@@ -375,15 +382,17 @@ void scheduler(void* arg)
 				}
 				break;
 			}
-			if(verbose == true)
-				printf("-------------------------------- SCHEDULER GOES SLEEP\n");
+			/*if(verbose == true)
+				printf("-------------------------------- SCHEDULER GOES SLEEP\n");*/
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_scheduler, &mutex);
 			pthread_mutex_unlock(&mutex);
-			if(verbose == true)
-				printf("-------------------------------- SCHEDULER WAKES UP\n");
+			/*if(verbose == true)
+				printf("-------------------------------- SCHEDULER WAKES UP\n");*/
 		}
-
+		
+		//increment group priority
+		calcGroupPriorities(animal);	
 		
 		++cnt;
 		
@@ -408,11 +417,11 @@ pthread_cond_t* nextAnimal(int animal)
 	if(verbose == true)
 	{
 		if(animal == 0)
-			printf(">>>> the next animal is cat %d\n", index);
+			printf("%s>>>> the next animal is cat %d%s\n",ANSI_COLOR_GREEN, index, ANSI_COLOR_RESET);
 		if(animal == 1)
-			printf(">>>> the next animal is dog %d\n", index);	
+			printf("%s>>>> the next animal is dog %d%s\n", ANSI_COLOR_GREEN, index, ANSI_COLOR_RESET);	
 		if(animal == 2)
-			printf(">>>> the next animal is mouse %d\n", index);
+			printf("%s>>>> the next animal is mouse %d%s\n", ANSI_COLOR_GREEN, index, ANSI_COLOR_RESET);
 	}
 	
 	prio.priority[animal][index]++;
@@ -428,25 +437,24 @@ int nextGroup()
 	
 	for(int i = 0; i < GROUPS; ++i)
 	{
-		if(animalsDone(i) == false)
-		{
-			
-		
+		if(groupIsDone(i) == false)
+		{	
+			if(verbose == true)
+				printf("%s[GROUP OF %d HAS THE PRIORITY %d]%s\n",ANSI_COLOR_GREEN, i, prio.group_priority[i], ANSI_COLOR_RESET);
 			if(prio.group_priority[i] < min_prio)
 			{
 				min_index = i;
-				break;
+				min_prio = prio.group_priority[i];
+				//break;
 			}
 		}
 	}
-	
-	prio.group_priority[min_index]++; 
 	
 	return min_index;
 	
 }
 
-boolean animalsDone(int animal)
+boolean groupIsDone(int animal)
 {
 	for(int i = 0; i < prio.threads_per_group[animal]; ++i)
 	{
@@ -458,11 +466,27 @@ boolean animalsDone(int animal)
 
 boolean workIsDone()
 {
-		for(int i = 0; i < GROUPS; ++i)
-		{
-				if(animalsDone(i) == false)
-					return false;
-		}
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		if(groupIsDone(i) == false)
+			return false;
+	}
 		
 		return true;
+}
+
+void calcGroupPriorities(int current_group)
+{
+
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		if(i == current_group || groupIsDone(i) == true)
+			continue;
+		else 
+		{
+			prio.group_priority[i] --;
+		}
+	}
+	
+	prio.group_priority[current_group] ++;
 }
