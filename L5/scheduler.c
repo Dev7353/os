@@ -24,7 +24,6 @@ volatile int isReady[GROUPS];
 pthread_cond_t* cond_cats;
 pthread_cond_t* cond_dogs; 
 pthread_cond_t* cond_mice;
-pthread_cond_t cond_scheduler;
 pthread_cond_t** cond_container; //wrapper for animal cvs
 typedef struct 
 {
@@ -218,7 +217,6 @@ int main(int argc, char* argv[])
 	srandom ((unsigned int) sec);
 	
 	/*start threads*/
-	assert(pthread_cond_init(&cond_scheduler, NULL) == 0);
 	assert(pthread_create(&schedule, NULL, (void *(*)(void *))&scheduler, NULL) == 0);
 	
 	for(int i = 0; i < cn; ++i)
@@ -291,7 +289,7 @@ void eat(void* arg)
 	char* thread_color = ANSI_COLOR_RESET;
 	int animal = 0;
 	animal_t param = *((animal_t*)arg);
-	while(param.num_eat > 0)
+	do
 	{
 		/*animal gets hungry*/
 		sleep(param.satisfied_time);
@@ -301,7 +299,7 @@ void eat(void* arg)
 		if(strcmp(param.animal_type, CAT) == 0)
 		{
 			thread_color = ANSI_COLOR_RED;
-			isReady[0]++;
+			isReady[animal]++;
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_cats[param.id], &mutex);
 			pthread_mutex_unlock(&mutex);
@@ -310,7 +308,7 @@ void eat(void* arg)
 		{
 			thread_color = ANSI_COLOR_BLUE;
 			animal = 1;
-			isReady[1]++;
+			isReady[animal]++;
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_dogs[param.id], &mutex);
 			pthread_mutex_unlock(&mutex);
@@ -318,7 +316,7 @@ void eat(void* arg)
 		else
 		{
 			animal = 2;
-			isReady[2]++;
+			isReady[animal]++;
 			pthread_mutex_lock(&mutex);
 			pthread_cond_wait(&cond_mice[param.id], &mutex);
 			pthread_mutex_unlock(&mutex);
@@ -331,21 +329,21 @@ void eat(void* arg)
 		//area.status[my_dish] = param.animal_type[0];
 		time_t t = time(NULL);
 		struct tm tm = *localtime(&t);
-		 printf("%s\t[%d-%d-%d %d:%d:%d] [%s] %s %d started eating from dish %d%s\n", thread_color, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
+		 printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tstarted eating from dish %d%s\n", thread_color, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
 		--param.num_eat;
 		++area.num_eaten;
 		sleep(param.eating_time);
-		pthread_cond_signal(&cond_scheduler); //send signal after eating time
-		
+		isReady[animal] --;
 		--area.num_eaten;
 		t = time(NULL);
 		tm = *localtime(&t);
-		printf("%s\t[%d-%d-%d %d:%d:%d] [%s] %s %d finished eating from dish %d%s\n", thread_color, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
+		printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tfinished eating from dish %d%s\n", thread_color, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
 			
-	}
+	} while(param.num_eat > 0);
 	
 	threadDone[animal][param.id] = true;
-	printf("%s%d %s is done%s\n", ANSI_COLOR_YELLOW, param.id, param.animal_type, ANSI_COLOR_RESET);
+	if(verbose == true)
+		printf("%s%d %s is done%s\n", ANSI_COLOR_YELLOW, param.id, param.animal_type, ANSI_COLOR_RESET);
 	
 }
 
@@ -353,23 +351,24 @@ void scheduler(void* arg)
 {
 	int cnt = 0;
 	while(true)
-	{
+	{	
+		if(verbose == true)
+			printf("%s--------------------------------------------- Scheduler starts round number %d%s\n", ANSI_COLOR_GREEN, cnt, ANSI_COLOR_RESET);
+			
 		int animal = nextGroup();
-
 		while(true)
 		{
 			if(isReady[animal] < area.bowles)
 			{
+				/*if(verbose == true)
+					printf("\t\t\t\t\t\t\t%sBUSYLOOP WAITING FOR ISREADY: %d%s\n", ANSI_COLOR_GREEN, isReady[animal], ANSI_COLOR_RESET);*/
 				continue;
 			}
 			if(verbose == true)
 				printf("%s\t\t\tDEBUG: registered animals are ready: %d%s\n", ANSI_COLOR_GREEN, isReady[animal], ANSI_COLOR_RESET);
-			isReady[animal] = 0;
+			
 			break;
 		}
-		
-		if(verbose == true)
-			printf("%s-------------------------------- Scheduler starts round number %d%s\n", ANSI_COLOR_GREEN, cnt, ANSI_COLOR_RESET);
 			
 		for(int j = 0; j < area.bowles; ++j)
 		{
@@ -382,13 +381,25 @@ void scheduler(void* arg)
 				}
 				break;
 			}
-			/*if(verbose == true)
-				printf("-------------------------------- SCHEDULER GOES SLEEP\n");*/
-			pthread_mutex_lock(&mutex);
-			pthread_cond_wait(&cond_scheduler, &mutex);
-			pthread_mutex_unlock(&mutex);
-			/*if(verbose == true)
-				printf("-------------------------------- SCHEDULER WAKES UP\n");*/
+			
+			if(j == area.bowles-1)
+			{
+				if(verbose == true)
+					printf("-------------------------------- SCHEDULER GOES SLEEP\n");
+				while(true)
+				{	
+					if(area.num_eaten > 0)
+					{
+						continue;
+					}
+					break;
+				}
+				
+				if(verbose == true)
+				printf("-------------------------------- SCHEDULER WAKES UP\n");
+			}
+			
+			
 		}
 		
 		//increment group priority
@@ -397,7 +408,11 @@ void scheduler(void* arg)
 		++cnt;
 		
 		if(workIsDone() == true)
+		{
+			if(verbose == true)
+				printf("SCHEDULER TERMINATE\n");
 			break;
+		}
 	}
 }
 
@@ -424,8 +439,9 @@ pthread_cond_t* nextAnimal(int animal)
 			printf("%s>>>> the next animal is mouse %d%s\n", ANSI_COLOR_GREEN, index, ANSI_COLOR_RESET);
 	}
 	
+	if(verbose == true)
+		printf("\x1b[35mDEBUG: PRIORITY OF ANIMAL: %d, ID: %d is: %d\x1b[0m\n", animal, index, prio.priority[animal][index]);
 	prio.priority[animal][index]++;
-	//printf("DEBUG %d\n", index);
 	return &prio.container[animal][index];
 
 }
@@ -450,6 +466,8 @@ int nextGroup()
 		}
 	}
 	
+	if(verbose == true)
+		printf("\t%s[NEXT GROUP IS %d]%s\n",ANSI_COLOR_GREEN, min_index, ANSI_COLOR_RESET);
 	return min_index;
 	
 }
