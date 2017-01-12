@@ -498,7 +498,7 @@ int nextGroup()
 	{
 		if(groupIsDone(i) ==  false)
 		{
-			prio.group_priority[i]
+			min_prio = prio.group_priority[i];
 			break;
 		}
 	} 
