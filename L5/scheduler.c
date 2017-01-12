@@ -17,6 +17,7 @@ int nextGroup();
 boolean groupIsDone(int animal);
 boolean workIsDone();
 void calcGroupPriorities(int current_group);
+
 /*define global variables*/
 food_area area;
 int** threadDone;
@@ -385,7 +386,7 @@ void scheduler(void* arg)
 				continue;
 			} 
 			//if you have less threads than number of bowles
-			else if(isReady[animal] < 1 && prio.threads_per_group[animal] < area.bowles) 
+			else if(isReady[animal] < prio.threads_per_group[animal] && prio.threads_per_group[animal] < area.bowles) 
 			{
 				continue;
 			}
@@ -394,7 +395,6 @@ void scheduler(void* arg)
 				printf(">> RELEASE THREADS <<\n");
 			break;
 		}
-			
 			
 		//release threads in number of bowles	
 		for(int j = 0; j < area.bowles; ++j)
@@ -438,7 +438,24 @@ void scheduler(void* arg)
 	}
 	
 	if(verbose == true)
+	{
 		printf("SCHEDULER TERMINATE\n");
+		
+	
+	
+		printf("Animal accessmatrix:\n");
+		for(int i = 0; i < GROUPS; ++i)
+		{
+			printf("GROUP %d [", i);
+			for(int j = 0; j < prio.threads_per_group[i]; ++j)
+				printf("%d\t", threadDone[i][j]);
+			printf("]\n");
+		}
+		
+		printf("Animal Group %d is done %d\n", 0, groupIsDone(0));
+		printf("Animal Group %d is done %d\n", 1, groupIsDone(1));
+		printf("Animal Group %d is done %d\n", 2, groupIsDone(2));
+	}
 }
 
 pthread_cond_t* nextAnimal(int animal) 
@@ -474,7 +491,7 @@ pthread_cond_t* nextAnimal(int animal)
 int nextGroup()
 {
 	int min_index = -1;
-	int min_prio = prio.group_priority[0];
+	int min_prio = prio.group_priority[0]; //causes logic issue ex: cat group is done then the priority still counts -> take only available undone groups!! 
 	
 	for(int i = 0; i < GROUPS; ++i)
 	{
@@ -486,7 +503,6 @@ int nextGroup()
 			{
 				min_index = i;
 				min_prio = prio.group_priority[i];
-				//break;
 			}
 		}
 	}
@@ -499,12 +515,12 @@ int nextGroup()
 
 boolean groupIsDone(int animal)
 {
+	boolean erg = true;
 	for(int i = 0; i < prio.threads_per_group[animal]; ++i)
 	{
-		if(threadDone[animal][i] == false)
-			return false;
+		erg *= threadDone[animal][i]; 
 	}
-	return true;
+	return erg;
 }
 
 boolean workIsDone()
