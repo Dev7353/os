@@ -491,7 +491,17 @@ pthread_cond_t* nextAnimal(int animal)
 int nextGroup()
 {
 	int min_index = -1;
-	int min_prio = prio.group_priority[0]; //causes logic issue ex: cat group is done then the priority still counts -> take only available undone groups!! 
+	
+	//get the next AVAILABLE minima grouppriority
+	int min_prio = 0;
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		if(groupIsDone(i) ==  false)
+		{
+			prio.group_priority[i]
+			break;
+		}
+	} 
 	
 	for(int i = 0; i < GROUPS; ++i)
 	{
