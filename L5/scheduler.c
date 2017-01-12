@@ -230,6 +230,27 @@ int main(int argc, char* argv[])
 			}
 	}
 	
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		if(i == 0)
+		{
+			for(int j = 0; j < cn; ++j)
+				synchronize[i][j] = -1; 
+		}
+					
+		else if(i == 1)
+		{
+			for(int j = 0; j < dn; ++j)
+				synchronize[i][j] = -1;
+		}
+				
+		else
+		{ 
+			for(int j = 0; j < mn; ++j)
+				synchronize[i][j] = -1;
+		}
+	}
+	
 	time_t sec;
 	time(&sec);
 	srandom ((unsigned int) sec);
@@ -356,9 +377,18 @@ void eat(void* arg)
 		// decrements local number of eating times
 		--param.num_eat; 
 
+		while(true)
+		{
+			if(nextBowle(area.status, area.bowles) > -1)
+			{
+				break; 
+			}
+			continue;
+		}
+		
 		synchronize[animal][param.id] = true;
 		sleep(param.eating_time);
-		
+
 		//decremtn global variable so that scheduler releases only
 		--isReady[animal];
 		
@@ -368,8 +398,8 @@ void eat(void* arg)
 		
 		//clear the dish occupant 
 		area.status[my_dish] = '-';
-		
 		printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tfinished eating from dish %d%s\n", thread_color, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
+		
 		
 		synchronize[animal][param.id] = false;
 
@@ -394,10 +424,10 @@ void scheduler(void* arg)
 		//check if all groups are done with eating
 		if(animal == -1)
 			break; 
-			
+		
 		while(true)
 		{
-			if(isReady[animal] >= area.bowles && prio.threads_per_group[animal] <= area.bowles)
+			if(isReady[animal] >= area.bowles && prio.threads_per_group[animal] >= area.bowles)
 			{
 				break;
 			} 
@@ -412,11 +442,10 @@ void scheduler(void* arg)
 		if(verbose == true)
 				printf(">> RELEASE THREADS <<\n");
 
-		//release threads in number of bowles	
-		for(int j = 0; j < isReady[animal]; ++j)
+		//THREAD RELEASE
+		for(int j = 0; j < prio.threads_per_group[animal]; ++j)
 		{
 			pthread_cond_signal(nextAnimal(animal));
-			
 			while(true)
 			{	
 				if(synchronize[animal][j] == true)
@@ -425,21 +454,27 @@ void scheduler(void* arg)
 				}
 				continue;
 			}
-			if(j == isReady[animal]-1)
+
+			if(j == prio.threads_per_group[animal]-1)
 			{
 				if(verbose == true)
 					printf("-------------------------------- SCHEDULER GOES SLEEP\n");
 					
-				while(checkIfEmpty(animal) == false)
-					break;
-				
+				while(true)
+				{
+						if(checkIfEmpty(animal) == true)
+						{
+							break;	
+						}
+						continue;
+				}
+								
 				if(verbose == true)
 				printf("-------------------------------- SCHEDULER WAKES UP\n");
 			}
 			
 			
 		}
-		
 		//increment group priorities
 		calcGroupPriorities(animal);	
 		
@@ -572,12 +607,15 @@ void calcGroupPriorities(int current_group)
 
 boolean checkIfEmpty(int animal)
 {
-	boolean ret = true;
-	
+	int ctr = 0;
+	int should =  prio.threads_per_group[animal];
 	for(int i = 0; i < prio.threads_per_group[animal];++i)
 	{
-		ret *= synchronize[animal][i];
+		if(synchronize[animal][i] == false)
+			++ctr;
 	} 
+	if(ctr == should)
+		return true;
 	
-	return ret;
+	return false;
 }
