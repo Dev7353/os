@@ -8,6 +8,8 @@
 	- [Implementierung](#implementierung)
 		- [Berechnung der Prioritäten](#berechnung-der-prioritäten)
 		- [Funktionsweise eines Threads](#funktionsweise-eines-threads)
+- [Kritik](#kritik)
+- [Weitere Quellen](#weitere-quellen)
 
 
 ## Vorüberlegung
@@ -61,6 +63,7 @@ Es wird mit der `checkIfEmpty(animal)`-Funktion überprüft, ob alle Einträge a
 
 Wenn das letzte Tier fertig mit Essen ist, so berechnet er die Gruppenpriorität mit `calcGroupPriorities(animal)` neu und schaltet der Scheduler auf die nächste Gruppe. 
 Die Funktion macht nichts anderes als die Priorität der Gruppe, die gerade dran war, oder eine Gruppe, die fertig mit dem Essen ist, zu inkrementieren und die der anderen Gruppen zu dekrementieren. 
+Durch das Dekrementieren wird verhindert, dass eine Tiergruppe verhungert, denn irgendwann ist die Priorität so wichtig, dass sie auf jeden Fall irgendwann drankommt.
 Um zu überprüfen, ob eine Gruppe fertig mit dem Essen ist, wird eine `groupIsDone()`-Funktion verwendet. Diese Funktion schaut in der `threadIsDone`-Matrix, ob alle Threads terminiert sind.
 
 Der Unterschied zur `synchronize[][]`-Matrix ist hierbei, dass die `threadIsDone[][]`-Matrix überprüft ob die Threads terminiert sind, sprich wenn alle Tiere genug gegessen haben. 
@@ -82,3 +85,7 @@ Ausserdem wird der Status der Schüssel zurück auf '-' zurückgesetzt und der E
 Dies wiederholt er, wie oben beschrieben, so lange bis das Tier genug gegessen hat. Wenn er aus der Schleife rausspringt, setzt er seinen Status im `threadisDone[][]` Array auf true, da der Thread nun terminiert.
 
 Der Scheduler terminiert, wenn `nextGroup()` -1 zurückliefert, also wenn alle Gruppen genug gegessen haben.
+
+## Kritik
+
+## Weitere Quellen
