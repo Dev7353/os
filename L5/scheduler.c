@@ -39,7 +39,7 @@ food_area area;
 int** threadDone;
 int** synchronize;
 double** waiting_times;
-volatile int isReady[GROUPS];
+int isReady[GROUPS];
 pthread_cond_t* cond_cats;
 pthread_cond_t* cond_dogs; 
 pthread_cond_t* cond_mice;
