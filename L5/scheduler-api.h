@@ -1,6 +1,5 @@
 #ifndef SCHEDULER_API_H
 #define SCHEDULER_API_H
-
 #define ANSI_COLOR_RED 		"\x1b[31m"
 #define ANSI_COLOR_BLUE 	"\x1b[34m"
 #define ANSI_COLOR_GREEN 	"\x1b[32m"
@@ -25,6 +24,7 @@ typedef struct
 	int bowles;
 	char* status;
 	int num_eaten;
+	int* eating_times_per_group;
 }food_area;
 
 #define CAT "cat"
