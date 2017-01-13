@@ -24,7 +24,6 @@ void eat(void* arg);
 pthread_cond_t* nextAnimal();
 int nextGroup();
 boolean groupIsDone(int animal);
-boolean workIsDone();
 void calcGroupPriorities(int current_group);
 boolean checkIfEmpty(int animal);
 
@@ -439,6 +438,7 @@ void eat(void* arg)
 void scheduler(void* arg)
 {
 	int cnt = 0;
+	time_t begin, end;
 	while(true)
 	{	
 		if(verbose == true)
@@ -470,6 +470,7 @@ void scheduler(void* arg)
 		//THREAD RELEASE
 		for(int j = 0; j < prio.threads_per_group[animal]; ++j)
 		{
+			begin = clock();
 			pthread_cond_signal(nextAnimal(animal));
 			while(true)
 			{	
@@ -493,6 +494,7 @@ void scheduler(void* arg)
 						}
 						continue;
 				}
+				end = clock();
 								
 				if(verbose == true)
 				printf("-------------------------------- SCHEDULER WAKES UP\n");
@@ -621,17 +623,6 @@ boolean groupIsDone(int animal)
 		erg *= threadDone[animal][i]; 
 	}
 	return erg;
-}
-
-boolean workIsDone()
-{
-	for(int i = 0; i < GROUPS; ++i)
-	{
-		if(groupIsDone(i) == false)
-			return false;
-	}
-		
-		return true;
 }
 
 void calcGroupPriorities(int current_group)
