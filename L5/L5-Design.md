@@ -1,13 +1,13 @@
 # L5-Design
 
 ## Inhaltsverzeichnis
-- [Vorüberlegung](#Vorüberlegung)
-	- [Auswahl des Schedulers](#Auswahl-des-Schedulers)
-- [Funktionsweise](#Funktionsweise)
-	- [Grundlegende Datenstrukturen](#Vorüberlegung)
-	- [Implementierung](#Implementierung)
-		- [Berechnung der Prioritäten](#Berechnung-der-Prioritäten)
-		- [Funktionsweise eines Threads](#Funktionsweise-eines-Threads)
+- [Vorüberlegung](#vorüberlegung)
+	- [Auswahl des Schedulers](#auswahl-des-schedulers)
+- [Funktionsweise](#funktionsweise)
+	- [Grundlegende Datenstrukturen](#vorüberlegung)
+	- [Implementierung](#implementierung)
+		- [Berechnung der Prioritäten](#berechnung-der-prioritäten)
+		- [Funktionsweise eines Threads](#funktionsweise-eines-threads)
 
 
 ## Vorüberlegung
