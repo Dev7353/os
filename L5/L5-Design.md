@@ -1,5 +1,15 @@
 # L5-Design
 
+## Inhaltsverzeichnis
+- [Vorüberlegung](#Vorüberlegung)
+	- [Auswahl des Schedulers](#Auswahl-des-Schedulers)
+- [Funktionsweise](#Funktionsweise)
+	- [Grundlegende Datenstrukturen](#Vorüberlegung)
+	- [Implementierung](#Implementierung)
+		- [Berechnung der Prioritäten](#Berechnung-der-Prioritäten)
+		- [Funktionsweise eines Threads](#Funktionsweise-eines-Threads)
+
+
 ## Vorüberlegung
 
 ### Auswahl des Schedulers:
@@ -8,7 +18,7 @@ Durch das Round-Robin System wird jegliche Möglichkeit einer Starvation elimini
 Es werden Tiere priorisiert, die eine niedrige satisfied-time haben, sprich wenn sie schnell wieder essen wollen, kriegen sie eine höhere Priorität. Dadurch müssen solche Threads nicht zu lange warten.
 Haben Tiere dieselbe satisfied-time, so wir das letzte genommen, da wir in einer Schleife das Minimum der satisfied-time berechnen und den Index dieses Tieres speichern.
 
-### Funktionsweise
+### Implementierung
 
 #### Grundlegende Datenstrukturen
 
