@@ -9,6 +9,15 @@
 #include <string.h>
 #include "scheduler-api.h"
 
+typedef struct 
+{
+	pthread_cond_t** container; //wrapper for cvs for each animal
+	int** priority; // prioritiy for each animal 
+	int* group_priority; // priority for each animal group
+	int* threads_per_group;
+	
+}prio_queue_t;
+
 /*define function prototypes incl thread functions*/
 void scheduler(void* arg);
 void eat(void* arg);
@@ -19,23 +28,23 @@ boolean workIsDone();
 void calcGroupPriorities(int current_group);
 boolean checkIfEmpty(int animal);
 
+
+double getMax(int animal, int animal_threads);
+double getAvg(int animal, int animal_threads);
+double getMin(int animal, int animal_threads);
+int nextTimeSlot(int animal);
+
+
 /*define global variables*/
 food_area area;
 int** threadDone;
 int** synchronize;
+double** waiting_times;
 volatile int isReady[GROUPS];
 pthread_cond_t* cond_cats;
 pthread_cond_t* cond_dogs; 
 pthread_cond_t* cond_mice;
 pthread_cond_t** cond_container; //wrapper for animal cvs
-typedef struct 
-{
-	pthread_cond_t** container; //wrapper for cvs for each animal
-	int** priority; // prioritiy for each animal 
-	int* group_priority; // priority for each animal group
-	int* threads_per_group;
-	
-}prio_queue_t;
 
 prio_queue_t prio;
 pthread_mutex_t mutex;
@@ -205,28 +214,36 @@ int main(int argc, char* argv[])
 	area.status = (char*) malloc(sizeof(char) * num_dishes);
 	for(int i = 0; i < num_dishes; ++i)
 		area.status[i] = '-';
+		
+	area.eating_times_per_group = (int*) malloc(GROUPS * sizeof(int));
+	area.eating_times_per_group[0] = ce;
+	area.eating_times_per_group[1] = de;
+	area.eating_times_per_group[2] = me;
 
 	threadDone = (int**) malloc(GROUPS * sizeof(int*));
 	synchronize = (int**) malloc(GROUPS * sizeof(int*));
+	waiting_times = (double**) malloc(GROUPS * sizeof(double*));
 	for(int i = 0; i < GROUPS; ++i)
 	{
 			if(i == 0)
 			{
 				threadDone[i] = (int*) calloc(cn, sizeof(int)); 
-				synchronize[i] = (int*) calloc(cn, sizeof(int)); 
+				synchronize[i] = (int*) calloc(cn, sizeof(int));
+				waiting_times[i] = (double*) calloc(cn*ce, sizeof(double)); 
 			}
 				
 			else if(i == 1)
 			{
 				threadDone[i] = (int*) calloc(dn, sizeof(int));
-				 synchronize[i] = (int*) calloc(dn, sizeof(int));
+				synchronize[i] = (int*) calloc(dn, sizeof(int));
+				waiting_times[i] = (double*) calloc(dn*de, sizeof(double));
 			}
 			
 			else
 			{
 				threadDone[i] = (int*) calloc(mn, sizeof(int)); 
 				synchronize[i] = (int*) calloc(mn, sizeof(int));
-
+				waiting_times[i] = (double*) calloc(mn*me, sizeof(double));
 			}
 	}
 	
@@ -324,7 +341,8 @@ int main(int argc, char* argv[])
 }
 
 void eat(void* arg)
-{	
+{	time_t begin, end;
+	
 	char* thread_color = ANSI_COLOR_RESET;
 	int animal = 0;
 	animal_t param = *((animal_t*)arg);
@@ -333,6 +351,9 @@ void eat(void* arg)
 	{
 		/*animal gets hungry*/
 		sleep(param.satisfied_time);
+		
+		begin = clock();
+		
 		if(verbose == true)
 			printf("%s %d is hungry\n", param.animal_type, param.id);
 		
@@ -362,7 +383,12 @@ void eat(void* arg)
 			pthread_mutex_unlock(&mutex);
 		}
 		
-		//printf("%d my name is %d\n", animal, param.id);
+		end = clock();
+		
+		double diff = ((double) end-begin)/CLOCKS_PER_SEC;
+		waiting_times[animal][nextTimeSlot(animal)] = diff;
+		
+		
 		if(param.num_eat == 0)
 			continue;
 		
@@ -408,7 +434,6 @@ void eat(void* arg)
 	threadDone[animal][param.id] = true;
 	if(verbose == true)
 		printf("%s%d %s is done%s\n", ANSI_COLOR_YELLOW, param.id, param.animal_type, ANSI_COLOR_RESET);
-	
 }
 
 void scheduler(void* arg)
@@ -451,7 +476,7 @@ void scheduler(void* arg)
 				if(synchronize[animal][j] == true)
 				{
 					break;
-				}
+				}	
 				continue;
 			}
 
@@ -480,7 +505,7 @@ void scheduler(void* arg)
 		
 		++cnt;
 		
-	}
+}
 	
 	if(verbose == true)
 	{
@@ -500,6 +525,26 @@ void scheduler(void* arg)
 		printf("Animal Group %d is done %d\n", 0, groupIsDone(0));
 		printf("Animal Group %d is done %d\n", 1, groupIsDone(1));
 		printf("Animal Group %d is done %d\n", 2, groupIsDone(2));
+	}
+	
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		if(i == 0)
+			printf("%s:\n", CAT);
+		else if(i == 1)
+			printf("%s:\n", DOG);
+		else
+			printf("%s:\n", MOUSE);
+			
+		printf("\tMin: %f\n", getMin(i, prio.threads_per_group[i]));
+		printf("\tMax: %f\n", getMax(i, prio.threads_per_group[i]));
+		printf("\tAvg: %f\n", getAvg(i, prio.threads_per_group[i]));
+		
+		for(int j = 0; j < area.eating_times_per_group[i] * prio.threads_per_group[i]; j++)
+			printf("%f ,", waiting_times[i][j]);
+		printf("\n");
+
+	
 	}
 }
 
@@ -618,4 +663,52 @@ boolean checkIfEmpty(int animal)
 		return true;
 	
 	return false;
+}
+
+double getMin(int animal, int animal_threads)
+{
+	double min = waiting_times[animal][0];
+	for(int i = 0; i < animal_threads* area.eating_times_per_group[animal]; ++i)
+	{
+		if(waiting_times[animal][i] <= min)
+			min = waiting_times[animal][i];
+	}
+	
+	return min;	
+}
+
+double getAvg(int animal, int animal_threads)
+{
+	double sum = 0;
+	for(int i = 0; i < animal_threads* area.eating_times_per_group[animal]; ++i)
+	{
+		sum += waiting_times[animal][i];
+	}
+	
+	return sum/(animal_threads*area.eating_times_per_group[animal]);
+}
+
+double getMax(int animal, int animal_threads)
+{
+	double max = waiting_times[animal][0];
+	for(int i = 0; i < animal_threads * area.eating_times_per_group[animal]; ++i)
+	{
+		if(waiting_times[animal][i] >= max)
+			max = waiting_times[animal][i];
+	}
+	
+	return max;
+}
+
+int nextTimeSlot(int animal)
+{
+	int index = 0;
+	
+	for(int i = 0; i < prio.threads_per_group[animal]*area.eating_times_per_group[animal];++i)
+		if(waiting_times[animal][i] == 0)
+		{
+			index = i;
+			break;	
+		}
+	return index;
 }
