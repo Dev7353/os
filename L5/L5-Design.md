@@ -23,8 +23,10 @@ Zudem sind in der API noch weitere Macros definiert, die den Code insgesamt vers
 
 #### Funktionsweise
 
-Nachdem das Programm die Parameter eingelesen, die Variablen dementsprechend zugeordnet und Speicher allokiert hat, werden sämtliche Threads gestartet. 
+Zu Anfang werden die Parameter eingelesen, die Variablen dementsprechend zugeordnet und Speicher allokiert. Hervorzuheben ist hier, dass zum Speichern der Prioritäten ein struct definiert wird, dass Daten wichtig für die Priorisierung der Tiere und Tiergruppen beinhaltet.
+Dann werden sämtliche Threads gestartet. 
 Wichtig hierbei ist, dass der Scheduler-Thread vor den Tier-Threads startet, da dieser ja entscheidet welcher Thread wann drankommt. 
+
 Die Tier-Threads werden gestartet, inkrementieren die Anzahl der Tiere, die in der Gruppe bereit sind (`isReady[][]`) und gehen dann in den Suspend-Zustand, bis der Scheduler sie aufweckt. 
 Hierfür kriegt jede Tiergruppe eine eigene Condition-Variable, auf die sie schläft, welche durch einen Mutex jeweils geschützt wird.
 
@@ -64,4 +66,9 @@ Ist dieser '-', was als "frei" definiert ist, so wird der Index von dieser Schü
 
 Der Thread wartet daraufhin solange aktiv, bis eine Schüssel frei ist, d.h. der Index *grösser* als -1 ist.
 Er setzt dann seinen Wert in `synchonize[][]` auf *true*, d.h. er fängt jetzt an zu essen. 
-Essen in diesem Falle heisst, sie schlafen passiv ihre `eating_time`.
+Essen in diesem Falle heisst, sie schlafen passiv ihre `eating_time`. Da das Tier nun gegessen, ist es nicht mehr "bereit" um zu essen, daher wird `isReady[][]` von der Tiergruppe dekrementiert.
+Ausserdem wird der Status der Schüssel zurück auf '-' zurückgesetzt und der Eintrag im `synchronize[][]` Array an der jeweiligen Stelle wird zurück auf *false* gesetzt. Das Tier ist also nicht mehr am Essen.
+
+Dies wiederholt er, wie oben beschrieben, so lange bis das Tier genug gegessen hat. Wenn er aus der Schleife rausspringt, setzt er seinen Status im `threadisDone[][]` Array auf true, da der Thread nun terminiert.
+
+Der Scheduler terminiert, wenn `nextGroup()` -1 zurückliefert, also wenn alle Gruppen genug gegessen haben.
