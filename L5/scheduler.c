@@ -515,21 +515,9 @@ void scheduler(void* arg)
 		
 }
 	
+	printf("---------------------------------- RESULT ----------------------------------\n");
 	if(verbose == true)
 	{
-		printf("SCHEDULER TERMINATE\n");
-		
-	
-	
-		printf("Animal accessmatrix:\n");
-		for(int i = 0; i < GROUPS; ++i)
-		{
-			printf("GROUP %d [", i);
-			for(int j = 0; j < prio.threads_per_group[i]; ++j)
-				printf("%d\t", threadDone[i][j]);
-			printf("]\n");
-		}
-		
 		printf("Animal Group %d is done %d\n", 0, groupIsDone(0));
 		printf("Animal Group %d is done %d\n", 1, groupIsDone(1));
 		printf("Animal Group %d is done %d\n", 2, groupIsDone(2));
@@ -552,7 +540,7 @@ void scheduler(void* arg)
 		if(verbose == true)
 		{
 			for(int j = 0; j < area.eating_times_per_group[i] * prio.threads_per_group[i]; j++)
-				printf("%f ,", waiting_times[i][j]);
+				printf("%f, %f\n",(j+1)*(waiting_times_group[i]/((area.eating_times_per_group[i]*prio.threads_per_group[i]))), waiting_times[i][j]);
 			printf("\n");
 		}
 	
