@@ -39,6 +39,7 @@ food_area area;
 int** threadDone;
 int** synchronize;
 double** waiting_times;
+double* waiting_times_group;
 int isReady[GROUPS];
 pthread_cond_t* cond_cats;
 pthread_cond_t* cond_dogs; 
@@ -222,6 +223,7 @@ int main(int argc, char* argv[])
 	threadDone = (int**) malloc(GROUPS * sizeof(int*));
 	synchronize = (int**) malloc(GROUPS * sizeof(int*));
 	waiting_times = (double**) malloc(GROUPS * sizeof(double*));
+	waiting_times_group = (double*) malloc(GROUPS * sizeof(double));
 	for(int i = 0; i < GROUPS; ++i)
 	{
 			if(i == 0)
@@ -452,7 +454,7 @@ void scheduler(void* arg)
 		
 		while(true)
 		{
-			if(isReady[animal] >= area.bowles && prio.threads_per_group[animal] >= area.bowles)
+			if(isReady[animal] == prio.threads_per_group[animal] && prio.threads_per_group[animal] >= area.bowles)
 			{
 				break;
 			} 
@@ -465,8 +467,10 @@ void scheduler(void* arg)
 			continue;
 		}
 		if(verbose == true)
-				printf(">> RELEASE THREADS <<\n");
-
+		{
+			printf(">> RELEASE THREADS <<\n");
+			printf(">>%d Threads are ready <<\n", isReady[animal]);
+		}
 		//THREAD RELEASE
 		for(int j = 0; j < prio.threads_per_group[animal]; ++j)
 		{
@@ -495,6 +499,8 @@ void scheduler(void* arg)
 						continue;
 				}
 				end = clock();
+				double diff = ((double) end - begin)/CLOCKS_PER_SEC;
+				waiting_times_group[animal] += diff;
 								
 				if(verbose == true)
 				printf("-------------------------------- SCHEDULER WAKES UP\n");
@@ -541,11 +547,14 @@ void scheduler(void* arg)
 		printf("\tMin: %f\n", getMin(i, prio.threads_per_group[i]));
 		printf("\tMax: %f\n", getMax(i, prio.threads_per_group[i]));
 		printf("\tAvg: %f\n", getAvg(i, prio.threads_per_group[i]));
+		printf("\tGroup waiting time: %f\n", waiting_times_group[i]);
 		
-		for(int j = 0; j < area.eating_times_per_group[i] * prio.threads_per_group[i]; j++)
-			printf("%f ,", waiting_times[i][j]);
-		printf("\n");
-
+		if(verbose == true)
+		{
+			for(int j = 0; j < area.eating_times_per_group[i] * prio.threads_per_group[i]; j++)
+				printf("%f ,", waiting_times[i][j]);
+			printf("\n");
+		}
 	
 	}
 }
@@ -573,8 +582,6 @@ pthread_cond_t* nextAnimal(int animal)
 			printf("%s>>>> the next animal is mouse %d%s\n", ANSI_COLOR_GREEN, index, ANSI_COLOR_RESET);
 	}
 	
-	if(verbose == true)
-		printf("\x1b[35mDEBUG: PRIORITY OF ANIMAL: %d, ID: %d is: %d\x1b[0m\n", animal, index, prio.priority[animal][index]);
 	prio.priority[animal][index]++;
 	return &prio.container[animal][index];
 
