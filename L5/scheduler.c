@@ -35,6 +35,9 @@ int nextTimeSlot(int animal);
 
 
 /*define global variables*/
+FILE* fp;
+boolean file = false;
+char* filename;
 food_area area;
 int** threadDone;
 int** synchronize;
@@ -52,8 +55,6 @@ boolean verbose = false;
 
 int main(int argc, char* argv[])
 {
-	
-	char* filename = NULL;
 	//Default amount of animals
 	int cn = 6;
 	int dn = 4;
@@ -119,6 +120,7 @@ int main(int argc, char* argv[])
 				return 0;
 			case 'f':
 				filename = optarg;
+				file = true;
 				break;
 			case 'a':
 			cn = atoi(optarg);
@@ -537,11 +539,39 @@ void scheduler(void* arg)
 		printf("\tAvg: %f\n", getAvg(i, prio.threads_per_group[i]));
 		printf("\tGroup waiting time: %f\n", waiting_times_group[i]);
 		
-		if(verbose == true)
+		if(verbose == true || file == true)
 		{
+			int cat_ctr = 0;
+			int dog_ctr = 0;
+			int mouse_ctr = 0;
 			for(int j = 0; j < area.eating_times_per_group[i] * prio.threads_per_group[i]; j++)
-				printf("%f, %f\n",(j+1)*(waiting_times_group[i]/((area.eating_times_per_group[i]*prio.threads_per_group[i]))), waiting_times[i][j]);
-			printf("\n");
+			{
+				double x = (j+1)*(waiting_times_group[i]/((area.eating_times_per_group[i]*prio.threads_per_group[i])));
+				double y = waiting_times[i][j];
+				
+				if(verbose == true)
+					printf("%f, %f\n", x, y);
+								
+				fp = fopen(filename,"a");
+				if(i == 0 && cat_ctr == 0)
+				{	
+					fprintf(fp, "%s\n", "cats"); 
+					cat_ctr++;
+				}
+				else if(i == 1 && dog_ctr == 0)
+				{
+					fprintf(fp, "%s\n", "dogs"); 
+					dog_ctr++;
+				}
+				else if (i == 2 && mouse_ctr == 0)
+				{
+					fprintf(fp, "%s\n", "mice"); 
+					mouse_ctr++;
+				}
+				fprintf(fp, "%f,%f\n", x, y);
+				fclose(fp);
+				
+			}	
 		}
 	
 	}
