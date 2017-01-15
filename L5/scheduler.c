@@ -162,9 +162,9 @@ int main(int argc, char* argv[])
 	area.eating_times_per_group = (int*) malloc(GROUPS * sizeof(int));
 	assert(area.eating_times_per_group != NULL);
 	
-	area.eating_times_per_group[0] = cn;
-	area.eating_times_per_group[1] = dn;
-	area.eating_times_per_group[2] = mn;
+	area.eating_times_per_group[0] = ce;
+	area.eating_times_per_group[1] = de;
+	area.eating_times_per_group[2] = me;
 	
 	//initialize the priority queue struct
 	prio.container = (pthread_cond_t**) malloc(GROUPS * sizeof(pthread_cond_t*));

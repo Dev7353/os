@@ -6,7 +6,7 @@ double getMin(int animal, int animal_threads)
 	double min = waiting_times[animal][0];
 	for(int i = 0; i < animal_threads* area.eating_times_per_group[animal]; ++i)
 	{
-		if(waiting_times[animal][i] <= min)
+		if(waiting_times[animal][i] <= min && waiting_times[animal][i] > 0)
 			min = waiting_times[animal][i];
 	}
 	
