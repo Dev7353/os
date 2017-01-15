@@ -1,5 +1,7 @@
 #include "scheduler-api.h"
 #include "time-api.h"
+#include <stdlib.h>
+#include <assert.h>
 
 int nextBowle(char* status, int bowles)
 {
@@ -145,8 +147,40 @@ boolean checkIfEmpty(int animal)
 	return false;
 }
 
-void initializeSynchronize()
+void initializeGlobals()
 {
+	area.num_eaten = 0;
+	area.status = (char*) malloc(sizeof(char) * area.bowles);
+	assert(area.status != NULL);
+	for(int i = 0; i < area.bowles; ++i)
+		area.status[i] = '-';
+		
+	area.eating_times_per_group = (int*) malloc(GROUPS * sizeof(int));
+	assert(area.eating_times_per_group != NULL);
+	area.eating_times_per_group[0] = area.eating_times_per_group[0];
+	area.eating_times_per_group[1] = area.eating_times_per_group[1];
+	area.eating_times_per_group[2] = area.eating_times_per_group[2];
+
+	threadDone = (int**) malloc(GROUPS * sizeof(int*));
+	assert(threadDone != NULL);
+	
+	synchronize = (int**) malloc(GROUPS * sizeof(int*));
+	assert(synchronize != NULL);
+	
+	waiting_times = (double**) malloc(GROUPS * sizeof(double*));
+	assert(waiting_times != NULL);
+	
+	waiting_times_group = (double*) malloc(GROUPS * sizeof(double));
+	assert(waiting_times_group != NULL);
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		threadDone[i] = (int*) calloc(prio.threads_per_group[i], sizeof(int)); 
+		assert(threadDone[i] != NULL);
+		synchronize[i] = (int*) calloc(prio.threads_per_group[i], sizeof(int));
+		assert(synchronize[i] != NULL);
+		waiting_times[i] = (double*) calloc(prio.threads_per_group[i]*area.eating_times_per_group[i], sizeof(double));
+		assert(waiting_times[i] != NULL); 
+	} 
 	for(int i = 0; i < GROUPS; ++i)
 	{
 		if(i == 0)

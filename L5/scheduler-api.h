@@ -52,7 +52,7 @@ boolean groupIsDone(int animal);
 void calcGroupPriorities(int current_group);
 boolean checkIfEmpty(int animal);
 void printStatistics();
-void initializeSynchronize();
+void initializeGlobals();
 
 //global variables
 FILE* fp;
