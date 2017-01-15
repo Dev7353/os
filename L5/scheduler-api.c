@@ -200,6 +200,7 @@ void printStatistics()
 			int mouse_ctr = 0;
 			for(int j = 0; j < area.eating_times_per_group[i] * prio.threads_per_group[i]; j++)
 			{
+				
 				double x = (j+1)*(waiting_times_group[i]/((area.eating_times_per_group[i]*prio.threads_per_group[i])));
 				double y = waiting_times[i][j];
 				
