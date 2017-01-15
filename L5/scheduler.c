@@ -150,10 +150,14 @@ int main(int argc, char* argv[])
 	//initialize food area
 	area.bowles = num_dishes;
 	area.num_eaten = 0;
-	area.status = (char*) malloc(sizeof(char) * area.bowles);
+	area.status = (char*) malloc(sizeof(char) * area.bowles+1);
 	assert(area.status != NULL);
+	char dash = '-';
+	char terminator = '\0';
 	for(int i = 0; i < area.bowles; ++i)
-		area.status[i] = '-';
+		memcpy(&area.status[i], &dash, 1);
+	
+	memcpy(&area.status[area.bowles], &terminator, 1);
 		
 	area.eating_times_per_group = (int*) malloc(GROUPS * sizeof(int));
 	assert(area.eating_times_per_group != NULL);
