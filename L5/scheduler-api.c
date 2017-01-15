@@ -1,6 +1,5 @@
 #include "scheduler-api.h"
-#include <stdio.h>
-#include <time.h>
+
 int nextBowle(char* status, int bowles)
 {
 	int idx = -1;

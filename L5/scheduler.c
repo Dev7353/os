@@ -8,15 +8,7 @@
 #include <semaphore.h>
 #include <string.h>
 #include "scheduler-api.h"
-
-typedef struct 
-{
-	pthread_cond_t** container; //wrapper for cvs for each animal
-	int** priority; // prioritiy for each animal 
-	int* group_priority; // priority for each animal group
-	int* threads_per_group;
-	
-}prio_queue_t;
+#include "time-api.h"
 
 /*define function prototypes incl thread functions*/
 void scheduler(void* arg);
@@ -27,34 +19,10 @@ boolean groupIsDone(int animal);
 void calcGroupPriorities(int current_group);
 boolean checkIfEmpty(int animal);
 
-
-double getMax(int animal, int animal_threads);
-double getAvg(int animal, int animal_threads);
-double getMin(int animal, int animal_threads);
-int nextTimeSlot(int animal);
-
-
-/*define global variables*/
-FILE* fp;
-boolean file = false;
-char* filename;
-food_area area;
-int** threadDone;
-int** synchronize;
-double** waiting_times;
-double* waiting_times_group;
-int isReady[GROUPS];
-pthread_cond_t* cond_cats;
-pthread_cond_t* cond_dogs; 
-pthread_cond_t* cond_mice;
-pthread_cond_t** cond_container; //wrapper for animal cvs
-
-prio_queue_t prio;
-pthread_mutex_t mutex;
-boolean verbose = false;
-
 int main(int argc, char* argv[])
 {
+	verbose = false;
+	file = false;
 	//Default amount of animals
 	int cn = 6;
 	int dn = 4;
@@ -681,50 +649,3 @@ boolean checkIfEmpty(int animal)
 	return false;
 }
 
-double getMin(int animal, int animal_threads)
-{
-	double min = waiting_times[animal][0];
-	for(int i = 0; i < animal_threads* area.eating_times_per_group[animal]; ++i)
-	{
-		if(waiting_times[animal][i] <= min)
-			min = waiting_times[animal][i];
-	}
-	
-	return min;	
-}
-
-double getAvg(int animal, int animal_threads)
-{
-	double sum = 0;
-	for(int i = 0; i < animal_threads* area.eating_times_per_group[animal]; ++i)
-	{
-		sum += waiting_times[animal][i];
-	}
-	
-	return sum/(animal_threads*area.eating_times_per_group[animal]);
-}
-
-double getMax(int animal, int animal_threads)
-{
-	double max = waiting_times[animal][0];
-	for(int i = 0; i < animal_threads * area.eating_times_per_group[animal]; ++i)
-	{
-		if(waiting_times[animal][i] >= max)
-			max = waiting_times[animal][i];
-	}
-	
-	return max;
-}
-
-int nextTimeSlot(int animal)
-{
-	int index = 0;
-	
-	for(int i = 0; i < prio.threads_per_group[animal]*area.eating_times_per_group[animal];++i)
-		if(waiting_times[animal][i] == 0)
-		{
-			index = i;
-			break;	
-		}
-	return index;
-}
