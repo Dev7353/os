@@ -45,7 +45,7 @@ typedef struct
 
 //functions
 void printHelp(); 
-int nextBowle(char* status, int bowles); 
+int nextBowle(); 
 pthread_cond_t* nextAnimal();
 int nextGroup();
 boolean groupIsDone(int animal);
@@ -53,6 +53,7 @@ void calcGroupPriorities(int current_group);
 boolean checkIfEmpty(int animal);
 void printStatistics();
 void initializeGlobals();
+void freeGlobals();
 
 //global variables
 FILE* fp;
@@ -67,6 +68,7 @@ int isReady[GROUPS];
 pthread_cond_t* cond_cats;
 pthread_cond_t* cond_dogs; 
 pthread_cond_t* cond_mice;
+boolean FINISH;
 
 prio_queue_t prio;
 pthread_mutex_t mutex;

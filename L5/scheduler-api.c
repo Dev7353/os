@@ -3,12 +3,12 @@
 #include <stdlib.h>
 #include <assert.h>
 
-int nextBowle(char* status, int bowles)
+int nextBowle()
 {
 	int idx = -1;
-	for(int i = 0; i < bowles; ++i)
+	for(int i = 0; i < area.bowles; ++i)
 	{
-		if(status[i] == '-')
+		if(area.status[i] == '-')
 		{
 			idx = i;
 			break;
@@ -149,18 +149,6 @@ boolean checkIfEmpty(int animal)
 
 void initializeGlobals()
 {
-	area.num_eaten = 0;
-	area.status = (char*) malloc(sizeof(char) * area.bowles);
-	assert(area.status != NULL);
-	for(int i = 0; i < area.bowles; ++i)
-		area.status[i] = '-';
-		
-	area.eating_times_per_group = (int*) malloc(GROUPS * sizeof(int));
-	assert(area.eating_times_per_group != NULL);
-	area.eating_times_per_group[0] = area.eating_times_per_group[0];
-	area.eating_times_per_group[1] = area.eating_times_per_group[1];
-	area.eating_times_per_group[2] = area.eating_times_per_group[2];
-
 	threadDone = (int**) malloc(GROUPS * sizeof(int*));
 	assert(threadDone != NULL);
 	
@@ -170,7 +158,7 @@ void initializeGlobals()
 	waiting_times = (double**) malloc(GROUPS * sizeof(double*));
 	assert(waiting_times != NULL);
 	
-	waiting_times_group = (double*) malloc(GROUPS * sizeof(double));
+	waiting_times_group = (double*) calloc(GROUPS, sizeof(double));
 	assert(waiting_times_group != NULL);
 	for(int i = 0; i < GROUPS; ++i)
 	{
@@ -183,23 +171,9 @@ void initializeGlobals()
 	} 
 	for(int i = 0; i < GROUPS; ++i)
 	{
-		if(i == 0)
-		{
-			for(int j = 0; j < prio.threads_per_group[0]; ++j)
-				synchronize[i][j] = -1; 
-		}
-					
-		else if(i == 1)
-		{
-			for(int j = 0; j < prio.threads_per_group[1]; ++j)
-				synchronize[i][j] = -1;
-		}
-				
-		else
-		{ 
-			for(int j = 0; j < prio.threads_per_group[2]; ++j)
-				synchronize[i][j] = -1;
-		}
+
+		for(int j = 0; j < prio.threads_per_group[i]; ++j)
+			synchronize[i][j] = -1; 
 	}
 }
 
@@ -214,10 +188,10 @@ void printStatistics()
 		else
 			printf("%s:\n", MOUSE);
 			
-		printf("\tMin: %f\n", getMin(i, prio.threads_per_group[i]));
-		printf("\tMax: %f\n", getMax(i, prio.threads_per_group[i]));
-		printf("\tAvg: %f\n", getAvg(i, prio.threads_per_group[i]));
-		printf("\tGroup waiting time: %f\n", waiting_times_group[i]);
+		printf("\tMin: %f sec\n", getMin(i, prio.threads_per_group[i]));
+		printf("\tMax: %f sec\n", getMax(i, prio.threads_per_group[i]));
+		printf("\tAvg: %f sec\n", getAvg(i, prio.threads_per_group[i]));
+		printf("\tGroup waiting time: %f sec\n", waiting_times_group[i]);
 		
 		if(verbose == true || file == true)
 		{
@@ -255,4 +229,27 @@ void printStatistics()
 		}
 	
 	}
+}
+
+void freeGlobals()
+{	
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		free(threadDone[i]);
+		free(synchronize[i]);
+		free(waiting_times[i]);
+		free(prio.container[i]);
+		free(prio.priority[i]);
+
+	}
+	
+	free(threadDone);
+	free(synchronize);
+	free(waiting_times);
+	free(waiting_times_group);
+	free(prio.container);
+	free(prio.threads_per_group);
+	free(prio.group_priority);
+	free(prio.priority);
+	 
 }

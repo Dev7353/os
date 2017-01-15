@@ -16,6 +16,7 @@ void eat(void* arg);
 
 int main(int argc, char* argv[])
 {
+	FINISH = false;
 	verbose = false;
 	file = false;
 	//Default amount of animals
@@ -146,6 +147,21 @@ int main(int argc, char* argv[])
 	cond_mice = (pthread_cond_t*) malloc(mn * sizeof(pthread_cond_t));
 	assert(cond_mice != NULL);
 	
+	//initialize food area
+	area.bowles = num_dishes;
+	area.num_eaten = 0;
+	area.status = (char*) malloc(sizeof(char) * area.bowles);
+	assert(area.status != NULL);
+	for(int i = 0; i < area.bowles; ++i)
+		area.status[i] = '-';
+		
+	area.eating_times_per_group = (int*) malloc(GROUPS * sizeof(int));
+	assert(area.eating_times_per_group != NULL);
+	
+	area.eating_times_per_group[0] = cn;
+	area.eating_times_per_group[1] = dn;
+	area.eating_times_per_group[2] = mn;
+	
 	//initialize the priority queue struct
 	prio.container = (pthread_cond_t**) malloc(GROUPS * sizeof(pthread_cond_t*));
 	assert(prio.container != NULL);
@@ -165,15 +181,15 @@ int main(int argc, char* argv[])
 	prio.group_priority[1] = dt;
 	prio.group_priority[2] = mt;
 	
-	prio.priority = (int**) malloc(3 * sizeof(int));
+	prio.priority = (int**) malloc(GROUPS * sizeof(int*));
 	assert(prio.priority != NULL);
-	prio.priority[0] = (int*) calloc(cn, sizeof(int));
-	assert(prio.priority[0] != NULL);
-	prio.priority[1] = (int*) calloc(dn, sizeof(int));
-	assert(prio.priority[1] != NULL);
-	prio.priority[2] = (int*) calloc(mn, sizeof(int));
-	assert(prio.priority[2] != NULL);
 	
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		prio.priority[i] = (int*) calloc(area.eating_times_per_group[i], sizeof(int));
+		assert(prio.priority[i] != NULL);
+	}
+
 	//initialize arguments for threads
 	animal_t* cat_args = (animal_t*) malloc(cn * sizeof(animal_t));
 	assert(cat_args != NULL);
@@ -182,8 +198,7 @@ int main(int argc, char* argv[])
 	animal_t* mouse_args = (animal_t*) malloc(mn * sizeof(animal_t));
 	assert(mouse_args != NULL);
 	
-	//initialize food area, synchronize, threadDone 
-	area.bowles = num_dishes;
+	//initialize threadDone, synchronize, waitingTimes and waitingTimesGroups
 	initializeGlobals();
 	
 	time_t sec;
@@ -250,12 +265,26 @@ int main(int argc, char* argv[])
 	}
 
 	assert(pthread_join(schedule, NULL) == 0);
+
+	//wait till all threads all done
+	while(true)
+	{
+		if(FINISH == true)
+			break;
+		continue;
+	}
 	
+	//free food area
+	free(area.eating_times_per_group);
 	free(area.status);
 	
-	free(cond_cats);
-	free(cond_dogs);
-	free(cond_mice);
+	//free animal arguments
+	free(cat_args);
+	free(dog_args);
+	free(mouse_args);
+	
+	//free threadDone, Synchronize, waitingTimes, waitingTimesGroup and priority queue
+	freeGlobals();
 }
 
 void eat(void* arg)
@@ -316,7 +345,7 @@ void eat(void* arg)
 		
 		time_t t = time(NULL);
 		struct tm tm = *localtime(&t);
-		 printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tstarted eating from dish %d%s\n", thread_color, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
+		printf("%s\t[%d-%d-%d %d:%d:%d] \t[%s] %s %d \tstarted eating from dish %d%s\n", thread_color, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900, tm.tm_hour, tm.tm_min, tm.tm_sec, area.status, param.animal_type, param.id, my_dish, ANSI_COLOR_RESET);
 		
 		// decrements local number of eating times
 		--param.num_eat; 
@@ -441,4 +470,5 @@ void scheduler(void* arg)
 	}
 	
 	printStatistics();
+	FINISH = true;
 }
