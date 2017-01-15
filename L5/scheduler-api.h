@@ -6,9 +6,20 @@
 #define ANSI_COLOR_YELLOW  	"\x1b[33m"
 #define ANSI_COLOR_RESET   	"\x1b[0m"
 
+#include <pthread.h>
+#include <stdio.h>
 typedef int boolean;
 #define true 1
 #define false 0
+
+typedef struct 
+{
+	pthread_cond_t** container; //wrapper for cvs for each animal
+	int** priority; // prioritiy for each animal 
+	int* group_priority; // priority for each animal group
+	int* threads_per_group;
+	
+}prio_queue_t;
 
 typedef struct
 {
@@ -34,4 +45,23 @@ typedef struct
 
 void printHelp(); 
 int nextBowle(char* status, int bowles); 
+
+//global variables
+FILE* fp;
+boolean file;
+char* filename;
+food_area area;
+int** threadDone;
+int** synchronize;
+double** waiting_times;
+double* waiting_times_group;
+int isReady[GROUPS];
+pthread_cond_t* cond_cats;
+pthread_cond_t* cond_dogs; 
+pthread_cond_t* cond_mice;
+pthread_cond_t** cond_container; //wrapper for animal cvs
+
+prio_queue_t prio;
+pthread_mutex_t mutex;
+boolean verbose ;
 #endif

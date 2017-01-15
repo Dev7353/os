@@ -10,7 +10,7 @@ clean:
 schedcheck: schedcheck.c
 	$(CC) $(CFLAGS) -lpthread $< -o $@
 
-scheduler: scheduler-api.c scheduler.c 
+scheduler: scheduler-api.c time-api.c scheduler.c 
 	$(CC) $(CFLAGS) -lpthread $^ -o $@
 		
 	
