@@ -36,17 +36,20 @@ def main():
     plt.xlabel("Group waiting time [sec]")
     plt.ylabel("Thread waiting time [sec]")
 
-    plt.scatter(*zip(*mice))
-    file = sys.argv[1] + "_mice.eps"
-    plt.savefig(file)
+    if mice:
+        plt.plot(*zip(*mice))
+        file = sys.argv[1] + "_mice.eps"
+        plt.savefig(file)
 
-    plt.scatter(*zip(*dogs))
-    file = sys.argv[1] + "_dogs.eps"
-    plt.savefig(file)
+    if dogs:
+        plt.plot(*zip(*dogs))
+        file = sys.argv[1] + "_dogs.eps"
+        plt.savefig(file)
 
-    plt.scatter(*zip(*cats))
-    file = sys.argv[1] + "_cats.eps"
-    plt.savefig(file)
+    if cats:
+        plt.plot(*zip(*cats))
+        file = sys.argv[1] + "_cats.eps"
+        plt.savefig(file)
 
 if __name__ == "__main__":
     main()

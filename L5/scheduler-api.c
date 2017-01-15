@@ -140,6 +140,9 @@ boolean checkIfEmpty(int animal)
 	{
 		if(synchronize[animal][i] == false)
 			++ctr;
+		//case for just 1 bowle
+		else if(area.bowles == 1 && synchronize[animal][i] == -1) 
+			++ctr;
 	} 
 	if(ctr == should)
 		return true;

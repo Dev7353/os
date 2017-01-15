@@ -405,6 +405,8 @@ void eat(void* arg)
 			{
 				break; 
 			}
+			else if(area.bowles == 1)
+				break;
 			continue;
 		}
 		
@@ -473,10 +475,15 @@ void scheduler(void* arg)
 			pthread_cond_signal(nextAnimal(animal));
 			while(true)
 			{	
-				if(synchronize[animal][j] == true)
+				if(synchronize[animal][j] == true && area.bowles > 1)
 				{
 					break;
 				}	
+				else if(synchronize[animal][j] == false && area.bowles == 1)
+				{
+					synchronize[animal][j] = -1;
+					break;
+				}
 				continue;
 			}
 
