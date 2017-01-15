@@ -3,6 +3,9 @@
 
 double getMin(int animal, int animal_threads)
 {
+	if(area.eating_times_per_group[animal] == 0)
+		return 0;
+		
 	double min = waiting_times[animal][0];
 	for(int i = 0; i < animal_threads* area.eating_times_per_group[animal]; ++i)
 	{
@@ -15,6 +18,9 @@ double getMin(int animal, int animal_threads)
 
 double getAvg(int animal, int animal_threads)
 {
+	if(area.eating_times_per_group[animal] == 0)
+		return 0;
+		
 	double sum = 0;
 	for(int i = 0; i < animal_threads* area.eating_times_per_group[animal]; ++i)
 	{
@@ -26,6 +32,9 @@ double getAvg(int animal, int animal_threads)
 
 double getMax(int animal, int animal_threads)
 {
+	if(area.eating_times_per_group[animal] == 0)
+		return 0;
+		
 	double max = waiting_times[animal][0];
 	for(int i = 0; i < animal_threads * area.eating_times_per_group[animal]; ++i)
 	{
