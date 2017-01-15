@@ -5,7 +5,7 @@ CFLAGS=-Wall -pedantic -Werror -g
 all: schedcheck scheduler
 
 clean: 
-	$(RM) -rf *.o schedcheck client scheduler
+	$(RM) -rf *.o schedcheck client scheduler *.eps measure*
 
 schedcheck: schedcheck.c
 	$(CC) $(CFLAGS) -lpthread $< -o $@
