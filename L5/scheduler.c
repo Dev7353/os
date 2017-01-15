@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 	int e = 1;
 	int E = 1;
 	boolean eFlag = false;
-	boolean EFLag = false;
+	boolean EFlag = false;
 	
 	int num_dishes = 2;
 	
@@ -126,9 +126,13 @@ int main(int argc, char* argv[])
 				break;
 			case 'm':
 				e = atoi(optarg);
+				assert(e >= 0);
+				eFlag = true;
 				break;
 			case 'n':
 				E = atoi(optarg);
+				assert(EFlag >= 0);
+				EFlag = true;
 				break;
 			case 'o':
 				num_dishes = atoi(optarg);
