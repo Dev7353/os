@@ -232,6 +232,12 @@ void printStatistics()
 	}
 }
 
+void threadIsDone(int animal)
+{
+	for(int i = 0; i < prio.threads_per_group[animal]; ++i)
+		threadDone[animal][i] = true;
+}
+
 void freeGlobals()
 {	
 	for(int i = 0; i < GROUPS; ++i)

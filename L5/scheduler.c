@@ -132,6 +132,13 @@ int main(int argc, char* argv[])
 		
 	}
 	
+	//catch illegal arguments
+	if(de == 0 && me == 0 && ce == 0)
+	{
+		fprintf(stderr, "There must be at least one animal who wants to eat\n");
+		return 1;
+	}
+	
 	/*define variables for threads*/
 	pthread_t cats[cn];
 	pthread_t dogs[dn];
@@ -205,6 +212,14 @@ int main(int argc, char* argv[])
 	
 	//initialize threadDone, synchronize, waitingTimes and waitingTimesGroups
 	initializeGlobals();
+	
+	//to avoid racecondition
+	if(ce == 0)
+		threadIsDone(0);
+	if(de == 0)
+		threadIsDone(1);
+	if(me == 0)
+		threadIsDone(2);
 	
 	time_t sec;
 	time(&sec);

@@ -54,6 +54,7 @@ boolean checkIfEmpty(int animal);
 void printStatistics();
 void initializeGlobals();
 void freeGlobals();
+void threadIsDone(int animal);
 
 //global variables
 FILE* fp;
