@@ -37,6 +37,8 @@ int main(int argc, char* argv[])
 
 	int e = 1;
 	int E = 1;
+	boolean eFlag = false;
+	boolean EFLag = false;
 	
 	int num_dishes = 2;
 	
@@ -87,41 +89,50 @@ int main(int argc, char* argv[])
 				file = true;
 				break;
 			case 'a':
-			cn = atoi(optarg);
+				cn = atoi(optarg);
+				assert(cn >= 0);
 				break;
 			case 'b':
-			dn = atoi(optarg);
+				dn = atoi(optarg);
+				assert(dn >= 0);
 				break;
 			case 'c':
-			mn = atoi(optarg);
+				mn = atoi(optarg);
+				assert(mn >= 0);
 				break;
 			case 'd':
-			ct = atoi(optarg);
+				ct = atoi(optarg);
+				assert(ct >= 0);
 				break;
 			case 'g':
-			dt = atoi(optarg);
+				dt = atoi(optarg);
+				assert(dt >= 0);
 				break;
 			case 'i':
-			mt = atoi(optarg);
+				mt = atoi(optarg);
+				assert(mt >= 0);
 				break;
 			case 'j':
-			ce = atoi(optarg);
+				ce = atoi(optarg);
+				assert(ce >= 0);
 				break;
 			case 'k':
-			de = atoi(optarg);
+				de = atoi(optarg);
+				assert(de >= 0);
 				break;
 			case 'l':
-			me = atoi(optarg);
+				me = atoi(optarg);
+				assert(me >= 0);
 				break;
 			case 'm':
-			e = atoi(optarg);
+				e = atoi(optarg);
 				break;
 			case 'n':
-			E = atoi(optarg);
+				E = atoi(optarg);
 				break;
 			case 'o':
-			num_dishes = atoi(optarg);
-			assert(num_dishes > 0);	
+				num_dishes = atoi(optarg);
+				assert(num_dishes > 0);	
 				break;
 			case '?':
 				break;
@@ -138,6 +149,20 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "There must be at least one animal who wants to eat\n");
 		return 1;
 	}
+	
+	//handling for e and E
+	
+	if(eFlag == false && EFlag == true)
+	{
+		e = E;
+	}	
+	else if(eFlag == true && EFlag == false)
+	{
+		E = e;
+	}
+	
+	if(e > E)
+		e = E;
 	
 	/*define variables for threads*/
 	pthread_t cats[cn];
