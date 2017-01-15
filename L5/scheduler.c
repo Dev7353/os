@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
 	
 	for(int i = 0; i < GROUPS; ++i)
 	{
-		prio.priority[i] = (int*) calloc(area.eating_times_per_group[i], sizeof(int));
+		prio.priority[i] = (int*) calloc(prio.threads_per_group[i], sizeof(int));
 		assert(prio.priority[i] != NULL);
 	}
 
