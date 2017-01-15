@@ -131,13 +131,13 @@ int main(int argc, char* argv[])
 	}
 	
 	/*define variables for threads*/
-	
 	pthread_t cats[cn];
 	pthread_t dogs[dn];
 	pthread_t mice[mn];
 	pthread_t schedule;
 	
 	assert(pthread_mutex_init(&mutex, NULL) == 0);
+	
 	/*allocate storage for cvs*/
 	cond_cats = (pthread_cond_t*) malloc(cn * sizeof(pthread_cond_t));
 	assert(cond_cats != NULL);
@@ -146,93 +146,78 @@ int main(int argc, char* argv[])
 	cond_mice = (pthread_cond_t*) malloc(mn * sizeof(pthread_cond_t));
 	assert(cond_mice != NULL);
 	
-	cond_container = (pthread_cond_t**) malloc(GROUPS * sizeof(pthread_cond_t*));
-	cond_container[0] = cond_cats;
-	cond_container[1] = cond_dogs;
-	cond_container[2] = cond_mice;
+	//initialize the priority queue struct
+	prio.container = (pthread_cond_t**) malloc(GROUPS * sizeof(pthread_cond_t*));
+	assert(prio.container != NULL);
+	prio.container[0] = cond_cats;
+	prio.container[1] = cond_dogs;
+	prio.container[2] = cond_mice;
 	
 	prio.threads_per_group = (int*) malloc(GROUPS * sizeof(int));
+	assert(prio.threads_per_group != NULL);
 	prio.threads_per_group[0] = cn;
 	prio.threads_per_group[1] = dn;
 	prio.threads_per_group[2] = mn;
 	
 	prio.group_priority = (int*) calloc(GROUPS, sizeof(int));
+	assert(prio.group_priority != NULL);
 	prio.group_priority[0] = ct;
 	prio.group_priority[1] = dt;
 	prio.group_priority[2] = mt;
 	
-	prio.container = cond_container;
 	prio.priority = (int**) malloc(3 * sizeof(int));
+	assert(prio.priority != NULL);
 	prio.priority[0] = (int*) calloc(cn, sizeof(int));
+	assert(prio.priority[0] != NULL);
 	prio.priority[1] = (int*) calloc(dn, sizeof(int));
+	assert(prio.priority[1] != NULL);
 	prio.priority[2] = (int*) calloc(mn, sizeof(int));
+	assert(prio.priority[2] != NULL);
 	
-	
-	
+	//initialize arguments for threads
 	animal_t* cat_args = (animal_t*) malloc(cn * sizeof(animal_t));
+	assert(cat_args != NULL);
 	animal_t* dog_args = (animal_t*) malloc(dn * sizeof(animal_t));
+	assert(dog_args != NULL);
 	animal_t* mouse_args = (animal_t*) malloc(mn * sizeof(animal_t));
+	assert(mouse_args != NULL);
 	
-	
+	//initialize food area struct
 	area.bowles = num_dishes;
 	area.num_eaten = 0;
 	area.status = (char*) malloc(sizeof(char) * num_dishes);
+	assert(area.status != NULL);
 	for(int i = 0; i < num_dishes; ++i)
 		area.status[i] = '-';
 		
 	area.eating_times_per_group = (int*) malloc(GROUPS * sizeof(int));
+	assert(area.eating_times_per_group != NULL);
 	area.eating_times_per_group[0] = ce;
 	area.eating_times_per_group[1] = de;
 	area.eating_times_per_group[2] = me;
 
 	threadDone = (int**) malloc(GROUPS * sizeof(int*));
+	assert(threadDone != NULL);
+	
 	synchronize = (int**) malloc(GROUPS * sizeof(int*));
+	assert(synchronize != NULL);
+	
 	waiting_times = (double**) malloc(GROUPS * sizeof(double*));
+	assert(waiting_times != NULL);
+	
 	waiting_times_group = (double*) malloc(GROUPS * sizeof(double));
+	assert(waiting_times_group != NULL);
 	for(int i = 0; i < GROUPS; ++i)
 	{
-			if(i == 0)
-			{
-				threadDone[i] = (int*) calloc(cn, sizeof(int)); 
-				synchronize[i] = (int*) calloc(cn, sizeof(int));
-				waiting_times[i] = (double*) calloc(cn*ce, sizeof(double)); 
-			}
-				
-			else if(i == 1)
-			{
-				threadDone[i] = (int*) calloc(dn, sizeof(int));
-				synchronize[i] = (int*) calloc(dn, sizeof(int));
-				waiting_times[i] = (double*) calloc(dn*de, sizeof(double));
-			}
-			
-			else
-			{
-				threadDone[i] = (int*) calloc(mn, sizeof(int)); 
-				synchronize[i] = (int*) calloc(mn, sizeof(int));
-				waiting_times[i] = (double*) calloc(mn*me, sizeof(double));
-			}
+		threadDone[i] = (int*) calloc(prio.threads_per_group[i], sizeof(int)); 
+		assert(threadDone[i] != NULL);
+		synchronize[i] = (int*) calloc(prio.threads_per_group[i], sizeof(int));
+		assert(synchronize[i] != NULL);
+		waiting_times[i] = (double*) calloc(prio.threads_per_group[i]*area.eating_times_per_group[i], sizeof(double));
+		assert(waiting_times[i] != NULL); 
 	}
 	
-	for(int i = 0; i < GROUPS; ++i)
-	{
-		if(i == 0)
-		{
-			for(int j = 0; j < cn; ++j)
-				synchronize[i][j] = -1; 
-		}
-					
-		else if(i == 1)
-		{
-			for(int j = 0; j < dn; ++j)
-				synchronize[i][j] = -1;
-		}
-				
-		else
-		{ 
-			for(int j = 0; j < mn; ++j)
-				synchronize[i][j] = -1;
-		}
-	}
+	initializeSynchronize();
 	
 	time_t sec;
 	time(&sec);
@@ -488,54 +473,5 @@ void scheduler(void* arg)
 		printf("Animal Group %d is done %d\n", 2, groupIsDone(2));
 	}
 	
-	for(int i = 0; i < GROUPS; ++i)
-	{
-		if(i == 0)
-			printf("%s:\n", CAT);
-		else if(i == 1)
-			printf("%s:\n", DOG);
-		else
-			printf("%s:\n", MOUSE);
-			
-		printf("\tMin: %f\n", getMin(i, prio.threads_per_group[i]));
-		printf("\tMax: %f\n", getMax(i, prio.threads_per_group[i]));
-		printf("\tAvg: %f\n", getAvg(i, prio.threads_per_group[i]));
-		printf("\tGroup waiting time: %f\n", waiting_times_group[i]);
-		
-		if(verbose == true || file == true)
-		{
-			int cat_ctr = 0;
-			int dog_ctr = 0;
-			int mouse_ctr = 0;
-			for(int j = 0; j < area.eating_times_per_group[i] * prio.threads_per_group[i]; j++)
-			{
-				double x = (j+1)*(waiting_times_group[i]/((area.eating_times_per_group[i]*prio.threads_per_group[i])));
-				double y = waiting_times[i][j];
-				
-				if(verbose == true)
-					printf("%f, %f\n", x, y);
-								
-				fp = fopen(filename,"a");
-				if(i == 0 && cat_ctr == 0)
-				{	
-					fprintf(fp, "%s\n", "cats"); 
-					cat_ctr++;
-				}
-				else if(i == 1 && dog_ctr == 0)
-				{
-					fprintf(fp, "%s\n", "dogs"); 
-					dog_ctr++;
-				}
-				else if (i == 2 && mouse_ctr == 0)
-				{
-					fprintf(fp, "%s\n", "mice"); 
-					mouse_ctr++;
-				}
-				fprintf(fp, "%f,%f\n", x, y);
-				fclose(fp);
-				
-			}	
-		}
-	
-	}
+	printStatistics();
 }

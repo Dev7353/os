@@ -1,4 +1,5 @@
 #include "scheduler-api.h"
+#include "time-api.h"
 
 int nextBowle(char* status, int bowles)
 {
@@ -144,3 +145,80 @@ boolean checkIfEmpty(int animal)
 	return false;
 }
 
+void initializeSynchronize()
+{
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		if(i == 0)
+		{
+			for(int j = 0; j < prio.threads_per_group[0]; ++j)
+				synchronize[i][j] = -1; 
+		}
+					
+		else if(i == 1)
+		{
+			for(int j = 0; j < prio.threads_per_group[1]; ++j)
+				synchronize[i][j] = -1;
+		}
+				
+		else
+		{ 
+			for(int j = 0; j < prio.threads_per_group[2]; ++j)
+				synchronize[i][j] = -1;
+		}
+	}
+}
+
+void printStatistics()
+{
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		if(i == 0)
+			printf("%s:\n", CAT);
+		else if(i == 1)
+			printf("%s:\n", DOG);
+		else
+			printf("%s:\n", MOUSE);
+			
+		printf("\tMin: %f\n", getMin(i, prio.threads_per_group[i]));
+		printf("\tMax: %f\n", getMax(i, prio.threads_per_group[i]));
+		printf("\tAvg: %f\n", getAvg(i, prio.threads_per_group[i]));
+		printf("\tGroup waiting time: %f\n", waiting_times_group[i]);
+		
+		if(verbose == true || file == true)
+		{
+			int cat_ctr = 0;
+			int dog_ctr = 0;
+			int mouse_ctr = 0;
+			for(int j = 0; j < area.eating_times_per_group[i] * prio.threads_per_group[i]; j++)
+			{
+				double x = (j+1)*(waiting_times_group[i]/((area.eating_times_per_group[i]*prio.threads_per_group[i])));
+				double y = waiting_times[i][j];
+				
+				if(verbose == true)
+					printf("%f, %f\n", x, y);
+								
+				fp = fopen(filename,"a");
+				if(i == 0 && cat_ctr == 0)
+				{	
+					fprintf(fp, "%s\n", "cats"); 
+					cat_ctr++;
+				}
+				else if(i == 1 && dog_ctr == 0)
+				{
+					fprintf(fp, "%s\n", "dogs"); 
+					dog_ctr++;
+				}
+				else if (i == 2 && mouse_ctr == 0)
+				{
+					fprintf(fp, "%s\n", "mice"); 
+					mouse_ctr++;
+				}
+				fprintf(fp, "%f,%f\n", x, y);
+				fclose(fp);
+				
+			}	
+		}
+	
+	}
+}
