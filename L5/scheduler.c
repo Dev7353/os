@@ -182,42 +182,9 @@ int main(int argc, char* argv[])
 	animal_t* mouse_args = (animal_t*) malloc(mn * sizeof(animal_t));
 	assert(mouse_args != NULL);
 	
-	//initialize food area struct
+	//initialize food area, synchronize, threadDone 
 	area.bowles = num_dishes;
-	area.num_eaten = 0;
-	area.status = (char*) malloc(sizeof(char) * num_dishes);
-	assert(area.status != NULL);
-	for(int i = 0; i < num_dishes; ++i)
-		area.status[i] = '-';
-		
-	area.eating_times_per_group = (int*) malloc(GROUPS * sizeof(int));
-	assert(area.eating_times_per_group != NULL);
-	area.eating_times_per_group[0] = ce;
-	area.eating_times_per_group[1] = de;
-	area.eating_times_per_group[2] = me;
-
-	threadDone = (int**) malloc(GROUPS * sizeof(int*));
-	assert(threadDone != NULL);
-	
-	synchronize = (int**) malloc(GROUPS * sizeof(int*));
-	assert(synchronize != NULL);
-	
-	waiting_times = (double**) malloc(GROUPS * sizeof(double*));
-	assert(waiting_times != NULL);
-	
-	waiting_times_group = (double*) malloc(GROUPS * sizeof(double));
-	assert(waiting_times_group != NULL);
-	for(int i = 0; i < GROUPS; ++i)
-	{
-		threadDone[i] = (int*) calloc(prio.threads_per_group[i], sizeof(int)); 
-		assert(threadDone[i] != NULL);
-		synchronize[i] = (int*) calloc(prio.threads_per_group[i], sizeof(int));
-		assert(synchronize[i] != NULL);
-		waiting_times[i] = (double*) calloc(prio.threads_per_group[i]*area.eating_times_per_group[i], sizeof(double));
-		assert(waiting_times[i] != NULL); 
-	}
-	
-	initializeSynchronize();
+	initializeGlobals();
 	
 	time_t sec;
 	time(&sec);
