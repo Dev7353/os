@@ -43,8 +43,14 @@ typedef struct
 #define MOUSE "mouse"
 #define GROUPS 3
 
+//functions
 void printHelp(); 
 int nextBowle(char* status, int bowles); 
+pthread_cond_t* nextAnimal();
+int nextGroup();
+boolean groupIsDone(int animal);
+void calcGroupPriorities(int current_group);
+boolean checkIfEmpty(int animal);
 
 //global variables
 FILE* fp;
