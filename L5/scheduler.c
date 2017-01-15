@@ -121,6 +121,7 @@ int main(int argc, char* argv[])
 				break;
 			case 'o':
 			num_dishes = atoi(optarg);
+			assert(num_dishes > 0);	
 				break;
 			case '?':
 				break;
