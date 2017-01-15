@@ -40,3 +40,107 @@ void printHelp()
 }
 
 
+pthread_cond_t* nextAnimal(int animal) 
+{
+	int min = prio.priority[animal][0];
+	int index = 0;
+	for(int i = 0; i < prio.threads_per_group[animal]; ++i)
+	{
+		if(prio.priority[animal][i] < min)
+		{
+			min = prio.priority[animal][i];
+			index = i;
+		}
+	}
+	
+	if(verbose == true)
+	{
+		if(animal == 0)
+			printf("%s>>>> the next animal is cat %d%s\n",ANSI_COLOR_GREEN, index, ANSI_COLOR_RESET);
+		if(animal == 1)
+			printf("%s>>>> the next animal is dog %d%s\n", ANSI_COLOR_GREEN, index, ANSI_COLOR_RESET);	
+		if(animal == 2)
+			printf("%s>>>> the next animal is mouse %d%s\n", ANSI_COLOR_GREEN, index, ANSI_COLOR_RESET);
+	}
+	
+	prio.priority[animal][index]++;
+	return &prio.container[animal][index];
+
+}
+
+int nextGroup()
+{
+	int min_index = -1;
+	
+	//get the next AVAILABLE minima grouppriority
+	int min_prio = 0;
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		if(groupIsDone(i) ==  false)
+		{
+			min_prio = prio.group_priority[i];
+			break;
+		}
+	} 
+	
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		if(groupIsDone(i) == false)
+		{	
+			if(verbose == true)
+				printf("%s[GROUP OF %d HAS THE PRIORITY %d]%s\n",ANSI_COLOR_GREEN, i, prio.group_priority[i], ANSI_COLOR_RESET);
+			if(prio.group_priority[i] <= min_prio)
+			{
+				min_index = i;
+				min_prio = prio.group_priority[i];
+			}
+		}
+	}
+	
+	if(verbose == true)
+		printf("\t%s[NEXT GROUP IS %d]%s\n",ANSI_COLOR_GREEN, min_index, ANSI_COLOR_RESET);
+	return min_index;
+	
+}
+
+boolean groupIsDone(int animal)
+{
+	boolean erg = true;
+	for(int i = 0; i < prio.threads_per_group[animal]; ++i)
+	{
+		erg *= threadDone[animal][i]; 
+	}
+	return erg;
+}
+
+void calcGroupPriorities(int current_group)
+{
+
+	for(int i = 0; i < GROUPS; ++i)
+	{
+		if(i == current_group || groupIsDone(i) == true)
+			continue;
+		else 
+		{
+			prio.group_priority[i] --;
+		}
+	}
+	
+	prio.group_priority[current_group] ++;
+}
+
+boolean checkIfEmpty(int animal)
+{
+	int ctr = 0;
+	int should =  prio.threads_per_group[animal];
+	for(int i = 0; i < prio.threads_per_group[animal];++i)
+	{
+		if(synchronize[animal][i] == false)
+			++ctr;
+	} 
+	if(ctr == should)
+		return true;
+	
+	return false;
+}
+
