@@ -1,3 +1,4 @@
 1. measure:  ./scheduler
 2. measure: ./scheduler --ct 1 --dt 2 --mt 3 --file measure_2 
-3. measure:
+3. measure: ./scheduler --ct 10 --dt 7 --mt 5 --dn 20 --ce 2 --de 4 --me 7 --e 2 --E 4 --file measure_3 --dish 4
+4. measure: 
