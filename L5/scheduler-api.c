@@ -86,6 +86,7 @@ int nextGroup()
 		}
 	} 
 	
+	
 	for(int i = 0; i < GROUPS; ++i)
 	{
 		if(groupIsDone(i) == false)
@@ -95,6 +96,7 @@ int nextGroup()
 			if(prio.group_priority[i] <= min_prio)
 			{
 				min_index = i;
+				min_prio = prio.group_priority[i];
 			}
 		}
 	}
