@@ -146,6 +146,38 @@ jedoch die maximale Wartezeiten enorm hoch sind, was einbußen in Sachen Perform
 #### Test 2
 Konfiguration: ./scheduler --ct 1 --dt 2 --mt 3 
 
+* cat:
+	+ Min: 0.000164 sec
+	+ Max: 17.014568 sec
+	+ Avg: 13.208919 sec
+* dog:
+	+ Min: 9.008060 sec
+	+ Max: 15.011772 sec
+	+ Avg: 13.710153 sec
+* mouse:
+	+ Min: 12.005176 sec
+	+ Max: 14.012406 sec
+	+ Avg: 13.209468 sec
+	
+![Wartezeit der Katzen](measure_2_cats.png)
+![Wartezeit der Mäuse](measure_2_mice.png)
+![Wartezeit der Hunde](measure_2_dogs.png)
+
+
+Der zweite Test enthält im Prinzip fast diesselben Einstellungen wie der Standardtest mit dem Unterschied, dass die satisfied time nicht so stark unterschiedlich ist dh. die Tiere werden in ein Sekunden abständen später hungrig.
+Die statistische Auswertung zeigt deutlich, es gibt zwar Abweichungen in den minimalen Wartezeiten, jedoch werden diese Unterschiede durch 
+das Scheduling stark kompensiert. Daraus geht hervor, dass die Threads, unabhängig der Anzahl, mit ähnlichen satisfied times im durchschnitt fast gleich lange warten.
+
+Die Diagramme zeigen dies ebenfalls. Wobei die Skalierung beachtet werden sollte.
+
+Die Katzen Threads starten zuerst. Nach der ersten Gruppe pendelt sich die Wartezeit relativ konstant ein. 
+Nachdem die Katzengruppe fertig ist mit dem ersten durchlauf, starten die Hunde Threads. Die ersten Threads hatten kurze Wartezeiten, doch wie bei Katzen,
+pendeln sie die anderen Threads ebenfalls auf einen Wertebereich von 14 und 15 Sekunden ein.
+Die Darauffolgenden Mäuse Threads verhalten sich Analog, nach einer Wartezeit von 14 Sekunden beim ersten Thread, schwanken die Zeiten
+im späteren Verlauf immer zwischen 12 und 14 Sekunden.
+
+Es lässt sich erkennen, das der Scheduler bei ähnlichen oder zumindest weniger stark unterschiedlichen satisfied times sich sehr fair verhält und die Tiere
+abwechselnd drannimmt.
 
 ## Kritik
 
