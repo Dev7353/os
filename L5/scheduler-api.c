@@ -227,11 +227,30 @@ void printStatistics()
 				}
 				fprintf(fp, "%f,%f\n", x, y);
 				fclose(fp);
-				
 			}	
+			
 		}
 	
 	}
+			if(file == true)
+			{
+				fp = fopen(filename,"a");
+				fprintf(fp, "%s", "---\n");
+				for(int i = 0; i < GROUPS; ++i)
+				{
+					if(i == 0)
+						fprintf(fp, "%s:\n", CAT);
+					else if(i == 1)
+						fprintf(fp, "%s:\n", DOG);
+					else
+						fprintf(fp, "%s:\n", MOUSE);
+						
+					fprintf(fp, "\tMin: %f sec\n", getMin(i, prio.threads_per_group[i]));
+					fprintf(fp, "\tMax: %f sec\n", getMax(i, prio.threads_per_group[i]));
+					fprintf(fp, "\tAvg: %f sec\n", getAvg(i, prio.threads_per_group[i]));
+				}
+				fclose(fp);
+			}
 }
 
 void threadIsDone(int animal)

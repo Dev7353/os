@@ -21,6 +21,8 @@ def main():
         elif line == "mice\n":
             animal = 2
             continue
+        elif line == "---\n":
+            break
 
         if animal == 0:
             c = line.replace("\n", "").split(",")
