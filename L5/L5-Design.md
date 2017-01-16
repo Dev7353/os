@@ -179,6 +179,35 @@ im späteren Verlauf immer zwischen 12 und 14 Sekunden.
 Es lässt sich erkennen, das der Scheduler bei ähnlichen oder zumindest weniger stark unterschiedlichen satisfied times sich sehr fair verhält und die Tiere
 abwechselnd drannimmt.
 
+#### Test 3
+Konfiguration ./scheduler --ct 1 --dt 2 --mt 3 --mn 450 --dn 200 --cn 300 --dish 400 
+
+* cat:
+	+ Min: 0.030358 sec
+	+ Max: 3.937669 sec
+	+ Avg: 2.968539 sec
+* dog:
+	+ Min: 0.215510 sec
+	+ Max: 2.198910 sec
+	+ Avg: 1.597863 sec
+* mouse:
+	+ Min: 0.259635 sec
+	+ Max: 2.183882 sec
+	+ Avg: 1.073892 sec
+
+
+![Wartezeit der Mäuse](measure_3_mice.png)
+![Wartezeit der Hunde](measure_3_dogs.png)
+![Wartezeit der Katzen](measure_3_cats.png)
+
+
+Der dritte Test soll ein Stresstest sein wobei hier wert auf kurze Wartezeiten gelegt wird. Daher sind die Eingabeparameter optimiert.
+Die Anzahl der Futterschüsseln bewirkt einen schnellern wechsel der Threads und somit eine kürze Wartezeit. Wie bereits aus Test 2 bekannt,
+verläuft das Scheduling der Threads besonders fair, wenn die satisfied times in einem relativ ähnlichen Zeitfenster sind.
+
+Die Katzen Threads starten zuerst, gefolgt von den Hunden und den Mäusen. Im Mäusediagramm wird deutlich wie Vorteilhaft eine leicht erhöhte satisfied time sein kann.
+
+//todo
 ## Kritik
 
 ## Weitere Quellen
