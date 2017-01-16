@@ -194,7 +194,6 @@ void printStatistics()
 		printf("\tMin: %f sec\n", getMin(i, prio.threads_per_group[i]));
 		printf("\tMax: %f sec\n", getMax(i, prio.threads_per_group[i]));
 		printf("\tAvg: %f sec\n", getAvg(i, prio.threads_per_group[i]));
-		printf("\tGroup waiting time: %f sec\n", waiting_times_group[i]);
 		
 		if(verbose == true || file == true)
 		{
@@ -204,7 +203,7 @@ void printStatistics()
 			for(int j = 0; j < area.eating_times_per_group[i] * prio.threads_per_group[i]; j++)
 			{
 				
-				double x = (j+1)*(waiting_times_group[i]/((area.eating_times_per_group[i]*prio.threads_per_group[i])));
+				double x = j;
 				double y = waiting_times[i][j];
 				
 				if(verbose == true)

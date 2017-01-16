@@ -451,15 +451,11 @@ void scheduler(void* arg)
 		
 		while(true)
 		{
-			if(isReady[animal] == prio.threads_per_group[animal] && prio.threads_per_group[animal] >= area.bowles)
+			if(isReady[animal] == prio.threads_per_group[animal])
 			{
 				break;
 			} 
-			//if you have less threads than number of bowles
-			else if(isReady[animal] == prio.threads_per_group[animal] && prio.threads_per_group[animal] <= area.bowles) 
-			{
-				break;
-			}
+
 			
 			continue;
 		}

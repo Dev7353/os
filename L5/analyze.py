@@ -33,23 +33,33 @@ def main():
             mice.append((float(m[0]), float(m[1])))
 
 
-    plt.xlabel("Group waiting time [sec]")
     plt.ylabel("Thread waiting time [sec]")
 
     if mice:
+        plt.xlabel("Mice * eating times")
         plt.plot(*zip(*mice))
         file = sys.argv[1] + "_mice.eps"
         plt.savefig(file)
-
+        plt.clf()
+        plt.cla()
+        plt.close()
+        
     if dogs:
+        plt.xlabel("Dogs * eating times")
         plt.plot(*zip(*dogs))
         file = sys.argv[1] + "_dogs.eps"
         plt.savefig(file)
-
+        plt.clf()
+        plt.cla()
+        plt.close()
     if cats:
+        plt.xlabel("Cats * eating times")
         plt.plot(*zip(*cats))
         file = sys.argv[1] + "_cats.eps"
         plt.savefig(file)
+        plt.clf()
+        plt.cla()
+        plt.close()
 
 if __name__ == "__main__":
     main()
