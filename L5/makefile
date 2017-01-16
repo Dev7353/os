@@ -1,6 +1,6 @@
 CC=clang
 CFLAGS=-Wall -pedantic -Werror -g
-.PHONY: all clemae an
+.PHONY: all clean
 
 all: schedcheck scheduler
 

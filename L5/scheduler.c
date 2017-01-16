@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
 	
 	/*start threads*/
 	assert(pthread_create(&schedule, NULL, (void *(*)(void *))&scheduler, NULL) == 0);
-	
+			
 	for(int i = 0; i < cn; ++i)
 	{
 		assert(pthread_cond_init(&cond_cats[i], NULL) == 0);
@@ -340,7 +340,7 @@ void eat(void* arg)
 {	time_t begin, end;
 	
 	char* thread_color = ANSI_COLOR_RESET;
-	int animal = 0;
+	int animal = -1;
 	animal_t param = *((animal_t*)arg);
 	
 	while(param.num_eat > 0)
@@ -355,6 +355,7 @@ void eat(void* arg)
 		
 		if(strcmp(param.animal_type, CAT) == 0)
 		{
+			animal = 0;
 			thread_color = ANSI_COLOR_RED;
 			isReady[animal]++;
 			pthread_mutex_lock(&mutex);
@@ -429,7 +430,8 @@ void eat(void* arg)
 
 	}
 	
-	threadDone[animal][param.id] = true;
+	if(animal > -1)
+		threadDone[animal][param.id] = true;
 	if(verbose == true)
 		printf("%s%d %s is done%s\n", ANSI_COLOR_YELLOW, param.id, param.animal_type, ANSI_COLOR_RESET);
 }

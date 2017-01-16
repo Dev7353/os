@@ -95,7 +95,6 @@ int nextGroup()
 			if(prio.group_priority[i] <= min_prio)
 			{
 				min_index = i;
-				min_prio = prio.group_priority[i];
 			}
 		}
 	}
@@ -113,6 +112,7 @@ boolean groupIsDone(int animal)
 	{
 		erg *= threadDone[animal][i]; 
 	}
+	
 	return erg;
 }
 
