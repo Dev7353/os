@@ -40,7 +40,7 @@ def main():
     if mice:
         plt.xlabel("Mice * eating times")
         plt.plot(*zip(*mice))
-        file = sys.argv[1] + "_mice.eps"
+        file = sys.argv[1] + "_mice.png"
         plt.savefig(file)
         plt.clf()
         plt.cla()
@@ -49,7 +49,7 @@ def main():
     if dogs:
         plt.xlabel("Dogs * eating times")
         plt.plot(*zip(*dogs))
-        file = sys.argv[1] + "_dogs.eps"
+        file = sys.argv[1] + "_dogs.png"
         plt.savefig(file)
         plt.clf()
         plt.cla()
@@ -57,7 +57,7 @@ def main():
     if cats:
         plt.xlabel("Cats * eating times")
         plt.plot(*zip(*cats))
-        file = sys.argv[1] + "_cats.eps"
+        file = sys.argv[1] + "_cats.png"
         plt.savefig(file)
         plt.clf()
         plt.cla()
