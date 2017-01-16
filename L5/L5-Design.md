@@ -92,12 +92,61 @@ Arbeit mehr zu leisten hat.
 
 #### Zeitmessung
 Die Zeit pro Tierthread wird wie folgt gemessen. Jedesmal wenn ein Tierthread hungrig wird wird ein Zeitstempel gesetzt. Wenn dieser Thread durch
-den Scheduler aufgerufen wird, wird erneut ein Zeitstempel gesetzt. Die Differenz der beiden Zeitstempel wird eine Matrix 'waitingTimes' eingetragen.
+den Scheduler aufgerufen wird, wird erneut ein Zeitstempel gesetzt. Die Differenz der beiden Zeitstempel wird die Matrix 'waitingTimes' eingetragen.
 Am Ende des Scheduler Threads, werden die Daten mit Hilfe der Funktionen 'getMin', 'getMax' und 'getAvg' ausgewertet. Durch hinzunahme des Arguments --file
 werden alle Wartezeiten der Threads, sowie die ausgewerteten Daten in eine Datei gespeichert. Ein Python Programm analysiert die Wartezeiten und zeichnet
 mit Hilfe der Matplotlib Python Bibliothek ein Diagramm. 
 
 Das Diagramm enthält die Threads und deren Wartezeiten, wobei die X-Achse die Thread Nummer beschreibt und die Y-Achse die Wartezeit in Sekunden.
+
+### Auswertung
+#### Test 1
+Konfiguration: ./scheduler --ct 15 --dt 10 --mt 1 --ce 5 --de 5 --me 5 --cn 6 --dn 4 --mn 2 --e 1 --E 1 --dish 2
+oder auch einfach: ./scheduler
+
+* cat:
+	+ Min: 3.918807 sec
+	+ Max: 47.780954 sec
+	+ Avg: 13.195758 sec
+* dog:
+	+ Min: 2.002028 sec
+	+ Max: 10.947828 sec
+	+ Avg: 5.168617 sec
+* mouse:
+	+ Min: 0.000060 sec
+	+ Max: 1.000859 sec
+	+ Avg: 0.380288 sec
+	
+![Wartezeit der Mäuse](measure_standard_mice.png)
+![Wartezeit der Hunde](measure_standard_dogs.png)
+![Wartezeit der Katzen](measure_standard_cats.png)
+
+
+Aufgrunddessen, dass die Mäuse über fünf runden hinweg, die wichtigste Priorität haben, ergibt sich, dass die Mäuse eine extrem kurze Durchschnittswartezeit
+haben und daher auch sehr schnell fertig werden. Daraus resultiert das nach den Mäusen, die Hunde und Katzen sich abwechselnd den Futterschüsseln bedienen, da
+die Prioritäten zu diesem Zeitpunkt ausbalanciert sind.
+
+Das erste Diagramm bezüglich der Mäuse zeigt deutlich wie wie schnell die Gruppen gewechselt werden, wenn die Gruppe anschließend wieder gewählt wird.
+
+Dem Hundediagram ist zu entnehmen, das vorallem zu Beginn und gegen Ende der Gruppen, die Wartezeit ansteigt währen sie in der Mitte konstant verläuft. Genau wie 
+bei den Mäusen beziehen sich die konstanten Wartezeiten auf die Phase in der nur die Hunde Gruppen ausgewählt werden. Gegen Ende, erhalten die Katzen die Futterschüsseln
+und die Wartezeiten der Hunde steigt rasand an.
+
+Die größten Wartezeiten haben die Katzen, denn per Deffinition, werden die Tiergruppen bevorzugt, die schneller hungrig werden. Da eine Katze 15 sekunden braucht
+um hungrig zu werden, kann dieser Zeitraum effektiver durch andere Tiergruppen genutzt werden.
+Das Katzendiagramm zeigt deutlich, das zu Beginn zwar die Wartezeit sehr hoch ist, jedoch für die späteren Gruppen relativ konstant. Das führt auch dazu,
+das die Katzen in einem viel geringeren Verhältnis zur maximalen Wartezeit im durchschnitt Warten müssen als die Hunde oder Mäuse.
+
+So ergibt sich das die Katzen ca 3,6 mal kürzer Warten im Verhätlnis zum Maximum.
+Die Hunde warten dagegen 2 mal kürzer und die Mäuse 2,6 mal.
+
+Es lässt sich sagen, dass das Scheduling vorallem bei großen unterschiedlichen satisfied times zwar die durchschnittliche Wartezeiten gut kompensiert, 
+jedoch die maximale Wartezeiten enorm hoch sind, was einbußen in Sachen Performance bringt.
+
+#### Test 2
+Konfiguration: ./scheduler --ct 1 --dt 2 --mt 3 
+
+
 ## Kritik
 
 ## Weitere Quellen
