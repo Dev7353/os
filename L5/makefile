@@ -13,6 +13,15 @@ schedcheck: schedcheck.c
 scheduler: scheduler-api.c time-api.c scheduler.c 
 	$(CC) $(CFLAGS) -lpthread $^ -o $@
 
+test_standard: 
+	make clean
+	make
+	@echo 'START TEST'
+	@echo '-----------------------------------------------------------------------'
+	./scheduler --file measure_standard 
+	@echo '-----------------------------------------------------------------------'
+	@echo 'END TEST'
+
 test: 
 	make clean
 	make
