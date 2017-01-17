@@ -18,6 +18,8 @@
 
 - [Kritik](#kritik)
 - [Bugreport](#bugreport)
+	- [Fertige Ausgabe](#fertige-ausgabe)
+	- [PNG Burns](#png-burns)
 
 
 ## Vorüberlegung
@@ -307,7 +309,7 @@ Die hungrigsten Tiere einer Gruppe würden gewählt werden und man hätte eine e
 Letztenendes ist die Implementierung des Schedulers in wenigen Punkten verbesserungswürdig. Der markanteste Punkte hierbei ist, dass während die Tiere zwar nicht verhungern, sie in einem nicht außer Acht zu lassendem Zeitfenster warten.
 
 ## Bugreport
-### Finished Ausgabe 
+### Fertige Ausgabe 
 Unter Umständen kann es passieren, dass die Ausgabe der fertigen Threads, also die, die fertig gefressen haben, eine nicht korrekte Reihenfolge hat. Dies führt auf eine Racecondition zurück.
 Vorallem wenn es weniger Futternäpfe als Threads gibt, lässt sich der Fehler besser reproduzieren. 
 Das Problem ist, dass wenn z.B. alle Futternäpfe belegt sind und es noch weitere Threads gibt, die aktiv auf eine Futterstelle warten, die aktuelle fressenden Threads die Belegung der Futternäpfe ändern. 
