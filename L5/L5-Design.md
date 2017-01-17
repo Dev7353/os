@@ -205,9 +205,37 @@ Der dritte Test soll ein Stresstest sein wobei hier wert auf kurze Wartezeiten g
 Die Anzahl der Futterschüsseln bewirkt einen schnellern wechsel der Threads und somit eine kürze Wartezeit. Wie bereits aus Test 2 bekannt,
 verläuft das Scheduling der Threads besonders fair, wenn die satisfied times in einem relativ ähnlichen Zeitfenster sind.
 
-Die Katzen Threads starten zuerst, gefolgt von den Hunden und den Mäusen. Im Mäusediagramm wird deutlich wie Vorteilhaft eine leicht erhöhte satisfied time sein kann.
+Die Katzen Threads starten zuerst, gefolgt von den Hunden und den Mäusen.  
+Ein Interessanter Aspekt ist hier, dass obwohl die Katzen Threads bevorzugt gewählt werden, trotzdem eine höhere durchschnittliche
+Wartezeit aufweist wie die Mäuse. Zu Beobachten ist dies auch im Diagramm der Katzen. Zu Beginn ist die Wartezeit sehr gering, doch
+nach dem Gruppwechsel auf Hunde und Mäuse steigt sie rasand an. Das liegt zum teil daran, das die Anzahl der Tiere eine ebenso wichtige Rolle
+spielt, wie die Prioritäten. Die Katzen müssen schließlich auf die Hunde und Mäuse warten. Da es bei 450 Mäusen um 2250 Thread Zugriffe und bei 200 Hunden
+um 1000 Thread zugriffe handelt, müssen die Katzen ebenso lange warten. Abgesehen von dem Gruppenwechsel, warten alle Threads ab einem Zeitpunkt konstant.
+Besonders deutlich ist dies im Katzen diagramm sichtbar. Nach jedem Gruppenwechsel warten Die Mäuse innerhalb ihrer Gruppe sehr wenig.
 
-//todo
+Durch die Erhöhung der Anzahl an Futterschüsseln können die Tier Threads schneller an die 
+Futterstelle. Wenn die Anzahl geringer wäre müssten die Threads schließlich warten, bis mindestens eine Schüssel frei ist. Dies kostet
+Zeit. So war auch zu Beginn die Annahme, dass vorallem die Mäuse die längeren Wartezeiten haben sollten. Doch dieses Experiment zeigt, dass nicht nur
+die Anzahl der Futterschüsseln sowie Priorität entscheidend ist, sondern ebenfalls die Anzahl der Threads.
+
 ## Kritik
+Wie einige Tests bereits andeuteten, arbeitet der Scheduler vorallem dann gut, wenn die Prioritäten ähnlich sind bzw. sich geringfügig unterscheiden. Weiterhin
+kann die Performance durch die erhöhung der Anzahl Futterschüsseln ebenfalls zunehmen, solange die Menge der Tiere
+nicht zu stark voneinander abweichen. 
+
+Der Scheduler betrachtet im Prinzip die Gruppenprioritäten und entscheidet dann, welche der Gruppen wichtiger ist. Dies ist vorallem dann hilfreich,
+wenn die Threads relativ gleich lange Essen und die Prioritäten sich merklich unterscheiden. Ähnlich wie im ersten Test.
+Die Mäuse haben zusammengerechnet eine Essenszeit von maximal 10 Sekunden. Ein Hund wartet hingegen jeweils 15 Sekunden. So bietet es sich an
+alle Mäuse innerhalb dieses Zeitfensters "durchzuschleussen" sodass die Katzen längerfristig weniger warten müssen, da bereits
+ein Tier vollständig fertig ist. 
+
+Ein Nachteil hierbei ergibt sich jedoch, wenn die Essenszeiten stark schwanken und keinen konstanten Wert haben, fressen die Mäuse dementsprechend länger
+während die Katzen hungrig werden. Da führt dazu, dass die Katzen länger warten.
+
+Eine Möglichkeit zum besseren Scheduling wäre z.B. die nähere Betrachtung der Tierprioritäten. Der Scheduler wählt nicht nur anhand der satisfied time,
+sondern auch nach den Tieren. Jedes Tier könnte eine Priorität annehmen und nach bestimmten Kriterien diese berechnen. 
+Die hungrigsten Tiere einer Gruppe würden gewählt werden und man hätte eine etwas ausbalancierte Lösung.
+
+Zwar müssen die Tiere nicht verhungern, allerdings in einem nicht außer acht zu lassenden Zeitfenster warten. 
 
 ## Weitere Quellen
