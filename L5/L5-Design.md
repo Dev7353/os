@@ -13,9 +13,11 @@
 	- [Test 1](#test-1)
 	- [Test 2](#test-2)
 	- [Test 3](#test-3)
+	- [Test 3](#test-4)
+	- [Test 3](#test-5)
 
 - [Kritik](#kritik)
-- [Weitere Quellen](#weitere-quellen)
+- [Bugreport](#bugreport)
 
 
 ## Vorüberlegung
@@ -123,9 +125,9 @@ oder auch einfach: `./scheduler`
 	+ Max: 1.000859 sec
 	+ Avg: 0.380288 sec
 	
-![Wartezeit der Mäuse](measure_standard_mice.png)
-![Wartezeit der Hunde](measure_standard_dogs.png)
-![Wartezeit der Katzen](measure_standard_cats.png)
+![measure_standard_mice.png](measure_standard_mice.png)
+![measure_standard_dogs.png](measure_standard_dogs.png)
+![measure_standard_cats.png](measure_standard_cats.png)
 
 
 Aufgrunddessen, dass die Mäuse über fünf Runden hinweg, die wichtigste Priorität haben, ergibt sich, dass die Mäuse eine extrem kurze Durchschnittswartezeit haben und daher auch sehr schnell fertig werden. 
@@ -164,9 +166,9 @@ Konfiguration: `./scheduler --ct 1 --dt 2 --mt 3`
 	+ Max: 14.012406 sec
 	+ Avg: 13.209468 sec
 	
-![Wartezeit der Katzen](measure_2_cats.png)
-![Wartezeit der Mäuse](measure_2_mice.png)
-![Wartezeit der Hunde](measure_2_dogs.png)
+![measure_2_cats.png](measure_2_cats.png)
+![measure_2_mice.png](measure_2_mice.png)
+![measure_2_dogs.png](measure_2_dogs.png)
 
 
 Der zweite Test enthält im Prinzip fast dieselben Einstellungen wie der Standardtest mit dem Unterschied, dass die satisfied time nicht so stark unterschiedlich ist, d.h. die Tiere werden in ein-Sekunden-Abständen später hungrig.
@@ -201,9 +203,9 @@ Konfiguration `./scheduler --ct 1 --dt 2 --mt 3 --mn 450 --dn 200 --cn 300 --dis
 	+ Avg: 1.073892 sec
 
 
-![Wartezeit der Mäuse](measure_3_mice.png)
-![Wartezeit der Hunde](measure_3_dogs.png)
-![Wartezeit der Katzen](measure_3_cats.png)
+![measure_3_mice.png](measure_3_mice.png)
+![measure_3_dogs.png](measure_3_dogs.png)
+![measure_3_cats.png](measure_3_cats.png)
 
 Der dritte Test soll ein Stresstest sein wobei hier Wert auf kurze Wartezeiten gelegt wird. Daher sind die Eingabeparameter dementsprechend optimiert.
 Die Anzahl der Futterschüsseln bewirkt einen schnelleren Wechsel der Threads und somit eine kürzere Wartezeit. 
@@ -223,7 +225,7 @@ Futterstelle. Wenn die Anzahl geringer wäre, müssten die Threads so lange wart
 So war auch zu Beginn die Annahme, dass vorallem die Mäuse die längeren Wartezeiten haben sollten. Doch dieses Experiment zeigt, dass nicht nur die Anzahl der Futterschüsseln sowie Priorität entscheidend ist, sondern ebenfalls die Anzahl der Threads.
 
 #### Test 4
-Konfiguration: ./scheduler --ce 30 --de 3 --me 0 --ct 1 --dt 1 --mt 1 --dish 6
+Konfiguration: `./scheduler --ce 30 --de 3 --me 0 --ct 1 --dt 1 --mt 1 --dish 6`
 
 * cat:
 	+ Min: 0.000168 sec
@@ -238,9 +240,9 @@ Konfiguration: ./scheduler --ce 30 --de 3 --me 0 --ct 1 --dt 1 --mt 1 --dish 6
 	+ Max: 0.000000 sec
 	+ Avg: 0.000000 sec
 	
-![Wartezeit der Mäuse](measure_4_mice.png)
-![Wartezeit der Hunde](measure_4_dogs.png)
-![Wartezeit der Katzen](measure_4_cats.png)
+![measure_4_mice.png](measure_4_mice.png)
+![measure_4_dogs.png](measure_4_dogs.png)
+![measure_4_cats.png](measure_4_cats.png)
 
 Der vierte Test enthält ebenfalls niedrige satisfied times, allerdings werden hier nun die Fressenszeiten betrachtet.
 
@@ -254,13 +256,39 @@ Diese schnelle Abwechslung innerhalb der Gruppen wird auch in dem Katzen Diagram
 Es lässt sich also sagen das die Anzahl der Fressen pro Tier die durchschnittliche Wartezeit verringen kann, wenn andere Tiere nicht so viel fressen. Performanceschübe sind nicht zu erkennen, da die Katzen nach Ablauf der Hunde sowieso konstant abwechseln. 
 
 #### Test 5
-Konfiguration: ./scheduler --e 1 --E 15 --ct 1 --dt 1 --mt 1 
+Konfiguration: `./scheduler --e 1 --E 15 --ct 1 --dt 1 --mt 1`
 
-![Wartezeit der Mäuse](measure_5_mice.png)
-![Wartezeit der Hunde](measure_5_dogs.png)
-![Wartezeit der Katzen](https://burns.in.htwg-konstanz.de/labworks-BSYS_WS1617/bsys_ws1617_6/blob/master/L5/measure_2_cats.png)
+* cat:
+	+ Min: 61.803565 sec
+	+ Max: 162.089633 sec
+	+ Avg: 120.565726 sec
+* dog:
+	+ Min: 25.140982 sec
+	+ Max: 163.316051 sec
+	+ Avg: 118.925845 sec
+* mouse:
+	+ Min: 0.000021 sec
+	+ Max: 148.918802 sec
+	+ Avg: 104.133490 sec
 
-Der fünfte Test befasst sich mit der Fr
+
+![measure_5_mice.png](measure_5_mice.png)
+![measure_5_dogs.png](measure_5_dogs.png)
+![measure_5_cats.png)](measure_5_cats.png)
+
+Der fünfte Test befasst sich mit der Überlegung die Fressenszeiten der Tiere zu variieren. In diesem Fall gehen wir von 1 bis 15 Sekunden aus.
+Die Tiere wechselen sich alle nacheinander ab, dh. die Prioritäten sind gleich.
+
+Die Annahme war, dass aufgrund der unterschiedlichen Fressenszeiten auch unterschiedliche lange durchschnittliche Wartezeiten ergeben, doch die statistische Auswertung ergab, dass
+sich die Tiere nur relativ gering unterscheiden. Große Unterschiede sind nicht festzustellen.
+Die Diagramme ziehen Rückschlüsse nach sich, dass trotz der unterschiedlichen  Fresszeiten die Tiere im Mittel fast gleich lange fressen.
+
+Der Grund dafür, dass die Zeiten sich periodisieren ist, dass die Diagramme die Anzahl der jemals fressenden Thread betrachtet. Somit fressen bei 6 Katzen und 5 Fresseneinheiten insgesamt 30 mal und die Wartezeiten wiedehrolen
+sich pro Gruppe, da die Fressenszeiten nur einmalig pro Thread berechnet werden. 
+
+Allerdings ist es interessant zu sehen, dass die Wartezeiten trotzdem relativ nahe beieinander liegen und die unterschiedlichen Fressenszeiten keinerlei Einfluss haben, wenn die Gruppen sich in regelmäßigen
+Abständen abwechseln.
+
 ## Kritik
 Wie einige Tests bereits andeuteten, arbeitet der Scheduler vorallem dann gut, wenn die Prioritäten ähnlich sind bzw. sich geringfügig unterscheiden. 
 Weiterhin kann die Performance durch die Erhöhung der Anzahl Futterschüsseln ebenfalls zunehmen, solange die Menge der Tiere nicht zu stark voneinander abweichen. 
@@ -278,4 +306,15 @@ Die hungrigsten Tiere einer Gruppe würden gewählt werden und man hätte eine e
 
 Letztenendes ist die Implementierung des Schedulers in wenigen Punkten verbesserungswürdig. Der markanteste Punkte hierbei ist, dass während die Tiere zwar nicht verhungern, sie in einem nicht außer Acht zu lassendem Zeitfenster warten.
 
+## Bugreport
+### Finished Ausgabe 
+Unter Umständen kann es passieren, dass die Ausgabe der fertigen Threads, also die, die fertig gefressen haben, eine nicht korrekte Reihenfolge hat. Dies führt auf eine Racecondition zurück.
+Vorallem wenn es weniger Futternäpfe als Threads gibt, lässt sich der Fehler besser reproduzieren. Das Problem ist, dass wenn z.B. alle Futternöpfe belegt sind und es noch weitere
+Threads gibt die aktiv auf eine Futterstelle warten, ändern die aktuelle fressenden Threads die Belegung der Futternäpfe. Wenn ein warteneder Thread nun aus dem aktiven warten raustritt, kann es sein
+das nun mehrere Thread längst fertig sind und womöglich sogar alle Futternöpfe leer sind. 
 
+Das ist im Prinzip kein technsicher Fehler, da die Tiere ja nach wie vor legal verfügbaren Näpfen fressen.
+
+### PNG Burns
+Leider ist uns nicht bekannt weshalb die png Bilder nicht in Gitlab dargestellt werden können. Die Bilder sind direkt in Markdown eingebunden.
+Es bleibt daher nichts anderes übrig als die Bilder lokal zu betrachten. 

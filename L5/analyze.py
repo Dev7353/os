@@ -38,6 +38,7 @@ def main():
     plt.ylabel("Thread waiting time [sec]")
 
     if mice:
+        plt.ylabel("Thread waiting time [sec]")
         plt.xlabel("Mice * eating times")
         plt.plot(*zip(*mice))
         file = sys.argv[1] + "_mice.png"
@@ -47,6 +48,7 @@ def main():
         plt.close()
         
     if dogs:
+        plt.ylabel("Thread waiting time [sec]")
         plt.xlabel("Dogs * eating times")
         plt.plot(*zip(*dogs))
         file = sys.argv[1] + "_dogs.png"
@@ -55,6 +57,7 @@ def main():
         plt.cla()
         plt.close()
     if cats:
+        plt.ylabel("Thread waiting time [sec]")
         plt.xlabel("Cats * eating times")
         plt.plot(*zip(*cats))
         file = sys.argv[1] + "_cats.png"
