@@ -237,7 +237,4 @@ Eine Möglichkeit zum besseren Scheduling wäre z.B. die nähere Betrachtung der
 Jedes Tier könnte eine Priorität annehmen und nach bestimmten Kriterien diese berechnen. 
 Die hungrigsten Tiere einer Gruppe würden gewählt werden und man hätte eine etwas ausbalancierte Lösung.
 
-Letztenendes ist die Implementierung des Schedulers in wenigen Punkten verbesserungswürdig. Der markanteste Punkte hierbei ist, dass während die Tiere zwar nicht verhungern, sie in einem nicht außer Acht zu lassendem Zeitfenster warten.  
-
-## Weitere Quellen
--
+Letztenendes ist die Implementierung des Schedulers in wenigen Punkten verbesserungswürdig. Der markanteste Punkte hierbei ist, dass während die Tiere zwar nicht verhungern, sie in einem nicht außer Acht zu lassendem Zeitfenster warten.
