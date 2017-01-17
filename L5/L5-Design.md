@@ -309,11 +309,11 @@ Letztenendes ist die Implementierung des Schedulers in wenigen Punkten verbesser
 ## Bugreport
 ### Finished Ausgabe 
 Unter Umständen kann es passieren, dass die Ausgabe der fertigen Threads, also die, die fertig gefressen haben, eine nicht korrekte Reihenfolge hat. Dies führt auf eine Racecondition zurück.
-Vorallem wenn es weniger Futternäpfe als Threads gibt, lässt sich der Fehler besser reproduzieren. Das Problem ist, dass wenn z.B. alle Futternöpfe belegt sind und es noch weitere
-Threads gibt die aktiv auf eine Futterstelle warten, ändern die aktuelle fressenden Threads die Belegung der Futternäpfe. Wenn ein warteneder Thread nun aus dem aktiven warten raustritt, kann es sein
-das nun mehrere Thread längst fertig sind und womöglich sogar alle Futternöpfe leer sind. 
+Vorallem wenn es weniger Futternäpfe als Threads gibt, lässt sich der Fehler besser reproduzieren. 
+Das Problem ist, dass wenn z.B. alle Futternäpfe belegt sind und es noch weitere Threads gibt, die aktiv auf eine Futterstelle warten, die aktuelle fressenden Threads die Belegung der Futternäpfe ändern. 
+Wenn ein wartender Thread nun aus dem aktiven Warten raustritt, kann es sein, dass nun mehrere Threads längst fertig sind und womöglich sogar alle Futternäpfe leer sind. 
 
-Das ist im Prinzip kein technsicher Fehler, da die Tiere ja nach wie vor legal verfügbaren Näpfen fressen.
+Das ist im Prinzip kein technischer Fehler, da die Tiere ja nach wie vor legal verfügbaren Näpfen fressen.
 
 ### PNG Burns
 Leider ist uns nicht bekannt weshalb die png Bilder nicht in Gitlab dargestellt werden können. Die Bilder sind direkt in Markdown eingebunden.
