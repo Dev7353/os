@@ -29,8 +29,8 @@ Die Mäuse beginnen zuerst weil die am schnellsten hungrig werden. Somit ergibt 
 | Tier 		| Runde 1 | Runde 2 | Runde 3 | Runde 4 | Runde 5 |
 | ---------	| ------- | ------- | ------- | ------- | ------- |
 | Katze 	| 14	  | 13	    | 12 	  | 11   	| 10      |
-| Hunde 	| 9 	  | 8, 	    | 7		  | 6   	| 5	      |
-| Mäuse 	| 2 	  | 3, 	    | 4 	  | 5 	    | 6       |
+| Hunde 	| 9 	  | 8 	    | 7		  | 6   	| 5	      |
+| Mäuse 	| 2 	  | 3 	    | 4 	  | 5 	    | 6       |
 
 Nach der fünften Runde sind also die Hunde an der Reihe.
 
