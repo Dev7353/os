@@ -16,7 +16,8 @@
 
 ### Auswahl des Schedulers:
 In unsere Implementierung haben wir für ein non-preemptive Round-Robin Scheduling ausgewählt, welcher mit Prioritäten arbeitet. 
-Durch das Round-Robin System wird jegliche Möglichkeit einer Starvation eliminiert, da jedes Tier irgendwann drankommt.
+Durch das Round-Robin System wird jegliche Möglichkeit einer Starvation eliminiert, da jedes Tier irgendwann drankommt. Wir definieren den Zustand Starvation als Threads die niemals
+dran kommen.
 Es werden Tiere priorisiert, die eine niedrige satisfied-time haben, sprich wenn sie schnell wieder essen wollen, kriegen sie eine höhere Priorität. Dadurch müssen solche Threads nicht zu lange warten.
 Haben Tiere dieselbe satisfied-time, so wird das letzte genommen, da wir in einer Schleife das Minimum der satisfied-time berechnen und den Index dieses Tieres speichern.
 
@@ -31,7 +32,7 @@ Hunde 9, 	8, 	7,	6, 	5 ...
 
 Mäuse 2, 	3, 	4, 	5, 	6 ...
 
-Nach der fünften Runde ist der Hund an der Reihe.
+Nach der fünften Runde sind die Hunde an der Reihe.
 
 
 ### Implementierung
@@ -166,7 +167,7 @@ Konfiguration: ./scheduler --ct 1 --dt 2 --mt 3
 
 Der zweite Test enthält im Prinzip fast diesselben Einstellungen wie der Standardtest mit dem Unterschied, dass die satisfied time nicht so stark unterschiedlich ist dh. die Tiere werden in ein Sekunden abständen später hungrig.
 Die statistische Auswertung zeigt deutlich, es gibt zwar Abweichungen in den minimalen Wartezeiten, jedoch werden diese Unterschiede durch 
-das Scheduling stark kompensiert. Daraus geht hervor, dass die Threads, unabhängig der Anzahl, mit ähnlichen satisfied times im durchschnitt fast gleich lange warten.
+das Scheduling stark kompensiert. Daraus geht hervor, dass die Threads mit ähnlichen satisfied times im durchschnitt fast gleich lange warten.
 
 Die Diagramme zeigen dies ebenfalls. Wobei die Skalierung beachtet werden sollte.
 
@@ -209,9 +210,9 @@ Die Katzen Threads starten zuerst, gefolgt von den Hunden und den Mäusen.
 Ein Interessanter Aspekt ist hier, dass obwohl die Katzen Threads bevorzugt gewählt werden, trotzdem eine höhere durchschnittliche
 Wartezeit aufweist wie die Mäuse. Zu Beobachten ist dies auch im Diagramm der Katzen. Zu Beginn ist die Wartezeit sehr gering, doch
 nach dem Gruppwechsel auf Hunde und Mäuse steigt sie rasand an. Das liegt zum teil daran, das die Anzahl der Tiere eine ebenso wichtige Rolle
-spielt, wie die Prioritäten. Die Katzen müssen schließlich auf die Hunde und Mäuse warten. Da es bei 450 Mäusen um 2250 Thread Zugriffe und bei 200 Hunden
-um 1000 Thread zugriffe handelt, müssen die Katzen ebenso lange warten. Abgesehen von dem Gruppenwechsel, warten alle Threads ab einem Zeitpunkt konstant.
-Besonders deutlich ist dies im Katzen diagramm sichtbar. Nach jedem Gruppenwechsel warten Die Mäuse innerhalb ihrer Gruppe sehr wenig.
+spielt, wie die Prioritäten. Die Katzen müssen schließlich auf die Hunde und Mäuse warten. Da es bei 450 Mäusen um 2250 Thread-Zyklen und bei 200 Hunden
+um 1000 Thread-Zykeln handelt, müssen die Katzen ebenso lange warten. Abgesehen von dem Gruppenwechsel, warten alle Threads ab einem Zeitpunkt konstant.
+Besonders deutlich ist dies im Mäuse Diagramm sichtbar. Nach jedem Gruppenwechsel warten Die Mäuse innerhalb ihrer Gruppe sehr wenig.
 
 Durch die Erhöhung der Anzahl an Futterschüsseln können die Tier Threads schneller an die 
 Futterstelle. Wenn die Anzahl geringer wäre müssten die Threads schließlich warten, bis mindestens eine Schüssel frei ist. Dies kostet
@@ -224,18 +225,19 @@ kann die Performance durch die erhöhung der Anzahl Futterschüsseln ebenfalls z
 nicht zu stark voneinander abweichen. 
 
 Der Scheduler betrachtet im Prinzip die Gruppenprioritäten und entscheidet dann, welche der Gruppen wichtiger ist. Dies ist vorallem dann hilfreich,
-wenn die Threads relativ gleich lange Essen und die Prioritäten sich merklich unterscheiden. Ähnlich wie im ersten Test.
+wenn die Threads relativ gleich lange Essen und die Prioritäten sich gering unterscheiden. Ähnlich wie im ersten Test.
 Die Mäuse haben zusammengerechnet eine Essenszeit von maximal 10 Sekunden. Ein Hund wartet hingegen jeweils 15 Sekunden. So bietet es sich an
-alle Mäuse innerhalb dieses Zeitfensters "durchzuschleussen" sodass die Katzen längerfristig weniger warten müssen, da bereits
+alle Mäuse innerhalb dieses Zeitfensters "durchzuschleussen" sodass die Hunde längerfristig weniger warten müssen, da bereits
 ein Tier vollständig fertig ist. 
 
 Ein Nachteil hierbei ergibt sich jedoch, wenn die Essenszeiten stark schwanken und keinen konstanten Wert haben, fressen die Mäuse dementsprechend länger
-während die Katzen hungrig werden. Da führt dazu, dass die Katzen länger warten.
+während die Hunde hungrig werden. Da führt dazu, dass die Hunde länger warten.
 
 Eine Möglichkeit zum besseren Scheduling wäre z.B. die nähere Betrachtung der Tierprioritäten. Der Scheduler wählt nicht nur anhand der satisfied time,
 sondern auch nach den Tieren. Jedes Tier könnte eine Priorität annehmen und nach bestimmten Kriterien diese berechnen. 
 Die hungrigsten Tiere einer Gruppe würden gewählt werden und man hätte eine etwas ausbalancierte Lösung.
 
-Zwar müssen die Tiere nicht verhungern, allerdings in einem nicht außer acht zu lassenden Zeitfenster warten. 
+Schließlich ist die Implementierung des Schedulers in wenigen Punkten verbesserungswürdig. Der markanteste Punkte hierbei is, dass
+zwar die Tiere nicht verhungern, jedoch in einem nicht außer acht zu lassenden Zeitfenster warten.  
 
 ## Weitere Quellen
