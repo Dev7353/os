@@ -3,11 +3,17 @@
 ## Inhaltsverzeichnis
 - [Vorüberlegung](#vorüberlegung)
 	- [Auswahl des Schedulers](#auswahl-des-schedulers)
-- [Funktionsweise](#funktionsweise)
-	- [Grundlegende Datenstrukturen](#vorüberlegung)
-	- [Implementierung](#implementierung)
-		- [Berechnung der Prioritäten](#berechnung-der-prioritäten)
-		- [Funktionsweise eines Threads](#funktionsweise-eines-threads)
+- [Implementierung](#implementierung)
+	- [Grundlegende Datenstrukturen](#grundlegende-datenstrukturen)
+	- [Funktionsweise](#funktionsweise)
+	- [Der Tierthread](#der-tierthread)
+	- [Scheduling](#scheduling)
+	- [Zeitmessung](#zeitmessung)
+- [Auswertung](#auswertung)
+	- [Test 1](#test-1)
+	- [Test 2](#test-2)
+	- [Test 3](#test-3)
+
 - [Kritik](#kritik)
 - [Weitere Quellen](#weitere-quellen)
 
@@ -77,7 +83,7 @@ Wenn ein Tier-Thread nun aufgewacht ist, belegt er eine Futterschüssel aus der 
 
 Am Ende des Thread, kurz vor der Terminierung, wird in der 'threadDone' Matrix eingetragen, welches bedeutet, dass der aktuelle Thread beendet ist.
 
-#### Der Scheduler
+#### Scheduling
 Der Scheduler-Thread ist der erste Thread der gestartet wird. Zu Beginn wird über die Funktion `nextGroup()` die Gruppe mit der wichtigsten Priorität bestimmt.
 Anschließend verweilt der Scheduler im aktiven Warten, solange bis die Threads der jeweiligen Gruppe sich in der `isReady[][]` Matrix registriert haben.
 
@@ -234,3 +240,4 @@ Die hungrigsten Tiere einer Gruppe würden gewählt werden und man hätte eine e
 Letztenendes ist die Implementierung des Schedulers in wenigen Punkten verbesserungswürdig. Der markanteste Punkte hierbei ist, dass während die Tiere zwar nicht verhungern, sie in einem nicht außer Acht zu lassendem Zeitfenster warten.  
 
 ## Weitere Quellen
+-
