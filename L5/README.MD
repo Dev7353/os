@@ -28,16 +28,13 @@
 * measure_standard_*animal*
 	* Measure-diagrams for each respective animal
 * measure_2_*animal*
-	* 
+	* Measure-diagrams for each respective animal
 * measure_3_*animal*
-	*
+	* Measure-diagrams for each respective animal
 * measure_5_*animal*
-
+	* Measure-diagrams for each respective animal
 * measure files
 	* Contain the data to create the diagrams
-
-* data
-	* Contains the commands for each diagram
 
 ### Design
 * L5-Design.md
