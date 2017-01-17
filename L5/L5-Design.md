@@ -222,6 +222,45 @@ Durch die Erhöhung der Anzahl an Futterschüsseln können die Tier-Threads schn
 Futterstelle. Wenn die Anzahl geringer wäre, müssten die Threads so lange warten, bis mindestens eine Schüssel frei ist. Dies kostet Zeit. 
 So war auch zu Beginn die Annahme, dass vorallem die Mäuse die längeren Wartezeiten haben sollten. Doch dieses Experiment zeigt, dass nicht nur die Anzahl der Futterschüsseln sowie Priorität entscheidend ist, sondern ebenfalls die Anzahl der Threads.
 
+#### Test 4
+Konfiguration: ./scheduler --ce 30 --de 3 --me 0 --ct 1 --dt 1 --mt 1 --dish 6
+
+* cat:
+	+ Min: 0.000168 sec
+	+ Max: 1.002559 sec
+	+ Avg: 0.767150 sec
+* dog:
+	+ Min: 0.000883 sec
+	+ Max: 1.002330 sec
+	+ Avg: 0.668432 sec
+* mouse:
+	+ Min: 0.000000 sec
+	+ Max: 0.000000 sec
+	+ Avg: 0.000000 sec
+	
+![Wartezeit der Mäuse](measure_4_mice.png)
+![Wartezeit der Hunde](measure_4_dogs.png)
+![Wartezeit der Katzen](measure_4_cats.png)
+
+Der vierte Test enthält ebenfalls niedrige satisfied times, allerdings werden hier nun die Fressenszeiten betrachtet.
+
+Die Mäuse fressen in diesem Versuch nicht.
+Da die Anzahl der Thread-Zyklen für die Kadse bei 180 liegt, wird erwartet, dass der Durchschnittswert der Warezeiten der Katzen sehr gering ist. Im Vergleich haben die Hunde lediglich 12 Thread Zyklen, dh. sie terminieren sehr frühzeitig während die Katzen noch fressen wollen. 
+
+Das Ergbenis ist, dass die Katzen nach der Terminierung der Hunde noch reichlich fressen wollen und die einzige Gruppe ist die noch verfügbar ist, ergeben sich extrem kurze Wartezeiten für die Katzen.
+
+Diese schnelle Abwechslung innerhalb der Gruppen wird auch in dem Katzen Diagramm deutlich. Im Durchschnitt pendeln die Katzen konstant in einem Zeitfenster bis ca. einer Sekunde.
+
+Es lässt sich also sagen das die Anzahl der Fressen pro Tier die durchschnittliche Wartezeit verringen kann, wenn andere Tiere nicht so viel fressen. Performanceschübe sind nicht zu erkennen, da die Katzen nach Ablauf der Hunde sowieso konstant abwechseln. 
+
+#### Test 5
+Konfiguration: ./scheduler --e 1 --E 15 --ct 1 --dt 1 --mt 1 
+
+![Wartezeit der Mäuse](measure_5_mice.png)
+![Wartezeit der Hunde](measure_5_dogs.png)
+![Wartezeit der Katzen](https://burns.in.htwg-konstanz.de/labworks-BSYS_WS1617/bsys_ws1617_6/blob/master/L5/measure_2_cats.png)
+
+Der fünfte Test befasst sich mit der Fr
 ## Kritik
 Wie einige Tests bereits andeuteten, arbeitet der Scheduler vorallem dann gut, wenn die Prioritäten ähnlich sind bzw. sich geringfügig unterscheiden. 
 Weiterhin kann die Performance durch die Erhöhung der Anzahl Futterschüsseln ebenfalls zunehmen, solange die Menge der Tiere nicht zu stark voneinander abweichen. 
@@ -238,3 +277,5 @@ Jedes Tier könnte eine Priorität annehmen und nach bestimmten Kriterien diese 
 Die hungrigsten Tiere einer Gruppe würden gewählt werden und man hätte eine etwas ausbalancierte Lösung.
 
 Letztenendes ist die Implementierung des Schedulers in wenigen Punkten verbesserungswürdig. Der markanteste Punkte hierbei ist, dass während die Tiere zwar nicht verhungern, sie in einem nicht außer Acht zu lassendem Zeitfenster warten.
+
+
